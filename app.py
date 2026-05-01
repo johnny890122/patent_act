@@ -1,32 +1,23 @@
+from flask import Flask
 import os
-from flask import Flask, jsonify
-from pymongo import MongoClient
-from dotenv import load_dotenv
+from db.models import Database
+from routes.admin import admin_bp
 
-# Load environment variables from .env file
-load_dotenv()
+def create_app():
+    app = Flask(__name__)
+    
+    # Initialize DB indexes
+    db = Database()
+    db.init_db()
 
-app = Flask(__name__)
+    # Register Blueprints
+    app.register_blueprint(admin_bp)
 
-# Configure MongoDB using the MONGO_URI environment variable
-# Provide a fallback for local development
-MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/localdb')
-client = MongoClient(MONGO_URI)
+    return app
 
-@app.route('/')
-def index():
-    return jsonify({"message": "Hello from Flask & MongoDB on Heroku!"})
-
-@app.route('/ping_db')
-def ping_db():
-    try:
-        # A simple command to verify the database connection
-        client.admin.command('ping')
-        return jsonify({"status": "Database connection successful!"})
-    except Exception as e:
-        return jsonify({"status": "Database connection failed", "error": str(e)}), 500
+app = create_app()
 
 if __name__ == '__main__':
-    # Heroku dynamically assigns a port via the PORT environment variable
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
