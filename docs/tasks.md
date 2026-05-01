@@ -7,8 +7,8 @@
 - [x] 1.4 Write admin script/endpoint (`routes/admin.py`) to parse `knowledge/ch1.md` and seed `laws` collection. (Using mock up for now)
 
 ## Phase 2: Services Implementation (LLM & Business Logic)
-- [ ] 2.1 Implement `services/question_gen.py` to talk to OpenRouter and parse JSON for MCQ and Short Answer.
-- [ ] 2.2 Implement `services/grader.py` to evaluate short answers returning 0, 0.5, or 1.
+- [x] 2.1 Implement `services/question_gen.py` to talk to OpenRouter and parse JSON for MCQ and Short Answer. (Enhanced with Pydantic validation)
+- [x] 2.2 Implement `services/grader.py` to evaluate short answers returning 0, 0.5, or 1. (Implemented with Pydantic validation and comprehensive tests)
 - [ ] 2.3 Implement `services/inventory.py` to handle the `n`, `4n` inventory logic and async generation trigger.
 
 ## Phase 3: Core API Endpoints
