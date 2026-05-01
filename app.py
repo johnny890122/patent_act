@@ -2,6 +2,8 @@ from flask import Flask
 import os
 from db.models import Database
 from routes.admin import admin_bp
+from routes.quiz import quiz_bp
+from routes.laws import laws_bp
 
 def create_app():
     app = Flask(__name__)
@@ -12,6 +14,8 @@ def create_app():
 
     # Register Blueprints
     app.register_blueprint(admin_bp)
+    app.register_blueprint(quiz_bp)
+    app.register_blueprint(laws_bp)
 
     return app
 

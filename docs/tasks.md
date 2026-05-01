@@ -9,14 +9,14 @@
 ## Phase 2: Services Implementation (LLM & Business Logic)
 - [x] 2.1 Implement `services/question_gen.py` to talk to OpenRouter and parse JSON for MCQ and Short Answer. (Enhanced with Pydantic validation)
 - [x] 2.2 Implement `services/grader.py` to evaluate short answers returning 0, 0.5, or 1. (Implemented with Pydantic validation and comprehensive tests)
-- [ ] 2.3 Implement `services/inventory.py` to handle the `n`, `4n` inventory logic and async generation trigger.
+- [x] 2.3 Implement `services/inventory.py` to handle the `n`, `4n` inventory logic and async generation trigger. (Implemented with comprehensive tests)
 
 ## Phase 3: Core API Endpoints
-- [ ] 3.1 Implement `POST /quiz/session` in `routes/quiz.py` (handles new, review, mixed modes).
-- [ ] 3.2 Implement `POST /quiz/session/:id/answer` for MCQ and Short Answer submissions and score updating.
-- [ ] 3.3 Implement `POST /quiz/session/:id/answer/:aid/appeal` for reversing scores logic.
-- [ ] 3.4 Implement `DELETE /questions/:qid` for soft deleting questions.
-- [ ] 3.5 Implement `GET` routes and `PUT /laws/:id/star` in `routes/laws.py` for laws browser.
+- [x] 3.1 Implement `POST /quiz/session` in `routes/quiz.py` (handles new, review, mixed modes).
+- [x] 3.2 Implement `POST /quiz/session/:id/answer` for MCQ and Short Answer submissions and score updating.
+- [x] 3.3 Implement `POST /quiz/session/:id/answer/:aid/appeal` for reversing scores logic.
+- [x] 3.4 Implement `DELETE /questions/:qid` for soft deleting questions.
+- [x] 3.5 Implement `GET` routes and `PUT /laws/:id/star` in `routes/laws.py` for laws browser.
 
 ## Phase 4: Frontend & Integration (Mobile Web)
 - [ ] 4.1 Build basic HTML/CSS/JS templates for Dashboard (S-01) and Law Article Browser (S-07).
