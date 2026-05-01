@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block title %}法條詳情 - 專利法 AI 刷題助手{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Back Button -->
+    <div style="margin-bottom: 1rem;">
+        <a href="/laws" class="btn btn-secondary">
+            ← 返回法條列表
+        </a>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p class="loading-text">載入中...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="card" style="display: none;">
+        <h2 style="color: var(--error-color);">⚠️ 載入失敗</h2>
+        <p id="error-message">無法載入法條資料</p>
+        <a href="/laws" class="btn btn-primary">返回法條列表</a>
+    </div>
+
+    <!-- Law Detail Card -->
+    <div id="law-detail" style="display: none;">
+        <!-- Law Info Card -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <div>
+                    <h1 class="card-title" id="law-article">載入中...</h1>
+                    <p class="card-subtitle" id="law-chapter">載入中...</p>
+                </div>
+                <button 
+                    id="star-btn" 
+                    class="btn btn-outline"
+                    style="font-size: 1.5rem; padding: 0.5rem 1rem;"
+                    title="收藏此法條"
+                >
+                    ☆
+                </button>
+            </div>
+            
+            <div class="law-content" id="law-content">
+                載入中...
+            </div>
+            
+            <!-- Statistics -->
+            <div class="summary-stats" style="margin-top: 1.5rem;">
+                <div class="summary-stat">
+                    <div class="stat-value" id="attempt-count">0</div>
+                    <div class="stat-label">作答次數</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="stat-value" id="avg-score">0.0</div>
+                    <div class="stat-label">平均分數</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="stat-value" id="question-count">0</div>
+                    <div class="stat-label">相關題目</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Questions History Card -->
+        <div class="card">
+            <h2 class="card-title">📝 相關題目</h2>
+            <p class="card-subtitle">此法條相關的所有題目</p>
+            
+            <!-- Filter Tabs -->
+            <div class="filter-tabs" style="margin: 1rem 0;">
+                <button class="filter-tab active" data-filter="all">
+                    全部 (<span id="count-all">0</span>)
+                </button>
+                <button class="filter-tab" data-filter="MCQ">
+                    選擇題 (<span id="count-mcq">0</span>)
+                </button>
+                <button class="filter-tab" data-filter="ShortAnswer">
+                    簡答題 (<span id="count-short">0</span>)
+                </button>
+                <button class="filter-tab" data-filter="deleted">
+                    已刪除 (<span id="count-deleted">0</span>)
+                </button>
+            </div>
+            
+            <!-- Questions List -->
+            <div id="questions-list">
+                <!-- Questions will be loaded here -->
+            </div>
+            
+            <!-- Pagination -->
+            <div id="questions-pagination" class="pagination" style="display: none;">
+                <button class="pagination-btn" id="prev-page-btn" disabled>← 上一頁</button>
+                <span class="pagination-info" id="page-info">第 1 頁 / 共 1 頁</span>
+                <button class="pagination-btn" id="next-page-btn">下一頁 →</button>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="questions-empty" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">📭</div>
+                <div class="empty-state-title">尚無相關題目</div>
+                <p class="empty-state-text">此法條還沒有生成過題目</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const lawId = "{{ law_id }}";
+    let lawData = null;
+    let questions = [];
+    let currentFilter = 'all';
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        loadLawDetail();
+        setupEventListeners();
+    });
+    
+    // Setup event listeners
+    function setupEventListeners() {
+        // Star button
+        document.getElementById('star-btn').addEventListener('click', toggleStar);
+        
+        // Filter tabs
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const filter = e.target.dataset.filter;
+                setFilter(filter);
+            });
+        });
+    }
+    
+    // Load law detail
+    async function loadLawDetail() {
+        try {
+            // Fetch law data
+            const lawResponse = await window.appUtils.apiCall(`/api/laws/${lawId}`);
+            lawData = lawResponse;
+            
+            // Fetch questions for this law
+            const questionsResponse = await window.appUtils.apiCall(`/api/laws/${lawId}/questions`);
+            questions = questionsResponse.questions || [];
+            
+            // Render law detail
+            renderLawDetail();
+            
+            // Render questions
+            renderQuestions();
+            
+            // Hide loading, show content
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('law-detail').style.display = 'block';
+            
+        } catch (error) {
+            console.error('Error loading law detail:', error);
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error-state').style.display = 'block';
+            document.getElementById('error-message').textContent = error.message || '無法載入法條資料';
+        }
+    }
+    
+    // Render law detail
+    function renderLawDetail() {
+        document.getElementById('law-article').textContent = `第 ${lawData.article_number} 條`;
+        document.getElementById('law-chapter').textContent = lawData.chapter;
+        document.getElementById('law-content').textContent = lawData.content;
+        
+        // Update star button
+        const starBtn = document.getElementById('star-btn');
+        starBtn.textContent = lawData.is_starred ? '★' : '☆';
+        starBtn.style.color = lawData.is_starred ? 'var(--warning-color)' : '';
+        
+        // Update statistics
+        document.getElementById('attempt-count').textContent = lawData.attempt_count || 0;
+        document.getElementById('avg-score').textContent = (lawData.avg_score || 0).toFixed(2);
+        document.getElementById('question-count').textContent = questions.filter(q => !q.is_deleted).length;
+    }
+    
+    // Render questions
+    function renderQuestions() {
+        // Update counts
+        const allCount = questions.length;
+        const mcqCount = questions.filter(q => q.type === 'MCQ' && !q.is_deleted).length;
+        const shortCount = questions.filter(q => q.type === 'ShortAnswer' && !q.is_deleted).length;
+        const deletedCount = questions.filter(q => q.is_deleted).length;
+        
+        document.getElementById('count-all').textContent = allCount;
+        document.getElementById('count-mcq').textContent = mcqCount;
+        document.getElementById('count-short').textContent = shortCount;
+        document.getElementById('count-deleted').textContent = deletedCount;
+        
+        // Filter questions
+        let filteredQuestions = questions;
+        if (currentFilter === 'deleted') {
+            filteredQuestions = questions.filter(q => q.is_deleted);
+        } else if (currentFilter !== 'all') {
+            filteredQuestions = questions.filter(q => q.type === currentFilter && !q.is_deleted);
+        } else {
+            filteredQuestions = questions.filter(q => !q.is_deleted);
+        }
+        
+        // Render
+        const listEl = document.getElementById('questions-list');
+        const emptyEl = document.getElementById('questions-empty');
+        
+        if (filteredQuestions.length === 0) {
+            listEl.style.display = 'none';
+            emptyEl.style.display = 'block';
+        } else {
+            listEl.style.display = 'block';
+            emptyEl.style.display = 'none';
+            
+            listEl.innerHTML = filteredQuestions.map((q, index) => `
+                <div class="question-item ${q.is_deleted ? 'deleted' : ''}" style="
+                    border: 1px solid var(--border-color);
+                    border-radius: 0.5rem;
+                    padding: 1rem;
+                    margin-bottom: 1rem;
+                    ${q.is_deleted ? 'opacity: 0.6; background-color: var(--background-secondary);' : ''}
+                ">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                        <div>
+                            <span class="question-type-badge ${q.type === 'MCQ' ? 'badge-mcq' : 'badge-short'}" style="
+                                display: inline-block;
+                                padding: 0.25rem 0.75rem;
+                                border-radius: 1rem;
+                                font-size: 0.875rem;
+                                font-weight: 500;
+                            ">
+                                ${q.type === 'MCQ' ? '選擇題' : '簡答題'}
+                            </span>
+                            ${q.is_deleted ? '<span style="color: var(--error-color); margin-left: 0.5rem;">🗑️ 已刪除</span>' : ''}
+                        </div>
+                        <span style="color: var(--text-secondary); font-size: 0.875rem;">
+                            #${index + 1}
+                        </span>
+                    </div>
+                    <div style="margin-bottom: 0.75rem; color: var(--text-primary);">
+                        ${q.content}
+                    </div>
+                    ${q.type === 'MCQ' && q.options ? `
+                        <div style="margin-bottom: 0.75rem;">
+                            ${q.options.map((opt, i) => `
+                                <div style="padding: 0.5rem; background: var(--background-secondary); border-radius: 0.25rem; margin-bottom: 0.25rem; font-size: 0.875rem;">
+                                    ${opt}
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    <div style="padding: 0.75rem; background: var(--success-bg); border-left: 3px solid var(--success-color); border-radius: 0.25rem; margin-bottom: 0.5rem;">
+                        <div style="font-weight: 500; color: var(--success-color); margin-bottom: 0.25rem; font-size: 0.875rem;">
+                            ✓ 正確答案
+                        </div>
+                        <div style="font-size: 0.875rem;">
+                            ${q.correct_answer}
+                        </div>
+                    </div>
+                    <details style="margin-top: 0.75rem;">
+                        <summary style="cursor: pointer; color: var(--primary-color); font-weight: 500; font-size: 0.875rem;">
+                            💡 查看解析
+                        </summary>
+                        <div style="margin-top: 0.5rem; padding: 0.75rem; background: var(--background-secondary); border-radius: 0.25rem; font-size: 0.875rem; color: var(--text-secondary);">
+                            ${q.ai_explanation}
+                        </div>
+                    </details>
+                </div>
+            `).join('');
+        }
+    }
+    
+    // Set filter
+    function setFilter(filter) {
+        currentFilter = filter;
+        currentPage = 1; // Reset to first page when filter changes
+        
+        // Update active tab
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.classList.remove('active');
+            if (tab.dataset.filter === filter) {
+                tab.classList.add('active');
+            }
+        });
+        
+        // Re-render questions
+        renderQuestions();
+    }
+    
+    // Toggle star
+    async function toggleStar() {
+        try {
+            const response = await window.appUtils.apiCall(
+                `/api/laws/${lawId}/star`,
+                { method: 'PUT' }
+            );
+            
+            lawData.is_starred = response.is_starred;
+            
+            // Update button
+            const starBtn = document.getElementById('star-btn');
+            starBtn.textContent = lawData.is_starred ? '★' : '☆';
+            starBtn.style.color = lawData.is_starred ? 'var(--warning-color)' : '';
+            
+            window.appUtils.showToast(response.message, 'success');
+            
+        } catch (error) {
+            console.error('Error toggling star:', error);
+            window.appUtils.showToast('操作失敗', 'error');
+        }
+    }
+</script>
+{% endblock %}

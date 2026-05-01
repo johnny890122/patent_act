@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}首頁 - 專利法 AI 刷題助手{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">專利法 AI 刷題助手</h1>
+        <p class="dashboard-subtitle">智能練習，精準掌握每條法條</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card streak">
+            <span class="stat-value" id="streak-count">0</span>
+            <span class="stat-label">🔥 連續答對天數</span>
+        </div>
+        <div class="stat-card starred">
+            <span class="stat-value" id="starred-count">0</span>
+            <span class="stat-label">⭐ 收藏的法條</span>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+        <h2 class="card-title">開始練習</h2>
+        <p class="card-subtitle">選擇一個練習模式開始刷題</p>
+        
+        <a href="/quiz/config" class="btn btn-primary btn-block btn-lg">
+            🎯 開始新測驗
+        </a>
+        
+        <a href="/laws" class="btn btn-secondary btn-block">
+            📖 瀏覽法條
+        </a>
+    </div>
+
+    <!-- Recent Activity (Optional - for future implementation) -->
+    <div class="card">
+        <h2 class="card-title">最近活動</h2>
+        <div id="recent-activity">
+            <div class="empty-state">
+                <div class="empty-state-icon">📝</div>
+                <div class="empty-state-title">尚無練習記錄</div>
+                <p class="empty-state-text">開始第一個測驗來追蹤你的進度</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Study Tips -->
+    <div class="card">
+        <h2 class="card-title">💡 學習小提示</h2>
+        <ul style="list-style: none; padding: 0;">
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                ✓ 每天至少練習 10 題以保持連續記錄
+            </li>
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                ✓ 收藏重點法條以便快速複習
+            </li>
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                ✓ 連續答對 3 次即達到「精熟」狀態
+            </li>
+            <li style="padding: 0.5rem 0;">
+                ✓ 使用「複習模式」強化需要加強的題目
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Load dashboard stats
+    async function loadDashboardStats() {
+        try {
+            // Fetch streak data (placeholder for future API)
+            const streakCount = localStorage.getItem('streak') || 0;
+            document.getElementById('streak-count').textContent = streakCount;
+            
+            // Fetch starred laws count from stats endpoint
+            const response = await fetch('/api/laws/stats');
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('starred-count').textContent = data.starred_count || 0;
+            }
+        } catch (error) {
+            console.error('Failed to load dashboard stats:', error);
+        }
+    }
+
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDashboardStats();
+    });
+</script>
+{% endblock %}

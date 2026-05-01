@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}法條瀏覽 - 專利法 AI 刷題助手{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="card">
+        <h1 class="card-title">📖 專利法條文瀏覽</h1>
+        <p class="card-subtitle">瀏覽所有法條，點擊法條查看詳情，點擊星號收藏重點法條</p>
+    </div>
+
+    <!-- Filter & Search (Future feature) -->
+    <div class="card">
+        <input 
+            type="text" 
+            id="search-input" 
+            placeholder="🔍 搜尋法條內容或條號..." 
+            style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 0.5rem; font-size: 1rem;"
+        >
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Laws List -->
+    <ul id="laws-list" class="law-list hidden">
+        <!-- Laws will be dynamically loaded here -->
+    </ul>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="empty-state hidden">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-title">找不到法條</div>
+        <p class="empty-state-text">請調整搜尋條件或聯繫管理員</p>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="pagination hidden">
+        <button class="pagination-btn" id="prev-btn" disabled>← 上一頁</button>
+        <span class="pagination-info" id="page-info">第 1 頁</span>
+        <button class="pagination-btn" id="next-btn">下一頁 →</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // State management
+    let currentPage = 1;
+    let totalPages = 1;
+    let allLaws = [];
+    let filteredLaws = [];
+    const PAGE_SIZE = 20;
+
+    // DOM elements
+    const loadingEl = document.getElementById('loading');
+    const lawsListEl = document.getElementById('laws-list');
+    const emptyStateEl = document.getElementById('empty-state');
+    const paginationEl = document.getElementById('pagination');
+    const searchInput = document.getElementById('search-input');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const pageInfo = document.getElementById('page-info');
+
+    // Fetch all laws from API
+    async function fetchLaws() {
+        try {
+            loadingEl.classList.remove('hidden');
+            lawsListEl.classList.add('hidden');
+            emptyStateEl.classList.add('hidden');
+            
+            const response = await fetch('/api/laws?per_page=1000');
+            if (!response.ok) throw new Error('Failed to fetch laws');
+            
+            const data = await response.json();
+            allLaws = data.laws || [];
+            filteredLaws = [...allLaws];
+            
+            renderPage(1);
+        } catch (error) {
+            console.error('Error fetching laws:', error);
+            loadingEl.classList.add('hidden');
+            emptyStateEl.classList.remove('hidden');
+        }
+    }
+
+    // Render laws for current page
+    function renderPage(page) {
+        currentPage = page;
+        totalPages = Math.ceil(filteredLaws.length / PAGE_SIZE);
+        
+        const startIdx = (page - 1) * PAGE_SIZE;
+        const endIdx = startIdx + PAGE_SIZE;
+        const pageData = filteredLaws.slice(startIdx, endIdx);
+        
+        if (pageData.length === 0) {
+            loadingEl.classList.add('hidden');
+            lawsListEl.classList.add('hidden');
+            emptyStateEl.classList.remove('hidden');
+            paginationEl.classList.add('hidden');
+            return;
+        }
+        
+        // Group laws by chapter
+        const lawsByChapter = groupByChapter(pageData);
+        lawsListEl.innerHTML = renderGroupedLaws(lawsByChapter);
+        
+        loadingEl.classList.add('hidden');
+        lawsListEl.classList.remove('hidden');
+        emptyStateEl.classList.add('hidden');
+        paginationEl.classList.remove('hidden');
+        
+        updatePaginationControls();
+        attachEventListeners();
+    }
+    
+    // Group laws by chapter
+    function groupByChapter(laws) {
+        const grouped = {};
+        laws.forEach(law => {
+            const chapter = law.chapter || '未分類';
+            if (!grouped[chapter]) {
+                grouped[chapter] = [];
+            }
+            grouped[chapter].push(law);
+        });
+        return grouped;
+    }
+    
+    // Render grouped laws with chapter headers
+    function renderGroupedLaws(lawsByChapter) {
+        let html = '';
+        Object.keys(lawsByChapter).forEach(chapter => {
+            html += `
+                <li class="chapter-header">
+                    <h3 class="chapter-title">${chapter}</h3>
+                </li>
+            `;
+            lawsByChapter[chapter].forEach(law => {
+                html += createLawItem(law);
+            });
+        });
+        return html;
+    }
+
+    // Create HTML for a single law item
+    function createLawItem(law) {
+        const starClass = law.is_starred ? 'starred' : '';
+        const starIcon = law.is_starred ? '⭐' : '☆';
+        const avgScore = law.avg_score ? law.avg_score.toFixed(1) : 'N/A';
+        
+        return `
+            <li class="law-item" data-law-id="${law._id || law.article_number}">
+                <div class="law-article-number">${law.article_number}</div>
+                <div class="law-content">
+                    <div class="law-text">${law.content}</div>
+                    <div class="law-meta">
+                        <span>📊 答題: ${law.attempt_count || 0} 次</span>
+                        <span>🎯 平均分: ${avgScore}</span>
+                    </div>
+                </div>
+                <div class="law-star ${starClass}" data-law-id="${law._id || law.article_number}">
+                    ${starIcon}
+                </div>
+            </li>
+        `;
+    }
+
+    // Update pagination controls
+    function updatePaginationControls() {
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === totalPages;
+        pageInfo.textContent = `第 ${currentPage} / ${totalPages} 頁`;
+    }
+
+    // Attach event listeners to law items
+    function attachEventListeners() {
+        // Star toggle buttons
+        document.querySelectorAll('.law-star').forEach(star => {
+            star.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const lawId = star.getAttribute('data-law-id');
+                await toggleStar(lawId, star);
+            });
+        });
+        
+        // Law item click (view details)
+        document.querySelectorAll('.law-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('law-star')) {
+                    const lawId = item.getAttribute('data-law-id');
+                    viewLawDetails(lawId);
+                }
+            });
+        });
+    }
+
+    // Toggle star status
+    async function toggleStar(lawId, starElement) {
+        try {
+            const response = await fetch(`/api/laws/${lawId}/star`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (!response.ok) throw new Error('Failed to toggle star');
+            
+            const data = await response.json();
+            const isStarred = data.is_starred;
+            
+            // Update UI
+            starElement.textContent = isStarred ? '⭐' : '☆';
+            starElement.classList.toggle('starred', isStarred);
+            
+            // Update data
+            const lawIndex = allLaws.findIndex(l => (l._id || l.article_number) === lawId);
+            if (lawIndex !== -1) {
+                allLaws[lawIndex].is_starred = isStarred;
+            }
+        } catch (error) {
+            console.error('Error toggling star:', error);
+            alert('收藏失敗，請稍後再試');
+        }
+    }
+
+    // View law details (placeholder for future implementation)
+    function viewLawDetails(lawId) {
+        // TODO: Navigate to law detail page or show modal
+        console.log('View law details:', lawId);
+        window.location.href = `/laws/${lawId}`;
+    }
+
+    // Search functionality
+    function filterLaws(searchTerm) {
+        const term = searchTerm.toLowerCase().trim();
+        
+        if (!term) {
+            filteredLaws = [...allLaws];
+        } else {
+            filteredLaws = allLaws.filter(law => 
+                law.article_number.toLowerCase().includes(term) ||
+                law.content.toLowerCase().includes(term) ||
+                (law.chapter && law.chapter.toLowerCase().includes(term))
+            );
+        }
+        
+        renderPage(1);
+    }
+
+    // Debounce function for search
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', debounce((e) => {
+        filterLaws(e.target.value);
+    }, 300));
+
+    prevBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+            renderPage(currentPage - 1);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentPage < totalPages) {
+            renderPage(currentPage + 1);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchLaws();
+    });
+</script>
+{% endblock %}

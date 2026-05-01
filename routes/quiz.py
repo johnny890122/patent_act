@@ -17,7 +17,7 @@ from services.grader import Grader
 
 logger = logging.getLogger(__name__)
 
-quiz_bp = Blueprint('quiz', __name__, url_prefix='/quiz')
+quiz_bp = Blueprint('quiz', __name__, url_prefix='/api/quiz')
 
 # Initialize services
 api_key = os.environ.get('OPENROUTER_API_KEY')

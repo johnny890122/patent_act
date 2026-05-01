@@ -1,0 +1,491 @@
+{% extends "base.html" %}
+
+{% block title %}測驗進行中 - 專利法 AI 刷題助手{% endblock %}
+
+{% block content %}
+<div class="container quiz-container">
+    <!-- Progress Bar -->
+    <div class="quiz-progress">
+        <div class="progress-info">
+            <span class="progress-text">題目進度</span>
+            <span class="progress-count" id="progress-count">1 / 10</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 10%"></div>
+        </div>
+    </div>
+
+    <!-- Question Card -->
+    <div class="card question-card" id="question-card">
+        <div class="question-header">
+            <span class="question-type-badge" id="question-type">選擇題</span>
+            <span class="question-number" id="question-number">第 1 題</span>
+        </div>
+        
+        <div class="question-content" id="question-content">
+            <!-- Question text will be inserted here -->
+        </div>
+        
+        <!-- MCQ Options Container -->
+        <div class="mcq-options" id="mcq-options" style="display: none;">
+            <!-- Options will be inserted here dynamically -->
+        </div>
+        
+        <!-- Short Answer Input Container -->
+        <div class="short-answer-container" id="short-answer-container" style="display: none;">
+            <textarea 
+                id="short-answer-input" 
+                class="short-answer-input" 
+                placeholder="請輸入您的答案..."
+                rows="6"
+            ></textarea>
+            <div class="char-count">
+                <span id="char-count">0</span> 字
+            </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <button 
+            type="button" 
+            class="btn btn-primary btn-block btn-lg" 
+            id="submit-answer-btn"
+            style="display: none;"
+        >
+            提交答案
+        </button>
+    </div>
+
+    <!-- Result Card (Initially Hidden) -->
+    <div class="card result-card" id="result-card" style="display: none;">
+        <div class="result-header">
+            <div class="score-badge" id="score-badge">
+                <!-- Score will be inserted here -->
+            </div>
+        </div>
+        
+        <div class="result-content">
+            <div class="result-section">
+                <h3 class="result-label">您的答案</h3>
+                <p class="result-text" id="user-answer-display"></p>
+            </div>
+            
+            <div class="result-section">
+                <h3 class="result-label">正確答案</h3>
+                <p class="result-text" id="correct-answer-display"></p>
+            </div>
+            
+            <div class="result-section">
+                <h3 class="result-label">AI 解析</h3>
+                <p class="result-text" id="ai-explanation-display"></p>
+            </div>
+            
+            <div class="result-section" id="feedback-section" style="display: none;">
+                <h3 class="result-label">評分說明</h3>
+                <p class="result-text" id="feedback-display"></p>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="result-actions">
+            <button 
+                type="button" 
+                class="btn btn-outline" 
+                id="appeal-btn"
+            >
+                📢 申訴評分
+            </button>
+            <button 
+                type="button" 
+                class="btn btn-outline btn-danger" 
+                id="delete-btn"
+            >
+                🗑️ 刪除題目
+            </button>
+        </div>
+        
+        <!-- Next Question Button -->
+        <button 
+            type="button" 
+            class="btn btn-primary btn-block btn-lg" 
+            id="next-question-btn"
+        >
+            下一題
+        </button>
+    </div>
+
+    <!-- Session Complete Card (Initially Hidden) -->
+    <div class="card session-summary-card" id="session-summary-card" style="display: none;">
+        <div class="summary-header">
+            <h1 class="summary-title">🎉 測驗完成！</h1>
+            <p class="summary-subtitle">恭喜您完成本次測驗</p>
+        </div>
+        
+        <div class="summary-stats">
+            <div class="summary-stat">
+                <div class="stat-value" id="total-questions">0</div>
+                <div class="stat-label">總題數</div>
+            </div>
+            <div class="summary-stat">
+                <div class="stat-value" id="correct-count">0</div>
+                <div class="stat-label">答對</div>
+            </div>
+            <div class="summary-stat">
+                <div class="stat-value" id="accuracy-rate">0%</div>
+                <div class="stat-label">正確率</div>
+            </div>
+            <div class="summary-stat">
+                <div class="stat-value" id="avg-score">0.0</div>
+                <div class="stat-label">平均分</div>
+            </div>
+        </div>
+        
+        <div class="summary-actions">
+            <a href="/quiz/config" class="btn btn-primary btn-block">
+                再來一次
+            </a>
+            <a href="/" class="btn btn-secondary btn-block">
+                返回首頁
+            </a>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p class="loading-text">AI 正在評分中...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Quiz Session Controller
+    class QuizSession {
+        constructor() {
+            this.sessionData = null;
+            this.currentQuestionIndex = 0;
+            this.answers = [];
+            this.sessionId = null;
+            
+            // Get session data from localStorage
+            this.loadSessionData();
+            
+            // Initialize UI
+            this.initUI();
+            
+            // Show first question
+            this.showQuestion();
+        }
+        
+        loadSessionData() {
+            const data = window.appUtils.storage.get('current_session');
+            if (!data) {
+                window.appUtils.showToast('找不到測驗資料，請重新開始', 'error');
+                setTimeout(() => {
+                    window.location.href = '/quiz/config';
+                }, 2000);
+                return;
+            }
+            
+            this.sessionData = data;
+            this.sessionId = data.session_id;
+            console.log('Loaded session:', this.sessionData);
+        }
+        
+        initUI() {
+            // Submit answer button
+            document.getElementById('submit-answer-btn').addEventListener('click', () => {
+                this.submitAnswer();
+            });
+            
+            // Next question button
+            document.getElementById('next-question-btn').addEventListener('click', () => {
+                this.nextQuestion();
+            });
+            
+            // Appeal button
+            document.getElementById('appeal-btn').addEventListener('click', () => {
+                this.appealAnswer();
+            });
+            
+            // Delete button
+            document.getElementById('delete-btn').addEventListener('click', () => {
+                this.deleteQuestion();
+            });
+            
+            // Character count for short answer
+            const textarea = document.getElementById('short-answer-input');
+            if (textarea) {
+                textarea.addEventListener('input', (e) => {
+                    document.getElementById('char-count').textContent = e.target.value.length;
+                });
+            }
+        }
+        
+        showQuestion() {
+            const question = this.sessionData.questions[this.currentQuestionIndex];
+            if (!question) {
+                this.showSummary();
+                return;
+            }
+            
+            // Update progress
+            const total = this.sessionData.questions.length;
+            const current = this.currentQuestionIndex + 1;
+            document.getElementById('progress-count').textContent = `${current} / ${total}`;
+            document.getElementById('progress-fill').style.width = `${(current / total) * 100}%`;
+            
+            // Update question header
+            document.getElementById('question-number').textContent = `第 ${current} 題`;
+            document.getElementById('question-type').textContent = question.type === 'MCQ' ? '選擇題' : '簡答題';
+            document.getElementById('question-type').className = `question-type-badge ${question.type === 'MCQ' ? 'badge-mcq' : 'badge-short'}`;
+            
+            // Update question content
+            document.getElementById('question-content').textContent = question.content;
+            
+            // Show appropriate input method
+            if (question.type === 'MCQ') {
+                this.showMCQOptions(question.options);
+            } else {
+                this.showShortAnswerInput();
+            }
+            
+            // Show question card, hide result card
+            document.getElementById('question-card').style.display = 'block';
+            document.getElementById('result-card').style.display = 'none';
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        showMCQOptions(options) {
+            const container = document.getElementById('mcq-options');
+            container.innerHTML = '';
+            container.style.display = 'block';
+            document.getElementById('short-answer-container').style.display = 'none';
+            document.getElementById('submit-answer-btn').style.display = 'none';
+            
+            options.forEach((option, index) => {
+                const optionElement = document.createElement('button');
+                optionElement.className = 'mcq-option';
+                optionElement.textContent = option;
+                optionElement.dataset.answer = option;
+                
+                optionElement.addEventListener('click', () => {
+                    // Remove selection from all options
+                    container.querySelectorAll('.mcq-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    // Select clicked option
+                    optionElement.classList.add('selected');
+                    // Auto submit for MCQ - send the complete option text
+                    setTimeout(() => {
+                        this.submitAnswer(option);
+                    }, 300);
+                });
+                
+                container.appendChild(optionElement);
+            });
+        }
+        
+        showShortAnswerInput() {
+            document.getElementById('mcq-options').style.display = 'none';
+            document.getElementById('short-answer-container').style.display = 'block';
+            document.getElementById('submit-answer-btn').style.display = 'block';
+            
+            // Clear previous input
+            const textarea = document.getElementById('short-answer-input');
+            textarea.value = '';
+            document.getElementById('char-count').textContent = '0';
+            textarea.focus();
+        }
+        
+        async submitAnswer(mcqAnswer = null) {
+            const question = this.sessionData.questions[this.currentQuestionIndex];
+            let userAnswer;
+            
+            if (question.type === 'MCQ') {
+                userAnswer = mcqAnswer;
+            } else {
+                userAnswer = document.getElementById('short-answer-input').value.trim();
+                if (!userAnswer) {
+                    window.appUtils.showToast('請輸入答案', 'error');
+                    return;
+                }
+            }
+            
+            // Show loading overlay
+            document.getElementById('loading-overlay').style.display = 'flex';
+            
+            try {
+                const response = await window.appUtils.apiCall(
+                    `/api/quiz/session/${this.sessionId}/answer`,
+                    {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            question_id: question._id,
+                            user_answer: userAnswer
+                        })
+                    }
+                );
+                
+                // Store answer data
+                this.answers.push({
+                    question_id: question._id,
+                    user_answer: userAnswer,
+                    ...response
+                });
+                
+                // Show result
+                this.showResult(userAnswer, response);
+                
+            } catch (error) {
+                console.error('Error submitting answer:', error);
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
+        
+        showResult(userAnswer, result) {
+            // Hide question card, show result card
+            document.getElementById('question-card').style.display = 'none';
+            document.getElementById('result-card').style.display = 'block';
+            
+            // Update score badge
+            const scoreBadge = document.getElementById('score-badge');
+            const score = result.score;
+            let badgeClass = '';
+            let badgeText = '';
+            
+            if (score >= 1.0) {
+                badgeClass = 'score-perfect';
+                badgeText = '✓ 完全正確';
+            } else if (score >= 0.5) {
+                badgeClass = 'score-partial';
+                badgeText = '△ 部分正確';
+            } else {
+                badgeClass = 'score-wrong';
+                badgeText = '✗ 答案錯誤';
+            }
+            
+            scoreBadge.className = `score-badge ${badgeClass}`;
+            scoreBadge.textContent = badgeText;
+            
+            // Update content
+            document.getElementById('user-answer-display').textContent = userAnswer;
+            document.getElementById('correct-answer-display').textContent = result.correct_answer;
+            document.getElementById('ai-explanation-display').textContent = result.ai_explanation;
+            
+            // Show feedback section for short answer
+            const question = this.sessionData.questions[this.currentQuestionIndex];
+            if (question.type === 'ShortAnswer' && result.feedback) {
+                document.getElementById('feedback-section').style.display = 'block';
+                document.getElementById('feedback-display').textContent = result.feedback;
+            } else {
+                document.getElementById('feedback-section').style.display = 'none';
+            }
+            
+            // Update button text for last question
+            const nextBtn = document.getElementById('next-question-btn');
+            if (this.currentQuestionIndex === this.sessionData.questions.length - 1) {
+                nextBtn.textContent = '查看結果';
+            } else {
+                nextBtn.textContent = '下一題';
+            }
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        nextQuestion() {
+            this.currentQuestionIndex++;
+            if (this.currentQuestionIndex >= this.sessionData.questions.length) {
+                this.showSummary();
+            } else {
+                this.showQuestion();
+            }
+        }
+        
+        showSummary() {
+            // Hide cards
+            document.getElementById('question-card').style.display = 'none';
+            document.getElementById('result-card').style.display = 'none';
+            
+            // Calculate stats
+            const totalQuestions = this.answers.length;
+            const correctCount = this.answers.filter(a => a.score >= 1.0).length;
+            const accuracyRate = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+            const avgScore = totalQuestions > 0 
+                ? (this.answers.reduce((sum, a) => sum + a.score, 0) / totalQuestions).toFixed(2)
+                : 0;
+            
+            // Update summary stats
+            document.getElementById('total-questions').textContent = totalQuestions;
+            document.getElementById('correct-count').textContent = correctCount;
+            document.getElementById('accuracy-rate').textContent = `${accuracyRate}%`;
+            document.getElementById('avg-score').textContent = avgScore;
+            
+            // Show summary card
+            document.getElementById('session-summary-card').style.display = 'block';
+            
+            // Clear localStorage
+            window.appUtils.storage.remove('current_session');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        async appealAnswer() {
+            if (!confirm('確定要申訴此題評分嗎？系統將撤銷此次評分的影響。')) {
+                return;
+            }
+            
+            const currentAnswer = this.answers[this.currentQuestionIndex];
+            
+            try {
+                await window.appUtils.apiCall(
+                    `/api/quiz/session/${this.sessionId}/answer/${currentAnswer.answer_id}/appeal`,
+                    { method: 'POST' }
+                );
+                
+                window.appUtils.showToast('申訴成功，評分已撤銷', 'success');
+                
+                // Disable appeal button
+                document.getElementById('appeal-btn').disabled = true;
+                document.getElementById('appeal-btn').textContent = '✓ 已申訴';
+                
+            } catch (error) {
+                console.error('Error appealing answer:', error);
+            }
+        }
+        
+        async deleteQuestion() {
+            if (!confirm('確定要刪除此題目嗎？此操作無法復原。')) {
+                return;
+            }
+            
+            const question = this.sessionData.questions[this.currentQuestionIndex];
+            
+            try {
+                await window.appUtils.apiCall(
+                    `/api/quiz/questions/${question._id}`,
+                    { method: 'DELETE' }
+                );
+                
+                window.appUtils.showToast('題目已刪除', 'success');
+                
+                // Move to next question
+                this.nextQuestion();
+                
+            } catch (error) {
+                console.error('Error deleting question:', error);
+            }
+        }
+    }
+    
+    // Initialize quiz session when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        new QuizSession();
+    });
+</script>
+{% endblock %}

@@ -19,7 +19,7 @@
 - [x] 3.5 Implement `GET` routes and `PUT /laws/:id/star` in `routes/laws.py` for laws browser.
 
 ## Phase 4: Frontend & Integration (Mobile Web)
-- [ ] 4.1 Build basic HTML/CSS/JS templates for Dashboard (S-01) and Law Article Browser (S-07).
+- [x] 4.1 Build basic HTML/CSS/JS templates for Dashboard (S-01) and Law Article Browser (S-07).
 - [ ] 4.2 Build Quiz Config (S-02) UI and wire to `POST /quiz/session`.
 - [ ] 4.3 Build Quiz Loop UI (S-04, S-05) handling both MCQ and Short Answer inputs.
 - [ ] 4.4 Build Session Summary (S-06) and bind appeal/delete interactions.

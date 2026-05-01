@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}測驗配置 - 專利法 AI 刷題助手{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Config Header -->
+    <div class="config-header">
+        <h1 class="config-title">🎯 開始新測驗</h1>
+        <p class="config-subtitle">選擇測驗類型、練習模式和題目數量</p>
+    </div>
+
+    <!-- Quiz Configuration Form -->
+    <div class="card">
+        <form id="quiz-config-form">
+            <!-- Question Type Selection -->
+            <div class="form-group">
+                <label class="form-label">
+                    <span class="label-icon">📝</span>
+                    題目類型
+                </label>
+                <div class="radio-group">
+                    <label class="radio-card">
+                        <input type="radio" name="type" value="MCQ" checked>
+                        <div class="radio-content">
+                            <div class="radio-title">選擇題</div>
+                            <div class="radio-description">四選一單選題型</div>
+                        </div>
+                        <span class="radio-check">✓</span>
+                    </label>
+                    
+                    <label class="radio-card">
+                        <input type="radio" name="type" value="ShortAnswer">
+                        <div class="radio-content">
+                            <div class="radio-title">簡答題</div>
+                            <div class="radio-description">考驗理解深度與表達能力</div>
+                        </div>
+                        <span class="radio-check">✓</span>
+                    </label>
+                    
+                    <label class="radio-card">
+                        <input type="radio" name="type" value="Mixed">
+                        <div class="radio-content">
+                            <div class="radio-title">混合模式</div>
+                            <div class="radio-description">選擇題與簡答題混合</div>
+                        </div>
+                        <span class="radio-check">✓</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Session Mode Selection -->
+            <div class="form-group">
+                <label class="form-label">
+                    <span class="label-icon">🎲</span>
+                    練習模式
+                </label>
+                <div class="radio-group">
+                    <label class="radio-card">
+                        <input type="radio" name="mode" value="new" checked>
+                        <div class="radio-content">
+                            <div class="radio-title">新題模式</div>
+                            <div class="radio-description">挑戰未做過的題目</div>
+                        </div>
+                        <span class="radio-check">✓</span>
+                    </label>
+                    
+                    <label class="radio-card">
+                        <input type="radio" name="mode" value="review">
+                        <div class="radio-content">
+                            <div class="radio-title">複習模式</div>
+                            <div class="radio-description">重做需要加強的題目</div>
+                        </div>
+                        <span class="radio-check">✓</span>
+                    </label>
+                    
+                    <label class="radio-card">
+                        <input type="radio" name="mode" value="mixed">
+                        <div class="radio-content">
+                            <div class="radio-title">混合模式</div>
+                            <div class="radio-description">50% 新題 + 50% 複習</div>
+                        </div>
+                        <span class="radio-check">✓</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Question Count Selection -->
+            <div class="form-group">
+                <label class="form-label">
+                    <span class="label-icon">🔢</span>
+                    題目數量
+                </label>
+                <div class="count-selector">
+                    <button type="button" class="count-btn" data-count="5">5 題</button>
+                    <button type="button" class="count-btn active" data-count="10">10 題</button>
+                    <button type="button" class="count-btn" data-count="20">20 題</button>
+                    <button type="button" class="count-btn" data-count="30">30 題</button>
+                </div>
+                <input type="hidden" name="count" id="question-count" value="10">
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary btn-block btn-lg" id="start-quiz-btn">
+                開始測驗
+            </button>
+            
+            <a href="/" class="btn btn-secondary btn-block">
+                返回首頁
+            </a>
+        </form>
+    </div>
+
+    <!-- Info Card -->
+    <div class="card">
+        <h3 class="card-title">💡 說明</h3>
+        <ul class="info-list">
+            <li><strong>選擇題：</strong>快速測試基礎概念掌握度</li>
+            <li><strong>簡答題：</strong>AI 評分，深入檢驗理解程度</li>
+            <li><strong>新題模式：</strong>學習未接觸過的法條內容</li>
+            <li><strong>複習模式：</strong>強化未精熟的題目（答對 < 3 次）</li>
+            <li><strong>混合模式：</strong>在新題與複習之間取得平衡</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div id="loading-modal" class="modal">
+    <div class="modal-content">
+        <div class="spinner"></div>
+        <h3 class="loading-title">AI 正在為您量身打造題目...</h3>
+        <p class="loading-subtitle">這可能需要幾秒鐘，請稍候</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handle count button selection
+    document.querySelectorAll('.count-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active class from all buttons
+            document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            // Update hidden input value
+            document.getElementById('question-count').value = this.dataset.count;
+        });
+    });
+
+    // Handle form submission
+    document.getElementById('quiz-config-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Get form values
+        const formData = new FormData(e.target);
+        const config = {
+            type: formData.get('type'),
+            mode: formData.get('mode'),
+            count: parseInt(formData.get('count'))
+        };
+        
+        console.log('Starting quiz with config:', config);
+        
+        // Disable submit button
+        const submitBtn = document.getElementById('start-quiz-btn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = '建立中...';
+        
+        try {
+            // Call API to create session
+            const response = await fetch('/api/quiz/session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(config)
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || '建立測驗失敗');
+            }
+            
+            const data = await response.json();
+            console.log('Session created:', data);
+            
+            // Show loading modal if synchronous generation
+            if (data.is_loading) {
+                document.getElementById('loading-modal').style.display = 'flex';
+            }
+            
+            // Store session data in localStorage for next page
+            localStorage.setItem('current_session', JSON.stringify({
+                session_id: data.session_id,
+                questions: data.questions,
+                config: config
+            }));
+            
+            // Redirect to quiz page
+            setTimeout(() => {
+                window.location.href = `/quiz/session/${data.session_id}`;
+            }, data.is_loading ? 2000 : 500);
+            
+        } catch (error) {
+            console.error('Error creating quiz session:', error);
+            alert('建立測驗時發生錯誤：' + error.message);
+            submitBtn.disabled = false;
+            submitBtn.textContent = '開始測驗';
+        }
+    });
+
+    // Handle radio card selection visual feedback
+    document.querySelectorAll('.radio-card input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Remove selected class from all siblings
+            const group = this.closest('.radio-group');
+            group.querySelectorAll('.radio-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            // Add selected class to parent label
+            this.closest('.radio-card').classList.add('selected');
+        });
+    });
+
+    // Initialize selected state
+    document.querySelectorAll('.radio-card input[type="radio"]:checked').forEach(radio => {
+        radio.closest('.radio-card').classList.add('selected');
+    });
+</script>
+{% endblock %}

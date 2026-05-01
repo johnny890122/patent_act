@@ -4,6 +4,7 @@ from db.models import Database
 from routes.admin import admin_bp
 from routes.quiz import quiz_bp
 from routes.laws import laws_bp
+from routes.frontend import frontend_bp
 
 def create_app():
     app = Flask(__name__)
@@ -13,6 +14,10 @@ def create_app():
     db.init_db()
 
     # Register Blueprints
+    # Frontend routes (HTML pages)
+    app.register_blueprint(frontend_bp)
+    
+    # API routes (blueprints already have their url_prefix defined)
     app.register_blueprint(admin_bp)
     app.register_blueprint(quiz_bp)
     app.register_blueprint(laws_bp)

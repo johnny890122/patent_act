@@ -8,7 +8,7 @@ from db.models import laws_collection
 
 logger = logging.getLogger(__name__)
 
-laws_bp = Blueprint('laws', __name__, url_prefix='/laws')
+laws_bp = Blueprint('laws', __name__, url_prefix='/api/laws')
 
 
 @laws_bp.route('', methods=['GET'])
@@ -253,4 +253,46 @@ def get_stats():
         
     except Exception as e:
         logger.error(f"Error getting stats: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@laws_bp.route('/<law_id>/questions', methods=['GET'])
+def get_law_questions(law_id):
+    """
+    Get all questions related to a specific law article.
+    
+    Response:
+        {
+            "questions": [...],
+            "total": int
+        }
+    """
+    try:
+        from db.models import questions_collection
+        
+        # Validate law exists
+        try:
+            law = laws_collection.find_one({"_id": ObjectId(law_id)})
+        except:
+            return jsonify({"error": "Invalid law_id format"}), 400
+        
+        if not law:
+            return jsonify({"error": "Law not found"}), 404
+        
+        # Get all questions for this law (including deleted for history)
+        questions = list(questions_collection.find({"law_id": law_id}))
+        
+        # Convert ObjectId to string
+        for q in questions:
+            q['_id'] = str(q['_id'])
+        
+        logger.info(f"Retrieved {len(questions)} questions for law {law_id}")
+        
+        return jsonify({
+            "questions": questions,
+            "total": len(questions)
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting law questions: {e}")
         return jsonify({"error": "Internal server error"}), 500
