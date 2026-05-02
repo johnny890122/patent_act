@@ -24,12 +24,13 @@ class QuestionInventory:
         self.question_gen = QuestionGenerator(api_key=api_key)
     
     def count_available_questions(
-        self, 
+        self,
         question_type: Literal["MCQ", "ShortAnswer", "Mixed"],
         session_mode: Literal["new", "review", "mixed"]
     ) -> int:
         """
         Count available questions based on type and session mode.
+        OPTIMIZED: Batch fetch all progress records to avoid N+1 queries.
         
         Args:
             question_type: Type of questions to count
@@ -46,18 +47,27 @@ class QuestionInventory:
             type_filter["type"] = "ShortAnswer"
         # Mixed means both types, no filter needed
         
-        # Get all non-deleted questions
+        # Get all non-deleted question IDs
         all_questions = list(questions_collection.find({
             **type_filter,
             "is_deleted": False
         }, {"_id": 1}))
         
+        question_ids = [str(q["_id"]) for q in all_questions]
+        
+        # Batch fetch all progress records for these questions (OPTIMIZED!)
+        progress_records = list(user_progress_collection.find({
+            "question_id": {"$in": question_ids}
+        }))
+        
+        # Build a lookup dictionary for fast access
+        progress_map = {p["question_id"]: p for p in progress_records}
+        
         if session_mode == "new":
             # New questions: not in user_progress OR (correct_streak == 0 AND needs_review == False)
             count = 0
-            for q in all_questions:
-                qid = str(q["_id"])
-                progress = user_progress_collection.find_one({"question_id": qid})
+            for qid in question_ids:
+                progress = progress_map.get(qid)
                 if not progress or (progress.get("correct_streak", 0) == 0 and not progress.get("needs_review", True)):
                     count += 1
             return count
@@ -65,18 +75,24 @@ class QuestionInventory:
         elif session_mode == "review":
             # Review questions: needs_review == True
             count = 0
-            for q in all_questions:
-                qid = str(q["_id"])
-                progress = user_progress_collection.find_one({"question_id": qid})
+            for qid in question_ids:
+                progress = progress_map.get(qid)
                 if progress and progress.get("needs_review", False):
                     count += 1
             return count
             
         else:  # mixed
-            # For mixed, we need both new and review available
-            # Return the minimum that allows 50/50 split
-            new_count = self.count_available_questions(question_type, "new")
-            review_count = self.count_available_questions(question_type, "review")
+            # For mixed, calculate both counts in one pass
+            new_count = 0
+            review_count = 0
+            for qid in question_ids:
+                progress = progress_map.get(qid)
+                # Check for new
+                if not progress or (progress.get("correct_streak", 0) == 0 and not progress.get("needs_review", True)):
+                    new_count += 1
+                # Check for review
+                if progress and progress.get("needs_review", False):
+                    review_count += 1
             # Mixed needs at least n/2 of each, so total available is min * 2
             return min(new_count, review_count) * 2
     
