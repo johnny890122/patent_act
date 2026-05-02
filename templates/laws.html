@@ -4,20 +4,37 @@
 
 {% block content %}
 <div class="container">
-    <!-- Page Header -->
-    <div class="card">
-        <h1 class="card-title">📖 專利法條文瀏覽</h1>
-        <p class="card-subtitle">瀏覽所有法條，點擊法條查看詳情，點擊星號收藏重點法條</p>
-    </div>
-
-    <!-- Filter & Search (Future feature) -->
-    <div class="card">
-        <input 
-            type="text" 
-            id="search-input" 
-            placeholder="🔍 搜尋法條內容或條號..." 
-            style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 0.5rem; font-size: 1rem;"
-        >
+    <!-- Chapter Filter & Search Section -->
+    <div class="filter-section">
+        <!-- Chapter Selector (Horizontal with Toggle) -->
+        <div class="chapter-selector-card">
+            <div class="chapter-selector-header">
+                <span class="chapter-selector-title">📚 章節篩選</span>
+                <button class="chapter-toggle-btn" id="chapter-toggle-btn" aria-label="切換章節選擇器">
+                    ▼
+                </button>
+            </div>
+            <div class="chapter-selector-wrapper" id="chapter-selector-wrapper">
+                <div class="chapter-selector" id="chapter-selector">
+                    <div class="chapter-tab active" data-chapter="all">
+                        <span>📑 全部</span>
+                        <span class="chapter-badge" id="count-all">0</span>
+                    </div>
+                    <!-- Chapters will be dynamically loaded here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Search Bar -->
+        <div class="search-bar-wrapper">
+            <input
+                type="text"
+                id="search-input"
+                placeholder="🔍 搜尋法條內容或條號..."
+                class="search-input"
+            >
+            <button id="clear-search-btn" class="clear-btn hidden">✕</button>
+        </div>
     </div>
 
     <!-- Loading State -->
@@ -53,6 +70,8 @@
     let totalPages = 1;
     let allLaws = [];
     let filteredLaws = [];
+    let currentChapter = 'all';
+    let currentSearchTerm = '';
     const PAGE_SIZE = 20;
 
     // DOM elements
@@ -61,11 +80,15 @@
     const emptyStateEl = document.getElementById('empty-state');
     const paginationEl = document.getElementById('pagination');
     const searchInput = document.getElementById('search-input');
+    const clearSearchBtn = document.getElementById('clear-search-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     const pageInfo = document.getElementById('page-info');
+    const chapterSelector = document.getElementById('chapter-selector');
+    const chapterSelectorWrapper = document.getElementById('chapter-selector-wrapper');
+    const chapterToggleBtn = document.getElementById('chapter-toggle-btn');
 
-    // Fetch all laws from API
+    // Fetch all laws and chapters from API
     async function fetchLaws() {
         try {
             loadingEl.classList.remove('hidden');
@@ -79,12 +102,121 @@
             allLaws = data.laws || [];
             filteredLaws = [...allLaws];
             
+            // Build chapter index
+            await buildChapterIndex();
+            
             renderPage(1);
         } catch (error) {
             console.error('Error fetching laws:', error);
             loadingEl.classList.add('hidden');
             emptyStateEl.classList.remove('hidden');
         }
+    }
+
+    // Build chapter selector (horizontal tabs)
+    async function buildChapterIndex() {
+        const chapterCounts = {};
+        
+        // Count laws per chapter
+        allLaws.forEach(law => {
+            const chapter = law.chapter || '未分類';
+            chapterCounts[chapter] = (chapterCounts[chapter] || 0) + 1;
+        });
+        
+        // Update "all" count
+        document.getElementById('count-all').textContent = allLaws.length;
+        
+        // 中文數字對照表
+        const chineseNumbers = {
+            '一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
+            '六': 6, '七': 7, '八': 8, '九': 9, '十': 10
+        };
+        
+        // Sort chapters by number (第 X 章)
+        const sortedChapters = Object.keys(chapterCounts).sort((a, b) => {
+            // Extract chapter number from "第 X 章 ..."
+            const matchA = a.match(/第\s*([一二三四五六七八九十]+)\s*章/);
+            const matchB = b.match(/第\s*([一二三四五六七八九十]+)\s*章/);
+            
+            if (matchA && matchB) {
+                const numA = chineseNumbers[matchA[1]] || 0;
+                const numB = chineseNumbers[matchB[1]] || 0;
+                return numA - numB;
+            }
+            
+            // If no match, sort alphabetically
+            return a.localeCompare(b);
+        });
+        
+        // Render chapter tabs
+        let html = '';
+        sortedChapters.forEach(chapter => {
+            // Shorten chapter name for display
+            const shortName = chapter.replace('第 ', '').replace(' 章', '');
+            html += `
+                <div class="chapter-tab" data-chapter="${chapter}">
+                    <span>${shortName}</span>
+                    <span class="chapter-badge">${chapterCounts[chapter]}</span>
+                </div>
+            `;
+        });
+        
+        // Append to chapter selector (after "全部")
+        chapterSelector.insertAdjacentHTML('beforeend', html);
+        
+        // Attach click handlers
+        document.querySelectorAll('.chapter-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const chapter = tab.getAttribute('data-chapter');
+                filterByChapter(chapter);
+            });
+        });
+    }
+
+    // Filter laws by chapter
+    function filterByChapter(chapter) {
+        currentChapter = chapter;
+        
+        // Clear search when filtering by chapter
+        if (chapter !== 'all' && currentSearchTerm) {
+            searchInput.value = '';
+            currentSearchTerm = '';
+            clearSearchBtn.classList.add('hidden');
+        }
+        
+        // Update active state in tabs
+        document.querySelectorAll('.chapter-tab').forEach(tab => {
+            tab.classList.remove('active');
+            if (tab.getAttribute('data-chapter') === chapter) {
+                tab.classList.add('active');
+            }
+        });
+        
+        // Apply filters
+        applyFilters();
+    }
+
+    // Apply all filters (chapter + search)
+    function applyFilters() {
+        let laws = [...allLaws];
+        
+        // Filter by chapter
+        if (currentChapter !== 'all') {
+            laws = laws.filter(law => (law.chapter || '未分類') === currentChapter);
+        }
+        
+        // Filter by search term
+        if (currentSearchTerm) {
+            const term = currentSearchTerm.toLowerCase();
+            laws = laws.filter(law =>
+                law.article_number.toLowerCase().includes(term) ||
+                law.content.toLowerCase().includes(term) ||
+                (law.chapter && law.chapter.toLowerCase().includes(term))
+            );
+        }
+        
+        filteredLaws = laws;
+        renderPage(1);
     }
 
     // Render laws for current page
@@ -146,24 +278,51 @@
         return html;
     }
 
+    // Format law content with line breaks for numbered items
+    function formatLawContent(content) {
+        // Replace pattern " 數字 空格" with line break, except for the first one
+        // Pattern: one space + digit(s) + one space
+        return content.replace(/\s+(\d+)\s+/g, (match, digit, offset) => {
+            // Don't add line break if it's at the beginning
+            if (offset === 0) {
+                return match;
+            }
+            return '<br>' + digit + ' ';
+        });
+    }
+
     // Create HTML for a single law item
     function createLawItem(law) {
         const starClass = law.is_starred ? 'starred' : '';
         const starIcon = law.is_starred ? '⭐' : '☆';
-        const avgScore = law.avg_score ? law.avg_score.toFixed(1) : 'N/A';
+        
+        // Format content with line breaks for numbered items
+        const formattedContent = formatLawContent(law.content);
+        
+        // Handle avgScore and attempt count
+        let metaHtml = '';
+        if (law.attempt_count && law.attempt_count > 0) {
+            let accuracyText = '-';
+            let accuracyClass = '';
+            if (law.avg_score !== null && law.avg_score !== undefined) {
+                const accuracyPercent = Math.round(law.avg_score * 100);
+                accuracyText = `${accuracyPercent}%`;
+                accuracyClass = accuracyPercent < 70 ? 'low-accuracy' : '';
+            }
+            metaHtml = `<div class="law-meta"><span class="${accuracyClass}">正確率 ${accuracyText}</span><span>（${law.attempt_count} 次）</span></div>`;
+        }
         
         return `
             <li class="law-item" data-law-id="${law._id || law.article_number}">
-                <div class="law-article-number">${law.article_number}</div>
-                <div class="law-content">
-                    <div class="law-text">${law.content}</div>
-                    <div class="law-meta">
-                        <span>📊 答題: ${law.attempt_count || 0} 次</span>
-                        <span>🎯 平均分: ${avgScore}</span>
+                <div class="law-header">
+                    <div class="law-article-number">${law.article_number}</div>
+                    <div class="law-star ${starClass}" data-law-id="${law._id || law.article_number}">
+                        ${starIcon}
                     </div>
                 </div>
-                <div class="law-star ${starClass}" data-law-id="${law._id || law.article_number}">
-                    ${starIcon}
+                <div class="law-content">
+                    <div class="law-text">${formattedContent}</div>
+                    ${metaHtml}
                 </div>
             </li>
         `;
@@ -235,19 +394,43 @@
 
     // Search functionality
     function filterLaws(searchTerm) {
-        const term = searchTerm.toLowerCase().trim();
+        currentSearchTerm = searchTerm.toLowerCase().trim();
         
-        if (!term) {
-            filteredLaws = [...allLaws];
-        } else {
-            filteredLaws = allLaws.filter(law => 
-                law.article_number.toLowerCase().includes(term) ||
-                law.content.toLowerCase().includes(term) ||
-                (law.chapter && law.chapter.toLowerCase().includes(term))
-            );
+        // Clear chapter filter when searching
+        if (currentSearchTerm && currentChapter !== 'all') {
+            currentChapter = 'all';
+            document.querySelectorAll('.chapter-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.getAttribute('data-chapter') === 'all') {
+                    tab.classList.add('active');
+                }
+            });
         }
         
-        renderPage(1);
+        // Show/hide clear button
+        if (currentSearchTerm) {
+            clearSearchBtn.classList.remove('hidden');
+        } else {
+            clearSearchBtn.classList.add('hidden');
+        }
+        
+        applyFilters();
+    }
+
+    // Clear search
+    function clearSearch() {
+        searchInput.value = '';
+        currentSearchTerm = '';
+        clearSearchBtn.classList.add('hidden');
+        applyFilters();
+    }
+
+    // Toggle chapter selector visibility
+    function toggleChapterSelector() {
+        chapterSelectorWrapper.classList.toggle('collapsed');
+        const isCollapsed = chapterSelectorWrapper.classList.contains('collapsed');
+        chapterToggleBtn.textContent = isCollapsed ? '▶' : '▼';
+        chapterToggleBtn.setAttribute('aria-expanded', !isCollapsed);
     }
 
     // Debounce function for search
@@ -267,6 +450,14 @@
     searchInput.addEventListener('input', debounce((e) => {
         filterLaws(e.target.value);
     }, 300));
+
+    clearSearchBtn.addEventListener('click', () => {
+        clearSearch();
+    });
+
+    chapterToggleBtn.addEventListener('click', () => {
+        toggleChapterSelector();
+    });
 
     prevBtn.addEventListener('click', () => {
         if (currentPage > 1) {

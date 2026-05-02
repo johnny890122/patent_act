@@ -6,7 +6,13 @@
     <meta name="description" content="專利法 AI 刷題助手 - 台灣專利法考試準備工具">
     <title>{% block title %}專利法 AI 刷題助手{% endblock %}</title>
     
-    <!-- Styles -->
+    <!-- MUI CSS Framework -->
+    <link href="https://cdn.muicss.com/mui-0.10.3/css/mui.min.css" rel="stylesheet" type="text/css" />
+    
+    <!-- Design System Tokens -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-tokens.css') }}">
+    
+    <!-- Custom Styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
     {% block extra_css %}{% endblock %}
@@ -28,7 +34,10 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Scripts -->
+    <!-- MUI JavaScript -->
+    <script src="https://cdn.muicss.com/mui-0.10.3/js/mui.min.js"></script>
+    
+    <!-- Custom Scripts -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>

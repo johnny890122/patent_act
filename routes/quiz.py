@@ -28,6 +28,46 @@ grader_service = Grader(api_key=api_key)
 sessions_collection = db.db['sessions']
 
 
+@quiz_bp.route('/available', methods=['GET'])
+def check_available_questions():
+    """
+    Check how many questions are available for a given type and mode.
+    
+    Query Parameters:
+        type: "MCQ" | "ShortAnswer" | "Mixed"
+        mode: "new" | "review" | "mixed"
+    
+    Response:
+        {
+            "available": int
+        }
+    """
+    try:
+        question_type = request.args.get('type')
+        session_mode = request.args.get('mode')
+        
+        # Validate parameters
+        if not question_type or question_type not in ['MCQ', 'ShortAnswer', 'Mixed']:
+            return jsonify({"error": "Invalid or missing 'type'. Must be MCQ, ShortAnswer, or Mixed"}), 400
+        
+        if not session_mode or session_mode not in ['new', 'review', 'mixed']:
+            return jsonify({"error": "Invalid or missing 'mode'. Must be new, review, or mixed"}), 400
+        
+        # Count available questions
+        available = inventory_service.count_available_questions(
+            question_type=question_type,
+            session_mode=session_mode
+        )
+        
+        logger.info(f"Available questions check: type={question_type}, mode={session_mode}, available={available}")
+        
+        return jsonify({"available": available}), 200
+        
+    except Exception as e:
+        logger.error(f"Error checking available questions: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
+
 @quiz_bp.route('/session', methods=['POST'])
 def create_session():
     """
@@ -172,13 +212,34 @@ def submit_answer(session_id):
         feedback = ""
         
         if question['type'] == 'MCQ':
-            # Simple string comparison for MCQ
-            if user_answer.strip() == question['correct_answer'].strip():
+            # Extract option letter from user answer (e.g., "D. 文字..." -> "D")
+            user_option = user_answer.strip()
+            correct_option = question['correct_answer'].strip()
+            
+            # If user_answer contains a dot, extract the letter before it
+            if '.' in user_option:
+                user_option = user_option.split('.')[0].strip()
+            
+            # If correct_answer contains a dot, extract the letter before it
+            if '.' in correct_option:
+                correct_option = correct_option.split('.')[0].strip()
+            
+            # Compare the option letters (case-insensitive)
+            if user_option.upper() == correct_option.upper():
                 score = 1.0
                 feedback = "答案正確！"
             else:
                 score = 0.0
                 feedback = f"答案錯誤。正確答案是：{question['correct_answer']}"
+            
+            # Find full option text for display (if correct_answer is just a letter)
+            full_correct_answer = question['correct_answer']
+            if question.get('options') and '.' not in full_correct_answer:
+                # correct_answer is just a letter, find the full option
+                for option in question['options']:
+                    if option.strip().upper().startswith(full_correct_answer.upper() + '.'):
+                        full_correct_answer = option
+                        break
         
         elif question['type'] == 'ShortAnswer':
             # Use LLM grading for short answers
@@ -267,11 +328,16 @@ def submit_answer(session_id):
         
         logger.info(f"Answer submitted for session {session_id}, question {question_id}, score: {score}")
         
+        # Prepare correct_answer for response (use full option text for MCQ if available)
+        display_correct_answer = question['correct_answer']
+        if question['type'] == 'MCQ':
+            display_correct_answer = full_correct_answer if 'full_correct_answer' in locals() else question['correct_answer']
+        
         return jsonify({
             "answer_id": str(answer_id),
             "score": score,
             "feedback": feedback,
-            "correct_answer": question['correct_answer'],
+            "correct_answer": display_correct_answer,
             "ai_explanation": question['ai_explanation']
         }), 200
         
@@ -421,4 +487,47 @@ def delete_question(question_id):
         
     except Exception as e:
         logger.error(f"Error deleting question: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@quiz_bp.route('/questions/<question_id>/star', methods=['POST'])
+def toggle_star_question(question_id):
+    """
+    Toggle starred status for a question.
+    
+    Response:
+        {
+            "is_starred": bool,
+            "message": str
+        }
+    """
+    try:
+        # Validate and get question
+        try:
+            question = questions_collection.find_one({"_id": ObjectId(question_id)})
+        except:
+            return jsonify({"error": "Invalid question_id format"}), 400
+        
+        if not question:
+            return jsonify({"error": "Question not found"}), 404
+        
+        # Toggle starred status
+        current_starred = question.get('is_starred', False)
+        new_starred = not current_starred
+        
+        questions_collection.update_one(
+            {"_id": ObjectId(question_id)},
+            {"$set": {"is_starred": new_starred}}
+        )
+        
+        action = "收藏" if new_starred else "取消收藏"
+        logger.info(f"Question {question_id} starred status toggled to {new_starred}")
+        
+        return jsonify({
+            "is_starred": new_starred,
+            "message": f"已{action}題目"
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error toggling star for question: {e}")
         return jsonify({"error": "Internal server error"}), 500

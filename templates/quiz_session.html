@@ -63,43 +63,27 @@
             </div>
         </div>
         
-        <div class="result-content">
-            <div class="result-section">
-                <h3 class="result-label">您的答案</h3>
-                <p class="result-text" id="user-answer-display"></p>
-            </div>
-            
-            <div class="result-section">
-                <h3 class="result-label">正確答案</h3>
-                <p class="result-text" id="correct-answer-display"></p>
-            </div>
-            
-            <div class="result-section">
-                <h3 class="result-label">AI 解析</h3>
-                <p class="result-text" id="ai-explanation-display"></p>
-            </div>
-            
-            <div class="result-section" id="feedback-section" style="display: none;">
-                <h3 class="result-label">評分說明</h3>
-                <p class="result-text" id="feedback-display"></p>
-            </div>
+        <div class="result-content" id="result-content">
+            <!-- Content will be dynamically generated based on score -->
         </div>
         
         <!-- Action Buttons -->
         <div class="result-actions">
-            <button 
-                type="button" 
-                class="btn btn-outline" 
-                id="appeal-btn"
+            <button
+                type="button"
+                class="btn btn-outline btn-star btn-icon"
+                id="star-question-btn"
+                title="收藏題目"
             >
-                📢 申訴評分
+                <span class="star-icon">☆</span>
             </button>
-            <button 
-                type="button" 
-                class="btn btn-outline btn-danger" 
-                id="delete-btn"
+            <button
+                type="button"
+                class="btn btn-outline btn-danger btn-icon"
+                id="delete-question-btn"
+                title="回報題目問題"
             >
-                🗑️ 刪除題目
+                📢
             </button>
         </div>
         
@@ -154,6 +138,37 @@
         <div class="spinner"></div>
         <p class="loading-text">AI 正在評分中...</p>
     </div>
+    
+    <!-- Delete Question Modal -->
+    <div class="modal-overlay" id="delete-modal" style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h2 class="modal-title">📢 回報題目問題</h2>
+                <button class="modal-close" id="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">
+                    確定要刪除此題目嗎？
+                </p>
+                <ul class="modal-list">
+                    <li>✓ 從題庫中<strong>永久刪除</strong>此題</li>
+                    <li>✓ <strong>撤銷</strong>此題的評分影響（不計分）</li>
+                    <li>✓ 自動繼續下一題</li>
+                </ul>
+                <div class="modal-warning">
+                    ⚠️ 此操作無法復原
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modal-cancel-btn">
+                    取消
+                </button>
+                <button class="btn btn-danger" id="modal-confirm-btn">
+                    確認刪除
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -166,6 +181,7 @@
             this.currentQuestionIndex = 0;
             this.answers = [];
             this.sessionId = null;
+            this.currentResult = null; // Store current result for page refresh
             
             // Get session data from localStorage
             this.loadSessionData();
@@ -173,8 +189,13 @@
             // Initialize UI
             this.initUI();
             
-            // Show first question
-            this.showQuestion();
+            // Check if we have a saved result to display
+            if (this.currentResult) {
+                this.showResult(this.currentResult.userAnswer, this.currentResult.result);
+            } else {
+                // Show first question
+                this.showQuestion();
+            }
         }
         
         loadSessionData() {
@@ -189,6 +210,9 @@
             
             this.sessionData = data;
             this.sessionId = data.session_id;
+            this.currentQuestionIndex = data.currentQuestionIndex || 0;
+            this.answers = data.answers || [];
+            this.currentResult = data.currentResult || null;
             console.log('Loaded session:', this.sessionData);
         }
         
@@ -203,14 +227,35 @@
                 this.nextQuestion();
             });
             
-            // Appeal button
-            document.getElementById('appeal-btn').addEventListener('click', () => {
-                this.appealAnswer();
+            // Star question button
+            document.getElementById('star-question-btn').addEventListener('click', () => {
+                this.toggleStarQuestion();
             });
             
-            // Delete button
-            document.getElementById('delete-btn').addEventListener('click', () => {
-                this.deleteQuestion();
+            // Delete question button - show modal
+            document.getElementById('delete-question-btn').addEventListener('click', () => {
+                this.showDeleteModal();
+            });
+            
+            // Modal close buttons
+            document.getElementById('modal-close-btn').addEventListener('click', () => {
+                this.hideDeleteModal();
+            });
+            document.getElementById('modal-cancel-btn').addEventListener('click', () => {
+                this.hideDeleteModal();
+            });
+            
+            // Modal confirm button
+            document.getElementById('modal-confirm-btn').addEventListener('click', () => {
+                this.hideDeleteModal();
+                this.deleteQuestionAndAppeal();
+            });
+            
+            // Close modal when clicking overlay
+            document.getElementById('delete-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'delete-modal') {
+                    this.hideDeleteModal();
+                }
             });
             
             // Character count for short answer
@@ -336,6 +381,15 @@
                     ...response
                 });
                 
+                // Save current result for page refresh
+                this.currentResult = {
+                    userAnswer: userAnswer,
+                    result: response
+                };
+                
+                // Update localStorage with current state
+                this.saveSessionState();
+                
                 // Show result
                 this.showResult(userAnswer, response);
                 
@@ -354,6 +408,7 @@
             // Update score badge
             const scoreBadge = document.getElementById('score-badge');
             const score = result.score;
+            const question = this.sessionData.questions[this.currentQuestionIndex];
             let badgeClass = '';
             let badgeText = '';
             
@@ -365,25 +420,120 @@
                 badgeText = '△ 部分正確';
             } else {
                 badgeClass = 'score-wrong';
-                badgeText = '✗ 答案錯誤';
+                // For MCQ with options display, use neutral text since options show the feedback
+                if (question.type === 'MCQ' && question.options) {
+                    badgeText = '答題結果';
+                } else {
+                    badgeText = '答案錯誤';
+                }
             }
             
             scoreBadge.className = `score-badge ${badgeClass}`;
             scoreBadge.textContent = badgeText;
             
-            // Update content
-            document.getElementById('user-answer-display').textContent = userAnswer;
-            document.getElementById('correct-answer-display').textContent = result.correct_answer;
-            document.getElementById('ai-explanation-display').textContent = result.ai_explanation;
+            // Generate compact or expanded view based on score
+            const resultContent = document.getElementById('result-content');
             
-            // Show feedback section for short answer
-            const question = this.sessionData.questions[this.currentQuestionIndex];
-            if (question.type === 'ShortAnswer' && result.feedback) {
-                document.getElementById('feedback-section').style.display = 'block';
-                document.getElementById('feedback-display').textContent = result.feedback;
+            if (score >= 1.0) {
+                // Compact view for correct answers with collapsible question and options
+                let htmlContent = `
+                    <div class="result-answers-compact">
+                        <span>答案</span>
+                        <span class="answer-value">${this.escapeHtml(userAnswer)}</span>
+                    </div>
+                `;
+                
+                // Add collapsible question and options section for MCQ
+                if (question.type === 'MCQ' && question.options) {
+                    htmlContent += `
+                        <div class="collapsible-section">
+                            <button class="collapsible-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                                <span class="toggle-icon">▶</span>
+                                <span class="toggle-text">題目與選項</span>
+                            </button>
+                            <div class="collapsible-content">
+                                <div class="result-section compact">
+                                    <h3 class="result-label">題目</h3>
+                                    <p class="result-text">${this.escapeHtml(question.content)}</p>
+                                </div>
+                                <div class="result-section compact">
+                                    <h3 class="result-label">選項</h3>
+                                    <div class="mcq-options-review">
+                                        ${question.options.map(option => `
+                                            <div class="mcq-option-review">
+                                                <div class="option-text">${this.escapeHtml(option)}</div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                htmlContent += `
+                    <div class="result-section">
+                        <h3 class="result-label">AI 解析</h3>
+                        <p class="result-text">${this.escapeHtml(result.ai_explanation)}</p>
+                    </div>
+                `;
+                
+                resultContent.innerHTML = htmlContent;
             } else {
-                document.getElementById('feedback-section').style.display = 'none';
+                // Expanded view for incorrect/partial answers
+                let htmlContent = '';
+                
+                // For MCQ, show question and options with correct/wrong indicators
+                if (question.type === 'MCQ' && question.options) {
+                    htmlContent += `
+                        <div class="result-section">
+                            <h3 class="result-label">題目</h3>
+                            <p class="result-text">${this.escapeHtml(question.content)}</p>
+                        </div>
+                        <div class="result-section">
+                            <h3 class="result-label">選項</h3>
+                            <div class="mcq-options-review">
+                                ${this.renderOptionsWithFeedback(question.options, userAnswer, result.correct_answer)}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // For short answer, show user answer and correct answer
+                    htmlContent += `
+                        <div class="result-section compact">
+                            <h3 class="result-label">您的答案</h3>
+                            <p class="result-text">${this.escapeHtml(userAnswer)}</p>
+                        </div>
+                        <div class="result-section compact">
+                            <h3 class="result-label">正確答案</h3>
+                            <p class="result-text">${this.escapeHtml(result.correct_answer)}</p>
+                        </div>
+                    `;
+                }
+                
+                // AI explanation - always highlighted for wrong answers
+                htmlContent += `
+                    <div class="result-section highlight">
+                        <h3 class="result-label">💡 AI 解析（重點）</h3>
+                        <p class="result-text">${this.escapeHtml(result.ai_explanation)}</p>
+                    </div>
+                `;
+                
+                // Add feedback section for short answer if available
+                if (question.type === 'ShortAnswer' && result.feedback) {
+                    htmlContent += `
+                        <div class="result-section">
+                            <h3 class="result-label">評分說明</h3>
+                            <p class="result-text">${this.escapeHtml(result.feedback)}</p>
+                        </div>
+                    `;
+                }
+                
+                resultContent.innerHTML = htmlContent;
             }
+            
+            // Update star button state
+            this.updateStarButton();
             
             // Update button text for last question
             const nextBtn = document.getElementById('next-question-btn');
@@ -393,17 +543,79 @@
                 nextBtn.textContent = '下一題';
             }
             
+            // Update progress bar
+            const total = this.sessionData.questions.length;
+            const current = this.currentQuestionIndex + 1;
+            document.getElementById('progress-count').textContent = `${current} / ${total}`;
+            document.getElementById('progress-fill').style.width = `${(current / total) * 100}%`;
+            
             // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         
+        renderOptionsWithFeedback(options, userAnswer, correctAnswer) {
+            // Extract option letters for comparison
+            const getUserOption = (answer) => {
+                const trimmed = answer.trim();
+                return trimmed.includes('.') ? trimmed.split('.')[0].trim().toUpperCase() : trimmed.toUpperCase();
+            };
+            
+            const userOption = getUserOption(userAnswer);
+            const correctOption = getUserOption(correctAnswer);
+            
+            return options.map(option => {
+                const optionLetter = option.split('.')[0].trim().toUpperCase();
+                const isCorrect = optionLetter === correctOption;
+                const isUserChoice = optionLetter === userOption;
+                
+                let className = 'mcq-option-review';
+                let indicator = '';
+                
+                if (isCorrect) {
+                    className += ' correct';
+                    indicator = '<span class="option-indicator correct-indicator">✓ 正確答案</span>';
+                } else if (isUserChoice) {
+                    className += ' wrong';
+                    indicator = '<span class="option-indicator wrong-indicator">✗ 您的選擇</span>';
+                }
+                
+                return `
+                    <div class="${className}">
+                        <div class="option-text">${this.escapeHtml(option)}</div>
+                        ${indicator}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
         nextQuestion() {
+            // Clear current result when moving to next question
+            this.currentResult = null;
             this.currentQuestionIndex++;
+            this.saveSessionState();
+            
             if (this.currentQuestionIndex >= this.sessionData.questions.length) {
                 this.showSummary();
             } else {
                 this.showQuestion();
             }
+        }
+        
+        saveSessionState() {
+            // Update session data in localStorage
+            const sessionData = {
+                ...this.sessionData,
+                currentQuestionIndex: this.currentQuestionIndex,
+                answers: this.answers,
+                currentResult: this.currentResult
+            };
+            window.appUtils.storage.set('current_session', sessionData);
         }
         
         showSummary() {
@@ -435,50 +647,94 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         
-        async appealAnswer() {
-            if (!confirm('確定要申訴此題評分嗎？系統將撤銷此次評分的影響。')) {
-                return;
-            }
+        updateStarButton() {
+            const question = this.sessionData.questions[this.currentQuestionIndex];
+            const starBtn = document.getElementById('star-question-btn');
+            const starIcon = starBtn.querySelector('.star-icon');
             
-            const currentAnswer = this.answers[this.currentQuestionIndex];
+            const isStarred = question.is_starred || false;
             
-            try {
-                await window.appUtils.apiCall(
-                    `/api/quiz/session/${this.sessionId}/answer/${currentAnswer.answer_id}/appeal`,
-                    { method: 'POST' }
-                );
-                
-                window.appUtils.showToast('申訴成功，評分已撤銷', 'success');
-                
-                // Disable appeal button
-                document.getElementById('appeal-btn').disabled = true;
-                document.getElementById('appeal-btn').textContent = '✓ 已申訴';
-                
-            } catch (error) {
-                console.error('Error appealing answer:', error);
+            if (isStarred) {
+                starIcon.textContent = '★';
+                starBtn.classList.add('starred');
+                starBtn.title = '取消收藏';
+            } else {
+                starIcon.textContent = '☆';
+                starBtn.classList.remove('starred');
+                starBtn.title = '收藏題目';
             }
         }
         
-        async deleteQuestion() {
-            if (!confirm('確定要刪除此題目嗎？此操作無法復原。')) {
-                return;
-            }
-            
+        async toggleStarQuestion() {
             const question = this.sessionData.questions[this.currentQuestionIndex];
             
             try {
+                const response = await window.appUtils.apiCall(
+                    `/api/quiz/questions/${question._id}/star`,
+                    { method: 'POST' }
+                );
+                
+                // Update local state
+                question.is_starred = response.is_starred;
+                
+                // Update button state
+                this.updateStarButton();
+                
+                // Show toast
+                window.appUtils.showToast(response.message, 'success');
+                
+                // Update session data in localStorage
+                this.saveSessionState();
+                
+            } catch (error) {
+                console.error('Error toggling star:', error);
+                window.appUtils.showToast('操作失敗，請稍後再試', 'error');
+            }
+        }
+        
+        showDeleteModal() {
+            document.getElementById('delete-modal').style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+        
+        hideDeleteModal() {
+            document.getElementById('delete-modal').style.display = 'none';
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+        
+        async deleteQuestionAndAppeal() {
+            const question = this.sessionData.questions[this.currentQuestionIndex];
+            const currentAnswer = this.answers[this.currentQuestionIndex];
+            
+            try {
+                // Step 1: Appeal the answer to remove scoring impact
+                if (currentAnswer && currentAnswer.answer_id) {
+                    try {
+                        await window.appUtils.apiCall(
+                            `/api/quiz/session/${this.sessionId}/answer/${currentAnswer.answer_id}/appeal`,
+                            { method: 'POST' }
+                        );
+                        console.log('Answer appealed successfully');
+                    } catch (error) {
+                        console.warn('Failed to appeal answer:', error);
+                        // Continue with deletion even if appeal fails
+                    }
+                }
+                
+                // Step 2: Delete the question from database
                 await window.appUtils.apiCall(
                     `/api/quiz/questions/${question._id}`,
                     { method: 'DELETE' }
                 );
                 
-                window.appUtils.showToast('題目已刪除', 'success');
+                window.appUtils.showToast('題目已刪除且不計分', 'success');
                 
                 // Move to next question
                 this.nextQuestion();
                 
             } catch (error) {
                 console.error('Error deleting question:', error);
+                window.appUtils.showToast('操作失敗，請稍後再試', 'error');
             }
         }
     }

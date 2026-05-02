@@ -28,13 +28,25 @@
     <div id="law-detail" style="display: none;">
         <!-- Law Info Card -->
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                <div>
-                    <h1 class="card-title" id="law-article">載入中...</h1>
-                    <p class="card-subtitle" id="law-chapter">載入中...</p>
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
+                <div style="flex: 1;">
+                    <h1 class="card-title" id="law-article" style="margin-bottom: 0.25rem;">載入中...</h1>
+                    <p class="card-subtitle" id="law-chapter" style="margin-bottom: 0.5rem;">載入中...</p>
+                    <!-- Compact Statistics -->
+                    <div class="law-stats-compact">
+                        <span class="stat-badge">
+                            <span class="stat-icon">📊</span>
+                            <span id="attempt-count">0</span> 次作答
+                        </span>
+                        <span class="stat-separator">·</span>
+                        <span class="stat-badge">
+                            <span class="stat-icon">✓</span>
+                            平均 <span id="avg-score">0.0</span>
+                        </span>
+                    </div>
                 </div>
-                <button 
-                    id="star-btn" 
+                <button
+                    id="star-btn"
                     class="btn btn-outline"
                     style="font-size: 1.5rem; padding: 0.5rem 1rem;"
                     title="收藏此法條"
@@ -46,28 +58,11 @@
             <div class="law-content" id="law-content">
                 載入中...
             </div>
-            
-            <!-- Statistics -->
-            <div class="summary-stats" style="margin-top: 1.5rem;">
-                <div class="summary-stat">
-                    <div class="stat-value" id="attempt-count">0</div>
-                    <div class="stat-label">作答次數</div>
-                </div>
-                <div class="summary-stat">
-                    <div class="stat-value" id="avg-score">0.0</div>
-                    <div class="stat-label">平均分數</div>
-                </div>
-                <div class="summary-stat">
-                    <div class="stat-value" id="question-count">0</div>
-                    <div class="stat-label">相關題目</div>
-                </div>
-            </div>
         </div>
 
         <!-- Questions History Card -->
         <div class="card">
             <h2 class="card-title">📝 相關題目</h2>
-            <p class="card-subtitle">此法條相關的所有題目（最新的在前）</p>
             
             <!-- Filter Tabs -->
             <div class="filter-tabs" style="margin: 1rem 0;">
@@ -79,6 +74,12 @@
                 </button>
                 <button class="filter-tab" data-filter="ShortAnswer">
                     簡答題 (<span id="count-short">0</span>)
+                </button>
+                <button class="filter-tab" data-filter="starred">
+                    已收藏 (<span id="count-starred">0</span>)
+                </button>
+                <button class="filter-tab" data-filter="marked-wrong">
+                    答錯題 (<span id="count-wrong">0</span>)
                 </button>
                 <button class="filter-tab" data-filter="deleted">
                     已刪除 (<span id="count-deleted">0</span>)
@@ -188,27 +189,64 @@
         }
     }
     
+    // Format law content with line breaks for numbered items
+    function formatLawContent(content) {
+        // Replace pattern " 數字 空格" with line break, except for the first one
+        // Pattern: one space + digit(s) + one space
+        return content.replace(/\s+(\d+)\s+/g, (match, digit, offset) => {
+            // Don't add line break if it's at the beginning
+            if (offset === 0) {
+                return match;
+            }
+            return '<br>' + digit + ' ';
+        });
+    }
+
     // Render law detail
     function renderLawDetail() {
-        document.getElementById('law-article').textContent = `第 ${lawData.article_number} 條`;
+        document.getElementById('law-article').textContent = `${lawData.article_number}`;
         document.getElementById('law-chapter').textContent = lawData.chapter;
-        document.getElementById('law-content').textContent = lawData.content;
+        
+        // Format and display content with line breaks
+        const formattedContent = formatLawContent(lawData.content);
+        document.getElementById('law-content').innerHTML = formattedContent;
         
         // Update star button
         const starBtn = document.getElementById('star-btn');
         starBtn.textContent = lawData.is_starred ? '★' : '☆';
         starBtn.style.color = lawData.is_starred ? 'var(--warning-color)' : '';
         
-        // Update statistics
-        document.getElementById('attempt-count').textContent = lawData.attempt_count || 0;
-        document.getElementById('avg-score').textContent = (lawData.avg_score || 0).toFixed(2);
-        document.getElementById('question-count').textContent = questions.filter(q => !q.is_deleted).length;
+        // Update statistics (only show if there are attempts)
+        const statsContainer = document.querySelector('.law-stats-compact');
+        if (lawData.attempt_count && lawData.attempt_count > 0) {
+            document.getElementById('attempt-count').textContent = lawData.attempt_count;
+            
+            // Calculate accuracy percentage
+            let accuracyPercent = '-';
+            let accuracyClass = '';
+            if (lawData.avg_score !== null && lawData.avg_score !== undefined) {
+                accuracyPercent = Math.round(lawData.avg_score * 100);
+                accuracyClass = accuracyPercent < 70 ? 'low-accuracy' : '';
+            }
+            
+            const avgScoreEl = document.getElementById('avg-score');
+            avgScoreEl.textContent = accuracyPercent === '-' ? '-' : `${accuracyPercent}%`;
+            avgScoreEl.className = accuracyClass;
+            
+            statsContainer.style.display = 'flex';
+        } else {
+            statsContainer.style.display = 'none';
+        }
     }
     
     // Get filtered questions based on current filter
     function getFilteredQuestions() {
         if (currentFilter === 'deleted') {
             return questions.filter(q => q.is_deleted);
+        } else if (currentFilter === 'starred') {
+            return questions.filter(q => q.is_starred && !q.is_deleted);
+        } else if (currentFilter === 'marked-wrong') {
+            return questions.filter(q => q.is_marked_wrong && !q.is_deleted);
         } else if (currentFilter !== 'all') {
             return questions.filter(q => q.type === currentFilter && !q.is_deleted);
         } else {
@@ -219,14 +257,18 @@
     // Render questions
     function renderQuestions() {
         // Update counts
-        const allCount = questions.length;
+        const allCount = questions.filter(q => !q.is_deleted).length;
         const mcqCount = questions.filter(q => q.type === 'MCQ' && !q.is_deleted).length;
         const shortCount = questions.filter(q => q.type === 'ShortAnswer' && !q.is_deleted).length;
+        const starredCount = questions.filter(q => q.is_starred && !q.is_deleted).length;
+        const wrongCount = questions.filter(q => q.is_marked_wrong && !q.is_deleted).length;
         const deletedCount = questions.filter(q => q.is_deleted).length;
         
         document.getElementById('count-all').textContent = allCount;
         document.getElementById('count-mcq').textContent = mcqCount;
         document.getElementById('count-short').textContent = shortCount;
+        document.getElementById('count-starred').textContent = starredCount;
+        document.getElementById('count-wrong').textContent = wrongCount;
         document.getElementById('count-deleted').textContent = deletedCount;
         
         // Filter questions
@@ -273,7 +315,7 @@
                     ${q.is_deleted ? 'opacity: 0.6; background-color: var(--bg-color);' : ''}
                 ">
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                        <div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                             <span class="question-type-badge ${q.type === 'MCQ' ? 'badge-mcq' : 'badge-short'}" style="
                                 display: inline-block;
                                 padding: 0.25rem 0.75rem;
@@ -284,18 +326,40 @@
                                 ${q.type === 'MCQ' ? '選擇題' : '簡答題'}
                             </span>
                             ${q.is_deleted ? '<span style="color: var(--danger-color); margin-left: 0.5rem;">🗑️ 已刪除</span>' : ''}
+                            ${!q.is_deleted && q.is_marked_wrong ? `
+                                <span style="color: var(--danger-color); font-size: 0.875rem; font-weight: 500;">
+                                    ✗ 答錯 (${Math.round((q.last_score || 0) * 100)}%)
+                                </span>
+                            ` : ''}
+                            ${!q.is_deleted && !q.is_marked_wrong && q.last_score !== undefined ? `
+                                <span style="color: var(--success-color); font-size: 0.875rem;">
+                                    ✓ ${Math.round(q.last_score * 100)}%
+                                </span>
+                            ` : ''}
                         </div>
-                        <span style="color: var(--text-secondary); font-size: 0.875rem;">
-                            #${startIdx + index + 1}
-                        </span>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <span style="color: var(--text-secondary); font-size: 0.875rem;">
+                                #${startIdx + index + 1}
+                            </span>
+                            ${!q.is_deleted ? `
+                                <button
+                                    class="btn-icon-small"
+                                    onclick="toggleQuestionStar('${q._id}')"
+                                    title="${q.is_starred ? '取消收藏' : '收藏題目'}"
+                                    style="color: ${q.is_starred ? 'var(--warning-color)' : 'var(--text-secondary)'};"
+                                >
+                                    ${q.is_starred ? '★' : '☆'}
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
                     <div style="margin-bottom: 0.75rem; color: var(--text-primary);">
                         ${q.content}
                     </div>
                     ${q.type === 'MCQ' && q.options ? `
-                        <div style="margin-bottom: 0.75rem;">
+                        <div style="margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.25rem;">
                             ${q.options.map((opt, i) => `
-                                <div style="padding: 0.5rem; background: var(--bg-color); border-radius: 0.25rem; margin-bottom: 0.25rem; font-size: 0.875rem;">
+                                <div style="padding: 0.5rem; background: var(--bg-color); border-radius: 0.25rem; font-size: 0.875rem;">
                                     ${opt}
                                 </div>
                             `).join('')}
@@ -361,5 +425,33 @@
             window.appUtils.showToast('操作失敗', 'error');
         }
     }
+    
+    // Toggle question star status
+    async function toggleQuestionStar(questionId) {
+        try {
+            const response = await window.appUtils.apiCall(
+                `/api/questions/${questionId}/star`,
+                { method: 'PUT' }
+            );
+            
+            // Update local data
+            const question = questions.find(q => q._id === questionId);
+            if (question) {
+                question.is_starred = response.is_starred;
+            }
+            
+            // Re-render
+            renderQuestions();
+            
+            window.appUtils.showToast(response.message, 'success');
+            
+        } catch (error) {
+            console.error('Error toggling question star:', error);
+            window.appUtils.showToast('操作失敗', 'error');
+        }
+    }
+    
+    // 答錯標記改為自動判斷（根據 last_score < 0.7）
+    // 不再需要手動切換功能
 </script>
 {% endblock %}

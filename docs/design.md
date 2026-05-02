@@ -22,6 +22,7 @@ knowledge/          ← Markdown files of 專利法 articles & mock JSON data
 ```
 
 ## 2. API Endpoints (Planned)
+- `GET /api/quiz/available`: Check available question count. Parameters: type, mode. Returns `{ available: int }`.
 - `POST /quiz/session`: Start a new session. Parameters: type, mode, count. Returns `session_id` + `questions[]`.
 - `POST /quiz/session/:id/answer`: Submit answer (sync grade for MCQ, async style LLM for Short Answer).
 - `POST /quiz/session/:id/answer/:aid/appeal`: Appeal score.
@@ -79,17 +80,31 @@ class UserProgressModel:
   Output schema: `{ chapter, article_number, content }`
 
 ## 5. Question Inventory Logic & Rules
+
+### 5.1 Pre-flight Check (NEW)
+Before starting a quiz session, the frontend should check available questions:
+1. Call `GET /api/quiz/available?type={type}&mode={mode}` on config change
+2. Compare `available` with user's requested `count`
+3. If `available < count`, show warning modal with options:
+   - **Option 1**: Adjust count to `available` (e.g., "使用現有的 2 題")
+   - **Option 2**: Switch to "mixed" mode (if applicable)
+   - **Option 3**: Cancel and reconfigure
+4. Only proceed to `POST /quiz/session` after user confirms
+
+### 5.2 Session Creation Rules
 When a quiz session is started for `n` questions:
 | Available in pool | Action |
 |---|---|
 | `>= 4n` | Pull `n` directly from DB |
 | `n <= available < 4n` | Return `n` to user; trigger async generation of 40 more in background |
-| `< n` | Block and generate synchronously; show "AI 正在為您量身打造題目..." |
+| `< n` | ~~Block and generate synchronously~~ **Prevented by pre-flight check** |
 
 Session Types:
 - `new`: `needs_review == False` AND never attempted.
 - `review`: `needs_review == True`.
 - `mixed`: 50% new + 50% review.
+
+**Important Change**: The `< n` synchronous generation scenario should be **prevented** by the pre-flight check. This ensures users don't get unexpected questions that don't match their selected mode (e.g., getting new questions when they selected "review" mode).
 
 ## 6. User Flow
 

@@ -36,10 +36,10 @@ def get_laws():
     try:
         # Get query parameters
         page = max(1, int(request.args.get('page', 1)))
-        per_page = min(100, max(1, int(request.args.get('per_page', 20))))
+        per_page = min(500, max(1, int(request.args.get('per_page', 20))))
         chapter = request.args.get('chapter')
         starred_param = request.args.get('starred')
-        sort_field = request.args.get('sort', 'article_number')
+        sort_field = request.args.get('sort', 'article_number_int')
         order = request.args.get('order', 'asc')
         
         # Build filter
@@ -51,10 +51,14 @@ def get_laws():
             starred = starred_param.lower() in ['true', '1', 'yes']
             query_filter['is_starred'] = starred
         
-        # Validate sort field
-        valid_sort_fields = ['article_number', 'avg_score', 'attempt_count']
+        # Validate sort field (保留 article_number 作為相容選項，但實際使用 article_number_int)
+        valid_sort_fields = ['article_number', 'article_number_int', 'avg_score', 'attempt_count']
         if sort_field not in valid_sort_fields:
-            sort_field = 'article_number'
+            sort_field = 'article_number_int'
+        
+        # 如果使用者指定 article_number，自動轉換為 article_number_int
+        if sort_field == 'article_number':
+            sort_field = 'article_number_int'
         
         # Sort direction
         sort_direction = 1 if order == 'asc' else -1
@@ -259,16 +263,18 @@ def get_stats():
 @laws_bp.route('/<law_id>/questions', methods=['GET'])
 def get_law_questions(law_id):
     """
-    Get all questions related to a specific law article.
+    Get all answered questions related to a specific law article.
+    Only returns questions that have user progress records (已作答過的題目).
+    自動判斷答錯狀態：last_score < 0.7 視為答錯題
     
     Response:
         {
-            "questions": [...],
+            "questions": [...],  # 包含 is_marked_wrong (根據 last_score 自動計算)
             "total": int
         }
     """
     try:
-        from db.models import questions_collection
+        from db.models import questions_collection, user_progress_collection
         
         # Validate law exists
         try:
@@ -279,14 +285,27 @@ def get_law_questions(law_id):
         if not law:
             return jsonify({"error": "Law not found"}), 404
         
-        # Get all questions for this law (including deleted for history)
-        questions = list(questions_collection.find({"law_id": law_id}))
+        # Get all questions for this law
+        all_questions = list(questions_collection.find({"law_id": law_id}))
         
-        # Convert ObjectId to string
-        for q in questions:
-            q['_id'] = str(q['_id'])
+        # Get user progress for all questions
+        progress_map = {}
+        for progress in user_progress_collection.find({}):
+            progress_map[progress['question_id']] = progress
         
-        logger.info(f"Retrieved {len(questions)} questions for law {law_id}")
+        # Filter to only include answered questions and add progress info
+        questions = []
+        for q in all_questions:
+            q_id = str(q['_id'])
+            if q_id in progress_map:
+                q['_id'] = q_id
+                # 自動判斷答錯狀態：last_score < 0.7
+                last_score = progress_map[q_id].get('last_score', 0.0)
+                q['is_marked_wrong'] = last_score < 0.7
+                q['last_score'] = last_score
+                questions.append(q)
+        
+        logger.info(f"Retrieved {len(questions)} answered questions for law {law_id}")
         
         return jsonify({
             "questions": questions,
@@ -296,3 +315,56 @@ def get_law_questions(law_id):
     except Exception as e:
         logger.error(f"Error getting law questions: {e}")
         return jsonify({"error": "Internal server error"}), 500
+
+
+# Question management endpoints
+from flask import Blueprint as _Blueprint
+questions_bp = _Blueprint('questions', __name__, url_prefix='/api/questions')
+
+
+@questions_bp.route('/<question_id>/star', methods=['PUT'])
+def toggle_question_star(question_id):
+    """
+    Toggle the starred status of a question.
+    
+    Response:
+        {
+            "message": str,
+            "is_starred": bool
+        }
+    """
+    try:
+        from db.models import questions_collection
+        
+        # Validate and get question
+        try:
+            question = questions_collection.find_one({"_id": ObjectId(question_id)})
+        except:
+            return jsonify({"error": "Invalid question_id format"}), 400
+        
+        if not question:
+            return jsonify({"error": "Question not found"}), 404
+        
+        # Toggle starred status
+        current_starred = question.get('is_starred', False)
+        new_starred = not current_starred
+        
+        questions_collection.update_one(
+            {"_id": ObjectId(question_id)},
+            {"$set": {"is_starred": new_starred}}
+        )
+        
+        action = "已收藏" if new_starred else "已取消收藏"
+        logger.info(f"Question {question_id} starred status changed to {new_starred}")
+        
+        return jsonify({
+            "message": f"{action}題目",
+            "is_starred": new_starred
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error toggling question star: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
+
+# 答錯標記改為自動判斷（last_score < 0.7），不再需要手動切換 API

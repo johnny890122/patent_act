@@ -4,27 +4,24 @@
 
 {% block content %}
 <div class="container">
-    <!-- Config Header -->
+    <!-- Config Header - 更緊湊 -->
     <div class="config-header">
-        <h1 class="config-title">🎯 開始新測驗</h1>
-        <p class="config-subtitle">選擇測驗類型、練習模式和題目數量</p>
+        <h1 class="config-title">開始新測驗</h1>
     </div>
 
-    <!-- Quiz Configuration Form -->
-    <div class="card">
+    <!-- Quiz Configuration Form - 減少 padding -->
+    <div class="card" style="padding: 1rem;">
         <form id="quiz-config-form">
             <!-- Question Type Selection -->
             <div class="form-group">
                 <label class="form-label">
-                    <span class="label-icon">📝</span>
-                    題目類型
+                    類型
                 </label>
                 <div class="radio-group">
                     <label class="radio-card">
                         <input type="radio" name="type" value="MCQ" checked>
                         <div class="radio-content">
                             <div class="radio-title">選擇題</div>
-                            <div class="radio-description">四選一單選題型</div>
                         </div>
                         <span class="radio-check">✓</span>
                     </label>
@@ -33,7 +30,6 @@
                         <input type="radio" name="type" value="ShortAnswer">
                         <div class="radio-content">
                             <div class="radio-title">簡答題</div>
-                            <div class="radio-description">考驗理解深度與表達能力</div>
                         </div>
                         <span class="radio-check">✓</span>
                     </label>
@@ -41,8 +37,7 @@
                     <label class="radio-card">
                         <input type="radio" name="type" value="Mixed">
                         <div class="radio-content">
-                            <div class="radio-title">混合模式</div>
-                            <div class="radio-description">選擇題與簡答題混合</div>
+                            <div class="radio-title">混合題型</div>
                         </div>
                         <span class="radio-check">✓</span>
                     </label>
@@ -52,15 +47,13 @@
             <!-- Session Mode Selection -->
             <div class="form-group">
                 <label class="form-label">
-                    <span class="label-icon">🎲</span>
-                    練習模式
+                    模式
                 </label>
                 <div class="radio-group">
                     <label class="radio-card">
                         <input type="radio" name="mode" value="new" checked>
                         <div class="radio-content">
-                            <div class="radio-title">新題模式</div>
-                            <div class="radio-description">挑戰未做過的題目</div>
+                            <div class="radio-title">新題</div>
                         </div>
                         <span class="radio-check">✓</span>
                     </label>
@@ -68,8 +61,7 @@
                     <label class="radio-card">
                         <input type="radio" name="mode" value="review">
                         <div class="radio-content">
-                            <div class="radio-title">複習模式</div>
-                            <div class="radio-description">重做需要加強的題目</div>
+                            <div class="radio-title">複習</div>
                         </div>
                         <span class="radio-check">✓</span>
                     </label>
@@ -77,8 +69,7 @@
                     <label class="radio-card">
                         <input type="radio" name="mode" value="mixed">
                         <div class="radio-content">
-                            <div class="radio-title">混合模式</div>
-                            <div class="radio-description">50% 新題 + 50% 複習</div>
+                            <div class="radio-title">混合</div>
                         </div>
                         <span class="radio-check">✓</span>
                     </label>
@@ -88,38 +79,35 @@
             <!-- Question Count Selection -->
             <div class="form-group">
                 <label class="form-label">
-                    <span class="label-icon">🔢</span>
-                    題目數量
+                    題數
+                    <span id="available-hint" style="color: var(--text-secondary, #666); font-size: 0.875rem; font-weight: normal;"></span>
                 </label>
                 <div class="count-selector">
-                    <button type="button" class="count-btn" data-count="5">5 題</button>
-                    <button type="button" class="count-btn active" data-count="10">10 題</button>
+                    <button type="button" class="count-btn active" data-count="5">5 題</button>
+                    <button type="button" class="count-btn" data-count="10">10 題</button>
                     <button type="button" class="count-btn" data-count="20">20 題</button>
                     <button type="button" class="count-btn" data-count="30">30 題</button>
                 </div>
-                <input type="hidden" name="count" id="question-count" value="10">
+                <input type="hidden" name="count" id="question-count" value="5">
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary btn-block btn-lg" id="start-quiz-btn">
+            <button type="submit" class="btn btn-primary btn-block" id="start-quiz-btn" style="margin-top: 0.5rem;">
                 開始測驗
             </button>
-            
-            <a href="/" class="btn btn-secondary btn-block">
-                返回首頁
-            </a>
         </form>
     </div>
 
-    <!-- Info Card -->
-    <div class="card">
-        <h3 class="card-title">💡 說明</h3>
+    <!-- Info Card - 更緊湊 -->
+    <div class="card" style="padding: 1rem;">
+        <h3 class="card-title" style="font-size: 1.125rem; margin-bottom: 0.75rem;">💡 說明</h3>
         <ul class="info-list">
-            <li><strong>選擇題：</strong>快速測試基礎概念掌握度</li>
-            <li><strong>簡答題：</strong>AI 評分，深入檢驗理解程度</li>
-            <li><strong>新題模式：</strong>學習未接觸過的法條內容</li>
-            <li><strong>複習模式：</strong>強化未精熟的題目（答對 < 3 次）</li>
-            <li><strong>混合模式：</strong>在新題與複習之間取得平衡</li>
+            <li><strong>選擇題：</strong>四選一單選題型，快速測試基礎概念掌握度</li>
+            <li><strong>簡答題：</strong>開放式問答，AI 評分深入檢驗理解程度</li>
+            <li><strong>混合題型：</strong>選擇題與簡答題混合出題</li>
+            <li><strong>新題：</strong>挑戰未做過的題目，學習新法條內容</li>
+            <li><strong>複習：</strong>重做需加強的題目（答對 < 3 次）</li>
+            <li><strong>混合：</strong>50% 新題 + 50% 複習，平衡學習</li>
         </ul>
     </div>
 </div>
@@ -132,10 +120,55 @@
         <p class="loading-subtitle">這可能需要幾秒鐘，請稍候</p>
     </div>
 </div>
+
+<!-- Insufficient Questions Warning Modal -->
+<div id="warning-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px; padding: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; color: var(--warning, #f59e0b);">⚠️ 題目數量不足</h3>
+        <p id="warning-message" style="margin: 0 0 1.5rem 0; color: var(--text-secondary, #666); line-height: 1.6;"></p>
+        
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <button id="adjust-count-btn" class="btn btn-primary" style="width: 100%;"></button>
+            <button id="switch-mixed-btn" class="btn" style="width: 100%; background: var(--bg-secondary, #f3f4f6); color: var(--text-primary, #111827);"></button>
+            <button id="cancel-btn" class="btn" style="width: 100%; background: transparent; color: var(--text-secondary, #666); border: 1px solid var(--border, #e5e7eb);">取消</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+    let availableQuestions = 0;
+    
+    // Check available questions
+    async function checkAvailableQuestions() {
+        const type = document.querySelector('input[name="type"]:checked').value;
+        const mode = document.querySelector('input[name="mode"]:checked').value;
+        
+        try {
+            const response = await fetch(`/api/quiz/available?type=${type}&mode=${mode}`);
+            if (!response.ok) throw new Error('檢查失敗');
+            
+            const data = await response.json();
+            availableQuestions = data.available;
+            
+            // Update hint
+            const hint = document.getElementById('available-hint');
+            if (availableQuestions === 0) {
+                hint.textContent = '（目前無可用題目）';
+                hint.style.color = 'var(--error, #ef4444)';
+            } else {
+                hint.textContent = `（可用: ${availableQuestions} 題）`;
+                hint.style.color = 'var(--text-secondary, #666)';
+            }
+            
+            // No visual warning on buttons - modal will handle insufficient cases
+            
+        } catch (error) {
+            console.error('Failed to check available questions:', error);
+        }
+    }
+    
     // Handle count button selection
     document.querySelectorAll('.count-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -145,9 +178,87 @@
             this.classList.add('active');
             // Update hidden input value
             document.getElementById('question-count').value = this.dataset.count;
+            
+            // Re-check available questions
+            checkAvailableQuestions();
         });
     });
+    
+    // Listen to type/mode changes
+    document.querySelectorAll('input[name="type"], input[name="mode"]').forEach(radio => {
+        radio.addEventListener('change', checkAvailableQuestions);
+    });
+    
+    // Initial check
+    checkAvailableQuestions();
 
+    // Show warning modal
+    function showWarningModal(config, available) {
+        const modal = document.getElementById('warning-modal');
+        const message = document.getElementById('warning-message');
+        const adjustBtn = document.getElementById('adjust-count-btn');
+        const switchBtn = document.getElementById('switch-mixed-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        
+        // Set message
+        const modeText = config.mode === 'new' ? '新題' : config.mode === 'review' ? '複習' : '混合';
+        message.textContent = `目前只有 ${available} 題${modeText}可用，但您要求 ${config.count} 題。請選擇以下選項：`;
+        
+        // Set button texts
+        adjustBtn.textContent = available > 0 ? `使用現有的 ${available} 題` : '無可用題目';
+        adjustBtn.disabled = available === 0;
+        switchBtn.textContent = '改為混合模式';
+        
+        // Hide mixed button if already in mixed mode
+        if (config.mode === 'mixed') {
+            switchBtn.style.display = 'none';
+        } else {
+            switchBtn.style.display = 'block';
+        }
+        
+        // Show modal
+        modal.style.display = 'flex';
+        
+        // Handle adjust count
+        adjustBtn.onclick = () => {
+            if (available > 0) {
+                document.getElementById('question-count').value = available;
+                // Update active button - find closest match
+                let closestBtn = null;
+                let minDiff = Infinity;
+                document.querySelectorAll('.count-btn').forEach(btn => {
+                    const diff = Math.abs(parseInt(btn.dataset.count) - available);
+                    if (diff < minDiff || (diff === minDiff && parseInt(btn.dataset.count) <= available)) {
+                        minDiff = diff;
+                        closestBtn = btn;
+                    }
+                });
+                document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('active'));
+                if (closestBtn) closestBtn.classList.add('active');
+                
+                modal.style.display = 'none';
+                // Retry submission
+                document.getElementById('quiz-config-form').dispatchEvent(new Event('submit'));
+            }
+        };
+        
+        // Handle switch to mixed
+        switchBtn.onclick = () => {
+            document.querySelector('input[name="mode"][value="mixed"]').checked = true;
+            document.querySelector('input[name="mode"][value="mixed"]').dispatchEvent(new Event('change'));
+            modal.style.display = 'none';
+            checkAvailableQuestions();
+        };
+        
+        // Handle cancel
+        cancelBtn.onclick = () => {
+            modal.style.display = 'none';
+            const submitBtn = document.getElementById('start-quiz-btn');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '開始測驗';
+        };
+    }
+    
     // Handle form submission
     document.getElementById('quiz-config-form').addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -161,6 +272,12 @@
         };
         
         console.log('Starting quiz with config:', config);
+        
+        // Check if insufficient questions
+        if (config.count > availableQuestions) {
+            showWarningModal(config, availableQuestions);
+            return;
+        }
         
         // Disable submit button
         const submitBtn = document.getElementById('start-quiz-btn');

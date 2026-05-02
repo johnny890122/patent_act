@@ -11,6 +11,7 @@ class LawModel:
     article_number: str
     content: str
     chapter: str
+    article_number_int: int = 0  # 用於排序的整數條號
     is_starred: bool = False
     total_score: float = 0.0
     attempt_count: int = 0
@@ -25,6 +26,8 @@ class QuestionModel:
     ai_explanation: str
     options: Optional[List[str]] = None
     is_deleted: bool = False
+    is_starred: bool = False
+    # 答錯狀態改為從 user_progress.last_score 自動判斷
 
 @dataclass
 class UserProgressModel:

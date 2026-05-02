@@ -3,7 +3,7 @@ import os
 from db.models import Database
 from routes.admin import admin_bp
 from routes.quiz import quiz_bp
-from routes.laws import laws_bp
+from routes.laws import laws_bp, questions_bp
 from routes.frontend import frontend_bp
 
 def create_app():
@@ -21,6 +21,7 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(quiz_bp)
     app.register_blueprint(laws_bp)
+    app.register_blueprint(questions_bp)
 
     return app
 
