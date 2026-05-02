@@ -1,5 +1,49 @@
 // 專利法 AI 刷題助手 - Main JavaScript
 
+// ==================== Language Management ====================
+// Get current language from localStorage (default: zh-TW)
+function getCurrentLang() {
+    return localStorage.getItem('appLang') || 'zh-TW';
+}
+
+// Set language and save to localStorage
+function setLanguage(lang) {
+    localStorage.setItem('appLang', lang);
+    updateLanguageButtons(lang);
+    // Reload current page to apply language change
+    window.location.reload();
+}
+
+// Update language toggle buttons state
+function updateLanguageButtons(lang) {
+    const buttons = document.querySelectorAll('.lang-btn');
+    buttons.forEach(btn => {
+        if (btn.dataset.lang === lang) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+// Initialize language toggle on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const currentLang = getCurrentLang();
+    updateLanguageButtons(currentLang);
+    
+    // Add click listeners to language buttons
+    const langButtons = document.querySelectorAll('.lang-btn');
+    langButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const newLang = this.dataset.lang;
+            if (newLang !== currentLang) {
+                setLanguage(newLang);
+            }
+        });
+    });
+});
+
+// ==================== Utilities ====================
 // Utility: Show toast notification
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');

@@ -1,11 +1,14 @@
 """
 Question Generator Service - Generates MCQ and Short Answer questions using LLM.
 Uses diversity checks to avoid duplicate questions.
+Supports both monolingual (zh-TW only) and bilingual (zh-TW + EN) generation.
 """
 import logging
-from typing import List, Dict, Optional, Literal
+import uuid
+from typing import List, Dict, Optional, Literal, Tuple
 from pydantic import BaseModel, Field, ValidationError
 from services.llm_client import LLMClient, DEFAULT_MODEL
+from services.translator import Translator
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +34,7 @@ class QuestionGenerator:
             model: Model name (defaults to thinking model for quality)
         """
         self.llm_client = LLMClient(api_key=api_key, model=model or DEFAULT_MODEL)
+        self.translator = Translator(api_key=api_key, model=model or DEFAULT_MODEL)
         
         if not self.llm_client.api_key:
             logger.warning("OPENROUTER_API_KEY is not set. Question generation will fail.")
@@ -140,3 +144,51 @@ class QuestionGenerator:
                     raise
         
         raise ValueError("Failed to generate questions after multiple retries.")
+    
+    def generate_bilingual_questions(
+        self,
+        law_content_zh: str,
+        law_content_en: str,
+        law_article_number: str,
+        question_type: Literal["MCQ", "ShortAnswer"],
+        recent_questions_zh: List[Dict] = None,
+        recent_questions_en: List[Dict] = None,
+        count: int = 1
+    ) -> List[Tuple[Dict, Dict]]:
+        """
+        Generate bilingual questions (zh-TW and EN) for a law article.
+        Both versions are generated simultaneously with identical meaning.
+        
+        Args:
+            law_content_zh: Content of law article in Traditional Chinese
+            law_content_en: Content of law article in English
+            law_article_number: Article number for reference
+            question_type: Type of questions ("MCQ" or "ShortAnswer")
+            recent_questions_zh: Recent zh-TW questions to avoid duplicates
+            recent_questions_en: Recent en questions to avoid duplicates
+            count: Number of question pairs to generate
+            
+        Returns:
+            List of tuples: [(zh_tw_question_dict, en_question_dict), ...]
+            
+        Raises:
+            ValueError: If generation fails after retries
+        """
+        try:
+            result_pairs = self.translator.generate_bilingual_question(
+                law_content_zh=law_content_zh,
+                law_content_en=law_content_en,
+                law_article_number=law_article_number,
+                question_type=question_type,
+                recent_questions_zh=recent_questions_zh,
+                recent_questions_en=recent_questions_en,
+                count=count
+            )
+            
+            logger.info(f"Successfully generated {len(result_pairs)} bilingual question pair(s)")
+            return result_pairs
+            
+        except Exception as e:
+            logger.error(f"Error generating bilingual questions: {e}")
+            raise
+

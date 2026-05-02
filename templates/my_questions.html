@@ -295,10 +295,12 @@ async function loadQuestions(page = 1) {
         showLoading();
         
         // Build URL with filters
+        const currentLang = localStorage.getItem('appLang') || 'zh-TW';
         const params = new URLSearchParams({
             tab: currentTab,
             page: page.toString(),
-            per_page: PER_PAGE.toString()
+            per_page: PER_PAGE.toString(),
+            lang: currentLang
         });
         
         // Add type filter if not "all"

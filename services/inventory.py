@@ -26,7 +26,8 @@ class QuestionInventory:
     def count_available_questions(
         self,
         question_type: Literal["MCQ", "ShortAnswer", "Mixed"],
-        session_mode: Literal["new", "review", "mixed"]
+        session_mode: Literal["new", "review", "mixed"],
+        lang: str = 'zh-TW'
     ) -> int:
         """
         Count available questions based on type and session mode.
@@ -47,10 +48,16 @@ class QuestionInventory:
             type_filter["type"] = "ShortAnswer"
         # Mixed means both types, no filter needed
         
+        # Build language filter
+        lang_filter = {}
+        if lang and lang != 'both':
+            lang_filter['lang'] = lang
+
         # Get all non-deleted question IDs
         all_questions = list(questions_collection.find({
             **type_filter,
-            "is_deleted": False
+            "is_deleted": False,
+            **lang_filter
         }, {"_id": 1}))
         
         question_ids = [str(q["_id"]) for q in all_questions]
@@ -101,6 +108,8 @@ class QuestionInventory:
         question_type: Literal["MCQ", "ShortAnswer", "Mixed"],
         session_mode: Literal["new", "review", "mixed"],
         count: int
+    ,
+        lang: str = 'zh-TW'
     ) -> List[Dict]:
         """
         Fetch questions from database based on type and mode.
@@ -117,17 +126,18 @@ class QuestionInventory:
             # Split 50/50
             new_count = count // 2
             review_count = count - new_count
-            new_qs = self._fetch_by_mode(question_type, "new", new_count)
-            review_qs = self._fetch_by_mode(question_type, "review", review_count)
+            new_qs = self._fetch_by_mode(question_type, "new", new_count, lang)
+            review_qs = self._fetch_by_mode(question_type, "review", review_count, lang)
             return new_qs + review_qs
         else:
-            return self._fetch_by_mode(question_type, session_mode, count)
+            return self._fetch_by_mode(question_type, session_mode, count, lang)
     
     def _fetch_by_mode(
         self,
         question_type: Literal["MCQ", "ShortAnswer", "Mixed"],
         session_mode: Literal["new", "review"],
-        count: int
+        count: int,
+        lang: str = 'zh-TW'
     ) -> List[Dict]:
         """
         Internal helper to fetch questions by specific mode.
@@ -148,10 +158,16 @@ class QuestionInventory:
         elif question_type == "ShortAnswer":
             type_filter["type"] = "ShortAnswer"
         
+        # Build language filter
+        lang_filter = {}
+        if lang and lang != 'both':
+            lang_filter['lang'] = lang
+
         # Get all non-deleted questions
         all_questions = list(questions_collection.find({
             **type_filter,
-            "is_deleted": False
+            "is_deleted": False,
+            **lang_filter
         }))
         
         # Batch fetch all progress records (OPTIMIZED!)
@@ -191,7 +207,8 @@ class QuestionInventory:
         self,
         question_type: Literal["MCQ", "ShortAnswer", "Mixed"],
         count: int,
-        law_ids: Optional[List[str]] = None
+        law_ids: Optional[List[str]] = None,
+        lang: str = 'zh-TW'
     ) -> List[Dict]:
         """
         Synchronously generate and save questions. Blocks until complete.
@@ -206,12 +223,16 @@ class QuestionInventory:
         """
         logger.info(f"Starting sync generation of {count} {question_type} questions")
         
-        # Get law articles to generate questions for
+        # Get law articles to generate questions for (respect language)
+        law_filter = {}
+        if lang and lang != 'both':
+            law_filter['lang'] = lang
+
         if not law_ids:
-            laws = list(laws_collection.find({}, {"_id": 1, "content": 1, "article_number": 1}))
+            laws = list(laws_collection.find({**law_filter}, {"_id": 1, "content": 1, "article_number": 1}))
         else:
             laws = list(laws_collection.find(
-                {"_id": {"$in": [ObjectId(lid) for lid in law_ids]}},
+                {"_id": {"$in": [ObjectId(lid) for lid in law_ids]}, **law_filter},
                 {"_id": 1, "content": 1, "article_number": 1}
             ))
         
@@ -256,6 +277,9 @@ class QuestionInventory:
                 for q in new_qs:
                     q["law_id"] = law_id
                     q["is_deleted"] = False
+                    # attach language metadata
+                    if lang and lang != 'both':
+                        q['lang'] = lang
                     result = questions_collection.insert_one(q)
                     q["_id"] = str(result.inserted_id)
                     generated_questions.append(q)
@@ -272,7 +296,8 @@ class QuestionInventory:
         self,
         question_type: Literal["MCQ", "ShortAnswer", "Mixed"],
         count: int,
-        law_ids: Optional[List[str]] = None
+        law_ids: Optional[List[str]] = None,
+        lang: str = 'zh-TW'
     ):
         """
         Asynchronously generate questions in background thread.
@@ -284,7 +309,7 @@ class QuestionInventory:
         """
         def background_task():
             try:
-                self.generate_questions_sync(question_type, count, law_ids)
+                self.generate_questions_sync(question_type, count, law_ids, lang)
                 logger.info(f"Background generation of {count} questions completed")
             except Exception as e:
                 logger.error(f"Background generation failed: {e}")
@@ -298,7 +323,8 @@ class QuestionInventory:
         question_type: Literal["MCQ", "ShortAnswer", "Mixed"],
         session_mode: Literal["new", "review", "mixed"],
         count: int,
-        law_ids: Optional[List[str]] = None
+        law_ids: Optional[List[str]] = None,
+        lang: str = 'zh-TW'
     ) -> tuple[List[Dict], bool]:
         """
         Main entry point for getting session questions. 
@@ -320,22 +346,22 @@ class QuestionInventory:
             - questions: List of question documents
             - is_loading_state: True if had to generate synchronously
         """
-        available = self.count_available_questions(question_type, session_mode)
+        available = self.count_available_questions(question_type, session_mode, lang)
         logger.info(f"Available questions: {available}, Requested: {count}, Type: {question_type}, Mode: {session_mode}")
         
         if available >= 4 * count:
             # Plenty available, just return n questions
             logger.info("Sufficient inventory (>= 4n), fetching directly")
-            questions = self.fetch_questions(question_type, session_mode, count)
+            questions = self.fetch_questions(question_type, session_mode, count, lang)
             return questions, False
             
         elif available >= count:
             # Have enough for this session, but trigger background generation
             logger.info(f"Adequate inventory ({count} <= {available} < {4*count}), fetching + async generation")
-            questions = self.fetch_questions(question_type, session_mode, count)
-            
+            questions = self.fetch_questions(question_type, session_mode, count, lang)
+
             # Trigger async generation of 40 more
-            self.generate_questions_async(question_type, 40, law_ids)
+            self.generate_questions_async(question_type, 40, law_ids, lang)
             
             return questions, False
             
@@ -345,10 +371,10 @@ class QuestionInventory:
             
             # Generate exactly what we need
             needed = count - available
-            new_questions = self.generate_questions_sync(question_type, needed, law_ids)
+            new_questions = self.generate_questions_sync(question_type, needed, law_ids, lang)
             
             # Fetch any existing ones if available
-            existing = self.fetch_questions(question_type, session_mode, available) if available > 0 else []
+            existing = self.fetch_questions(question_type, session_mode, available, lang) if available > 0 else []
             
             all_questions = existing + new_questions
             return all_questions[:count], True  # True indicates loading state was needed

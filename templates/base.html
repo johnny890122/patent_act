@@ -26,6 +26,10 @@
                 <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">首頁</a>
                 <a href="/laws" class="nav-link {% if request.path.startswith('/laws') %}active{% endif %}">法條瀏覽</a>
             </nav>
+            <div class="lang-toggle">
+                <button id="lang-zh" class="lang-btn active" data-lang="zh-TW" title="切換到中文">中</button>
+                <button id="lang-en" class="lang-btn" data-lang="en" title="Switch to English">EN</button>
+            </div>
         </div>
     </header>
 

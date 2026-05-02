@@ -4,7 +4,7 @@ Laws Routes - Handles law article browsing and starring functionality.
 import logging
 from flask import Blueprint, request, jsonify
 from bson import ObjectId
-from db.models import laws_collection
+from db.models import laws_collection, i18n_mapping_collection
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,17 @@ def get_laws():
         per_page = min(500, max(1, int(request.args.get('per_page', 20))))
         chapter = request.args.get('chapter')
         starred_param = request.args.get('starred')
+        # Normalize language query param (accept zh-tw, zh-TW, en, both)
+        req_lang = request.args.get('lang')
+        lang = None
+        if req_lang:
+            nl = req_lang.lower()
+            if nl in ['zh-tw', 'zh_tw', 'zh']:
+                lang = 'zh-TW'
+            elif nl in ['en', 'english']:
+                lang = 'en'
+            elif nl in ['both', 'all']:
+                lang = None
         sort_field = request.args.get('sort', 'article_number_int')
         order = request.args.get('order', 'asc')
         
@@ -46,6 +57,8 @@ def get_laws():
         query_filter = {}
         if chapter:
             query_filter['chapter'] = chapter
+        if lang in ['zh-TW', 'en']:
+            query_filter['lang'] = lang
         if starred_param is not None:
             # Parse boolean
             starred = starred_param.lower() in ['true', '1', 'yes']
@@ -118,9 +131,28 @@ def get_law(law_id):
             law = laws_collection.find_one({"_id": ObjectId(law_id)})
         except:
             return jsonify({"error": "Invalid law_id format"}), 400
-        
+
         if not law:
             return jsonify({"error": "Law not found"}), 404
+
+        # Optional language switch: if client requests a different language, try to map
+        req_lang = request.args.get('lang')
+        if req_lang and req_lang in ['zh-TW', 'en'] and law.get('lang') != req_lang:
+            # attempt to find mapping
+            try:
+                mapping = i18n_mapping_collection.find_one({
+                    'zh_tw_law_id': law_id
+                }) if law.get('lang') == 'zh-TW' else i18n_mapping_collection.find_one({'en_law_id': law_id})
+                if mapping:
+                    target_id = mapping['en_law_id'] if req_lang == 'en' else mapping['zh_tw_law_id']
+                    try:
+                        mapped_law = laws_collection.find_one({"_id": ObjectId(target_id)})
+                        if mapped_law:
+                            law = mapped_law
+                    except:
+                        pass
+            except Exception:
+                pass
         
         # Convert ObjectId to string
         law['_id'] = str(law['_id'])
@@ -381,6 +413,7 @@ def get_my_questions():
         page: int (optional, default: 1) - Page number
         per_page: int (optional, default: 20, max: 50) - Items per page
         type: str (optional) - Filter by question type: "MCQ" or "ShortAnswer"
+        lang: str (optional, default: "zh-TW") - Filter by language: "zh-TW" or "en"
     
     Response:
         {
@@ -408,8 +441,13 @@ def get_my_questions():
         if question_type and question_type not in ['MCQ', 'ShortAnswer', 'all']:
             return jsonify({"error": "Invalid type. Must be 'MCQ', 'ShortAnswer', or 'all'"}), 400
         
+        # Get language filter (default: zh-TW)
+        lang = request.args.get('lang', 'zh-TW')
+        if lang not in ['zh-TW', 'en']:
+            lang = 'zh-TW'
+        
         # Build base filter
-        base_filter = {"is_deleted": False}
+        base_filter = {"is_deleted": False, "lang": lang}
         if question_type and question_type != 'all':
             base_filter["type"] = question_type
         

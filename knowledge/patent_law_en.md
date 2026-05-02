@@ -1,0 +1,901 @@
+Laws & Regulations Database of The Republic of China (Taiwan)Print Time：2026/05/03 00:32
+ 
+Article Content
+Title：	Patent Act CH
+Amended Date：	2022-05-04
+Category：	Ministry of Economic Affairs（經濟部）
+Chapter 1 General Provisions
+Article 1
+Purpose
+This Patent Act is enacted to encourage, protect and utilize the creations of inventions, utility models and designs in order to promote industrial development.
+Article 2
+Types of patents
+The term "patent" referred to in this Act is classified into the following three types:
+1. invention patents;
+2. utility model patents; and
+3. design patents.
+Article 3
+Competent authority
+The "competent authority" referred to in this Act is the Ministry of Economic Affairs (hereinafter referred to as “the MOEA”).
+Patent affairs shall be administrated by a specific agency appointed by the MOEA.
+Article 4
+Foreign applications and the principle of reciprocity
+A patent application filed by a foreign applicant shall not be accepted if the home country of such foreign applicant is not a signatory to an international treaty for protection of patent rights to which the Republic of China (ROC) is a signatory, or if the home country has not concluded a treaty or an agreement with the ROC for reciprocal protection of patent rights, or if no patent protection agreement has been concluded between organizations or institutions of the ROC and the said foreign country, approved by the respective competent authorities, or if the laws of said foreign country do not accept patent applications filed by ROC nationals.
+Article 5
+Right to apply for a patent
+The term "right to apply for a patent" shall mean the right to file a patent application in accordance with this Act. Subject to provisions of this Act otherwise prescribed or the covenants otherwise set forth in an agreement, the term "the owner of the right to apply for a patent" shall mean an inventor, a utility model creator, a designer, or the assignee or successor thereof.
+Article 6
+Transfer of right and pledge of a patent
+The right to apply for a patent or the patent right is both assignable and inheritable.
+The right to apply for a patent shall not be taken as the subject of a pledge.
+In the case of taking a patent right as the subject of a pledge, the pledgee shall not be allowed to exploit the patent right, unless otherwise provided for in an agreement.
+Article 7
+Inventions made for hire and hired to invent
+Where an invention, a utility model or a design is made by an employee in the course of performing his/her duties, the right to apply for a patent and the patent right thereof shall be vested in his/her employer and the employer shall pay the employee reasonable remuneration; where there is an agreement providing otherwise, such agreement shall prevail.
+The term "an invention, a utility model or a design made by an employee in the course of performing his/her duties" referred to in the preceding paragraph, shall mean the invention, utility model, or design completed by an employee in the course of performing his/her duties during the period of employment.
+Where a fund provider appoints another party to conduct research and development, the ownership of the right to apply for a patent and the patent right in connection with the outcome of such research and development shall be vested in the party as mutually agreed upon in an agreement between both parties, or such rights shall be vested in the inventor, utility model creator or designer in the absence of such agreement. However, the fund provider shall be entitled to exploit such invention, utility model or design.
+Where the ownership of the right to apply for a patent and the patent right are vested in the employer or the fund provider pursuant to Paragraph 1 or the preceding paragraph, the inventor, utility model creator or designer concerned shall be entitled to have his/her name shown as such.
+Article 8
+Inventions not made for hire
+Where an invention, utility model, or design made by an employee has no connection to the course of performing his/her duties, the right to apply for a patent and the patent right for such invention, utility model or design shall be vested in the employee. However, if such invention, utility model or design is made through the utilization of the employer's resources or experiences, the employer may, after paying the employee a reasonable remuneration, exploit the invention, utility model or design concerned in the enterprise.
+Upon completion of an invention, utility model or design which has no connection to the course of an employee’s performing his/her duties, the employee shall give the employer a written notice regarding such event and shall also inform the employer of the creative process if necessary.
+If the employer fails to raise any objection to the employee within six (6) months after receiving the employee's written notice under the preceding paragraph, the employer shall not claim that such invention, utility model or design was made by the said employee in the course of performing his/her duties.
+Article 9
+Protection of employees’ legitimate rights
+An agreement concluded between an employer and an employee, as stated in the preceding article, by which the employee is deprived of legitimate rights and interests regarding his/her invention, utility model, or design, shall be void.
+Article 10
+Agreement on ownership
+Where an agreement has been reached by an employer and its employee regarding a dispute over attribution of right(s) as set forth in Articles 7 and 8 of this Act, the employer or employee concerned may file a request, along with relevant document(s) of proof, with the Specific Patent Agency for a change of ownership of the right(s) involved. The Specific Patent Agency may, as it deems necessary, notify the parties involved to submit document(s) relevant to any mediation, arbitration, or court judgment rendered in accordance with other laws and regulations.
+Article 11
+Patent agent
+An applicant may designate an agent to file patent applications and handle patent-related matters on his/her behalf.
+An applicant who has no domicile or business establishment in the territory of the ROC shall designate an agent to file patent applications and handle patent-related matters on his/her behalf.
+Eligible agents shall be limited to patent attorneys unless otherwise provided for by laws and regulations. The qualifications and administration of patent attorneys shall be separately prescribed by laws.
+Article 12
+Joint inventors
+Where a right to apply for a patent is jointly owned, the patent application related thereto shall be filed by all the joint owner(s).
+Where two or more persons engage in any patent-related procedure other than filing a patent application, each of them may complete such procedure independently, except for making a withdrawal or an abandonment of a patent application, filing an application for division or conversion, or taking other actions for which, this Act requires joint execution. However, if a representative is designated by a covenant, such covenant shall prevail.
+In the case of an event requiring joint execution as set forth in the preceding two paragraphs, one of the joint owners shall be appointed as the recipient of the service of documents. In the absence of such a recipient, the Specific Patent Agency shall name the first-listed joint owner as the recipient and shall notify other joint owners of such service matters.
+Article 13
+Joint ownership of the right to apply for a patent
+Where the right to apply for a patent is jointly owned, the right to apply for the patent shall not be assigned or abandoned without the consent of all joint owners.
+Where the right to apply for a patent is jointly owned by two or more persons, none of the joint owners shall assign his/her share to a third party without the consent of the other joint owners.
+Where one of the owners of the right to apply for a patent abandons his/her own share, this share shall be vested in the other joint owner(s).
+Article 14
+Recordation to have locus standi against a third party: the transference of right to apply for a patent
+In the case of an inheritance or assignment of the right to apply for a patent, the successor or the assignee shall have no locus standi against any third party unless the patent application has been filed in the name of the successor or the assignee at the time of filing, or a request has been filed thereafter with the Specific Patent Agency to alter the recordation of applicant.
+The request referred to in the preceding paragraph, whether for assignment or inheritance, shall be accompanied by documents of proof.
+Article 15
+Restrictions on officers and employees as to interest in patents
+Employees and patent examiners of the Specific Patent Agency shall be incapable, during the period of their appointments, of applying for a patent and of acquiring, directly or indirectly, except by inheritance, any patent or any right or interest in any patent.
+Employees and patent examiners of the Specific Patent Agency are obligated to keep confidential any invention, utility model, design, or trade secrets of an applicant that have become known to or been possessed by them in the course of performing their duties; whoever violates such obligation is liable for legal responsibility.
+The qualifications of patent examiners shall be prescribed separately by law.
+Article 16
+Recusal scenarios for patent examiners
+Patent examiners shall recuse themselves from any of the following conditions:
+1. where, for a concerned patent case, the patent examiner or his/her spouse is the patent applicant, patentee, invalidation requester, patent agent, a partner of the said patent agent or a person having employment relationship with the patent agent;
+2. where, for a concerned patent case, the patent examiner is presently related to the patent applicant, patentee, invalidation requester or the patent agent by consanguinity within the fourth degree or by affinity within the third degree;
+3. where, for a concerned patent case, the patent examiner or his/her spouse and the patent applicant, patentee or invalidation requester are co-obligees, co-obligors, or debt-paying co-obligors;
+4. where, for a concerned patent case, the patent examiner is or was the legal representative, the family head or a household member of the patent applicant, patentee or invalidation requester;
+5. where, for a concerned patent case, the patent examiner is or was the litigation agent or the assisting party of the patent applicant, patentee or invalidation requester; or
+6. where, for a concerned patent case, the patent examiner is or was a witness, an expert witness, an opposition requester or an invalidation requester.
+Where a patent examiner should have but did not exclude himself/herself from performing his/her duties, the Specific Patent Agency may, upon request or on its own authority, revoke the measure(s) already taken and adopt an alternative measure instead.
+Article 17
+Delay and reinstatement
+Unless otherwise provided in this Act, if a person filing a patent application or taking other proceedings in connection with patent-related matters has failed to comply with a statutory or specified time period, the application filed or the proceeding initiated shall be dismissed. However, if the delay in acting within a specified time period has been remedied before the dismissal decision is served by the Specific Patent Agency, such application or proceeding shall still be accepted.
+If the delay of a statutory time period is caused by natural calamity or other cause(s) not attributable to the applicant, the applicant may, within thirty (30) days after cessation of such cause, file a written request with the Specific Patent Agency stating the cause(s) for delay and requesting for reinstatement. An application for reinstatement shall not be accepted if the delay has exceeded one (1) year after expiration of the statutory time period.
+While requesting reinstatement, the applicant shall concurrently fulfill all obligations that should have been fulfilled within the concerned time period.
+The preceding two paragraphs shall not apply to a delay of the time limits as set forth in Paragraph 4 of Article 29, Paragraph 4 of Article 52, Paragraph 2 of Article 70, Paragraph 4 of Article 29 applicable mutatis mutandis under Article 120, Paragraph 4 of Article 52 applicable mutatis mutandis under Article 120; Paragraph 2 of Article 70 applicable mutatis mutandis under Article 120; Paragraph 4 of Article 29 applicable mutatis mutandis under Paragraph 1 of Article 142; Paragraph 4 of Article 52 applicable mutatis mutandis under Paragraph 1 of Article 142, and Paragraph 2 of Article 70 applicable mutatis mutandis under Paragraph 1 of Article 142.
+Article 18
+Service by publication
+If an examination decision or any other document(s) cannot be served, such decision or document(s) shall be published in the Patent Gazette and shall be deemed to have been served thirty (30) days after publication.
+Article 19
+E-filing
+Application for patents and other relevant proceedings may be processed electronically; the implementation of which shall be prescribed by the competent authority.
+Article 20
+Time periods
+The duration of relevant time periods, as specified in this Act, shall not include the beginning date thereof.
+The duration of the patent, as specified respectively in Paragraph 3 of Article 52, Article 114 and Article 135 of this Act, shall start to run from the filing date of the patent application concerned.
+Chapter II Invention Patent
+Section 1 Patentability
+Article 21
+Definition of invention
+The term "invention" means the creation of technical ideas, utilizing the laws of nature.
+Article 22
+Substantial conditions
+An invention which is industrially applicable may be granted a patent upon application in accordance with this Act, except for the following:
+1. the invention was disclosed in a printed publication prior to the filing of the patent application;
+2. the invention was publicly exploited prior to the filing of the patent application; or
+3. the invention was publicly known prior to the filing of the patent application.
+An invention that is without the circumstances prescribed in the subparagraphs of the preceding paragraph but can be easily made by a person ordinarily skilled in the art based on prior art shall not be patented .
+A disclosure made by or against the applicant’s will shall not be deemed as one of the circumstances that would preclude the grant of an invention patent prescribed in the subparagraphs of Paragraph 1 or the preceding paragraph, provided that the concerned patent application is filed within twelve (12) months after the date of the disclosure.
+For the publication in a gazette made in this country or a foreign country in accordance with the laws as the consequence of filing a patent application and made by the applicant’s will, the preceding paragraph is not applicable.
+Article 23
+Deemed as lack of novelty
+A person shall not be entitled to a patent if the claimed invention was described in the specification, claim(s) or drawing(s) of a patent issued or an application for invention or utility model patent published, in which the patent or application, as the case may be, names another inventor and was effectively filed before the effective filing date of the claimed invention. However, this shall not apply where the applicant of the later-filed patent application is also the applicant of the earlier-filed patent application for invention or utility model.
+Article 24
+Subject matter/Statutory exclusion
+An invention patent shall not be granted in respect of any of the following:
+1. animals, plants, and essential biological processes for the production of animals or plants, except for processes for producing microorganisms;
+2. diagnostic, therapeutic, and surgical methods for the treatment of humans or animals; or
+3. inventions contrary to public order or morality.
+Section 2 Application
+Article 25
+Application
+A patent application for an invention shall be filed with the Specific Patent Agency by the owner of the right to apply for a patent, who is to provide an application form, a description, claim(s), an abstract, and the necessary drawing(s).
+The filing date of a patent application for invention shall be the date on which the application form, description, claim(s), and the necessary drawing(s) are provided in full.
+Where an applicant does not provide a description, claim(s), and the necessary drawing(s) in Chinese at the time of filing, but in a foreign language, and where the Chinese translation for the said documents is provided within the time period specified by the Specific Patent Agency, the filing date shall be the date on which the foreign language version is originally provided.
+Where the Chinese translation is not provided within the specified time period as stated in the preceding paragraph, the patent application shall be dismissed. However, if the Chinese translation is provided before the dismissal decision is served, the date on which the Chinese translation is provided shall be regarded as the filing date, and the foreign language version shall be deemed not to have been provided.
+Article 26
+Specification
+The description shall fully disclose the invention in a manner that is clear and sufficient for it to be understood and carried out by a person having ordinary skill in the art.
+Claim(s) shall define the claimed invention, and more than one claim may be included therein. Each claim shall be disclosed clearly and concisely and supported by the description.
+An abstract shall clearly contain a summary of the disclosed invention; it shall not be taken into account for the purpose of determining the sufficiency of the disclosure and the patentability of the claimed invention.
+The manners of disclosure for description, claim(s), abstract, and drawing(s) shall be prescribed in the Enforcement Rules of the Patent Act.
+Article 27
+Deposit of biological material
+When filing a patent application for invention involving a biological material or utilization thereof, the applicant shall, no later than the filing date, make a deposit of the biological material with a domestic depository designated by the Specific Patent Agency. No deposit is required if the biological material involved can be easily obtained by a person having ordinary skill in the art.
+An applicant shall, within four (4) months after the filing date of patent application, submit to the Specific Patent Agency a certificate of deposit, indicating the depository, date of deposit and deposit number. If such a document is not submitted within the specified time period, the deposit shall be deemed not to have been made.
+Where priority is claimed pursuant to Article 28, the specified time period set forth in the preceding paragraph shall be within sixteen (16) months after the earliest priority date.
+In the event that, prior to filing the patent application for an invention, the biological material concerned has been deposited in a foreign depository recognized by the Specific Patent Agency, and where the certificate of deposit issued by the designated domestic depository and the foreign depository has been provided within the time period prescribed in Paragraph 2 or the preceding paragraph, the applicant is exempted from the requirement of making a deposit no later than the filing date, as set forth in Paragraph 1.
+If an applicant has deposited the biological material in a depository designated by a foreign country in its territory with which the ROC recognizes the effects of deposits based on reciprocity, and if the applicant has submitted the certificate(s) of deposit issued by the said foreign depository within the time period prescribed in Paragraph 2 or Paragraph 3, the applicant is exempted from the requirement of making a deposit in the ROC.
+The competent authority shall stipulate regulations on the requirements for accession, types, forms, quantities of deposits of biological materials, deposit fees, and other matters in connection with making deposits set forth in Paragraph 1.
+Article 28
+Priority claim under WTO membership, etc.
+Where an applicant has first applied for a patent in a foreign country, which reciprocally allows ROC nationals to claim patent priority, or with any member of the World Trade Organization (WTO), the applicant may claim priority in respect of a ROC patent application for the same invention if the ROC patent application for the same invention is filed within twelve (12) months after the filing date of the said first patent application.
+Where an applicant claims two or more priorities in respect of a patent application, the period referred to in the preceding paragraph shall be based on the earliest priority date.
+If a foreign applicant is a citizen of a non-member of the WTO and whose home country does not mutually recognize priority with the ROC, but the applicant has domicile or business establishment in any member of the WTO or in the territory of a reciprocal country, the applicant shall also be entitled to claim priority in accordance with the provisions set forth in Paragraph 1.
+For a patent application filed with priority, examination of its patentability shall be based on the priority date.
+Article 29
+Claim of priority
+An applicant claiming priority in accordance with the preceding article shall simultaneously make a declaration with respect of the following when filing a patent application:
+1. the filing date of the first patent application;
+2. the country or member of the WTO in which the first patent application was filed; and
+3. the application number of the first patent application.
+Within sixteen (16) months after the earliest priority date, the applicant shall submit a certified copy of the first patent application issued by the foreign patent authority under the preceding paragraph.
+In case of a violation of Subparagraph 1 or Subparagraph 2 of Paragraph 1 or the preceding paragraph, the priority claim shall be deemed not to have been made.
+Where an applicant unintentionally fails to claim priority claim at the time of filing, or where the priority claim is deemed not to have been made as prescribed in violation of Subparagraph 1 or Subparagraph 2 of Paragraph 1, the applicant may, within sixteen (16) months after the earliest priority date, apply for reinstatement of priority claim, pay the required fees, and undertake actions set forth in Paragraph 1.
+Article 30
+Priority claim based on earlier application
+An applicant filing a subsequent patent application based on an earlier patent application for an invention or utility model in the ROC may make a priority claim with respect to the invention or utility model disclosed in the description, claim(s) or drawing(s) submitted for the earlier patent application. This provision shall not apply under any of the following conditions:
+1. where a period of twelve (12) months has elapsed after the filing date of the earlier patent application;
+2. where priority has been claimed in accordance with the provisions of Article 28 or this article in respect of the invention or utility model disclosed in the earlier patent application;
+3. where the earlier patent application is a divisional patent application prescribed under Paragraph 1 of Article 34 or Paragraph 1 of Article 107, or a converted patent application prescribed under Paragraph 1 of Article 108;
+4. where the earlier patent application is a patent application for an invention that has been published or has been finally and bindingly rejected;
+5. where the earlier patent application is a patent application for a utility model that has been published or has been finally and bindingly rejected; or
+6. where the earlier patent application has been withdrawn or dismissed.
+The earlier patent application referred to in the preceding paragraph shall be deemed to have been withdrawn upon an expiry of fifteen (15) months after its filing date.
+Priority claimed shall not be withdrawn upon an expiry of fifteen (15) months after the filing date of the earlier patent application.
+In the event that a subsequent patent application filed with a priority claim in accordance with Paragraph 1 is withdrawn within fifteen (15) months after the filing date of the earlier patent application, the priority claim thus made shall be deemed to have been withdrawn at the same time.
+Where an applicant claims two or more priorities for a patent application, the calculation of priority period shall be based on the earliest priority date.
+For a patent application filed with priority, examination of its patentability shall be based on the priority date.
+Where a priority claim is made in accordance with Paragraph 1, the filing date and the application number of the earlier patent application shall be declared at the time of filing. If such declaration is not made, the priority claim shall be deemed not to have been made.
+Article 31
+First-to-file principle
+Where two or more patent applications are filed for the same invention, only the earliest application can be granted. The above shall not apply if the priority date claimed for the later-filed application is earlier than the filing date of the earlier application.
+If the filing date and the priority date referred to in the preceding paragraph are the same, the applicants shall be notified to reach an agreement with respect to the matter concerned. If such an agreement cannot be reached, none of the applications shall be granted. If the said patent applications are filed by the same applicant, the applicant shall be notified to select one patent application within a specified time period; failure to make a selection within the time period shall result in the rejection of all such patent applications.
+While the concerned applicants are in the process of reaching an agreement, the Specific Patent Agency shall require that these applicants report the results of the negotiation within an appropriate time period designated. If the said report is not provided within the specified time period, it shall be deemed that an agreement has not been reached.
+Where a patent application for an invention and a patent application for a utility model are filed separately in respect of the same creation, the provisions set forth in the preceding three paragraphs shall apply mutatis mutandis, except for the conditions stipulated in Article 32.
+Article 32
+One creation applied for an invention patent and a utility model patent
+An applicant filing a patent application for an invention and a patent application for a utility model for the same creation on the same date shall make respective declarations in respect of the said applications. If the patent application for the utility model has been granted before an approval decision on the patent application for invention is rendered, the Specific Patent Agency shall notify the applicant to make a selection within a designated time period. The patent application for the invention shall not be granted if the applicant fails to make such declarations or selection within the specified time period.
+Where the applicant selects the patent application for invention according to the provision set forth in the preceding paragraph, the utility model patent right shall become extinguished on the publication date of the invention patent.
+The patent application for invention shall not be granted if the utility model patent right has become extinguished or has been finally and bindingly revoked before a decision is rendered on the patent application for invention.
+Article 33
+One Invention One Patent
+A patent application for an invention shall relate to one invention.
+Two or more inventions, so linked as to form a single general inventive concept, may be filed in one application.
+Article 34
+Divisional application of invention patent
+A patent application that substantially contains two or more inventions may, upon notice by the Specific Patent Agency or upon request by the applicant, be divided into two or more divisional applications.
+A request for division shall be filed within any of the following time periods:
+1. before a reexamination decision on the original patent application is rendered; or
+2. within three (3) months after the date on which an approval decision for the original patent application or reexamination is served.
+The filing date of the divisional patent application shall be the same as the filing date of the original application. Where the priority claim has been made, the applicant may claim priority for the divisional patent application.
+The divisional patent application shall not extend beyond the scope of content disclosed in the description, claim(s), or drawing(s) of the original patent application as filed.
+For the divisional patent application filed in accordance with Subparagraph 1 of Paragraph 2, the examination thereof shall resume the completed examination procedure of the original patent application.
+For the divisional patent application filed in accordance with Subparagraph 2 of Paragraph 2, it shall be based on the invention(s) disclosed in the description or the drawing(s), but shall not be the same as that which has been approved in the original patent application; the examination thereof that has been conducted before the original patent application is approved shall be resumed.
+The description, claim(s), or drawing(s) of the original patent application that have been approved may not be altered and shall be published based on the claim(s) and drawing(s) as originally approved.
+Article 35
+Application date when the owner of the right to apply files a patent invalidation action
+Where an invalidation action is filed against a granted patent by the owner of the right to apply for a patent or by the joint owner(s) of the right to apply for a patent within two (2) years after the publication date of the patent concerned, in accordance with Subparagraph 3, Paragraph 1 of Article 71, and where the said person or joint owner(s) newly files a patent application for the same invention within two (2) months after the day on which the invalidation decision revoking the patent has become final and binding, the filing date of the revoked patent shall be the filing date for the newly filed patent application.
+A patent application newly filed in accordance with the preceding paragraph shall not be published again.
+Section 3 Examination and Reexamination
+Article 36
+Assignment of a patent examiner for examination
+The Specific Patent Agency shall assign a patent examiner to conduct the substantive examination of a patent application for invention.
+Article 37
+Early publication of a patent application for an invention
+After receiving application documents and determining through examination that the application conforms to stipulated formality requirement and contains no elements that may be deemed unsuitable for laying open, the Specific Patent Agency shall lay open the patent application for invention eighteen (18) months since its filing.
+The Specific Patent Agency may advance the laying-open of a patent application upon the request of the applicant.
+A patent application for invention shall not be laid open under any of the following conditions:
+1. where it is withdrawn within fifteen (15) months after its filing date;
+2. where it involves national defense secrets or any other secrets pertaining to national security; or
+3. where it is contrary to public order or morality.
+Where a priority is claimed, the calculation of time period set forth in Paragraph 1 and the preceding paragraph shall be based on the priority date; where two or more priorities are claimed, the calculation thereof shall be based on the earliest priority date.
+Article 38
+Request for substantive examination
+A request to the Specific Patent Agency for substantive examination of a patent application for invention may be made by any person within three (3) years after the filing date of the patent application.
+Where a division request is made pursuant to Paragraph 1 of Article 34 or where a patent application is converted into a patent application for invention pursuant to Paragraph 1 of Article 108, if the time period set forth in the preceding paragraph has lapsed, a request for substantive examination may be made within thirty (30) days after such request for division or conversion.
+A request for substantive examination according to the preceding two paragraphs shall not be withdrawn.
+Where a request for substantive examination is not filed within the time period prescribed in Paragraph 1 or Paragraph 2, the patent application for invention shall be deemed to have been withdrawn.
+Article 39
+Procedures for substantive examination
+A request form for substantive examination, as referred to in the preceding Article, shall be submitted.
+The Specific Patent Agency shall publish the facts regarding a request for a substantive examination in the Patent Gazette.
+Where substantive examination is requested by a person other than the invention patent applicant, the Specific Patent Agency shall notify the invention patent applicant of such fact.
+Article 40
+Prioritized examination of a patent application for invention
+The Specific Patent Agency may, upon request, conduct prioritized examination of a patent application for invention if it is commercially exploited by a person other than the applicant after it is laid open.
+Relevant document(s) of proof shall be submitted when filing a request referred to in the preceding paragraph.
+Article 41
+Effect of laying open an application
+An invention patent applicant may, after the publication of an invention patent application, claim appropriate compensation against the exploiter who, having been given a written notice by the applicant in respect of the contents of the invention after the laying-open of the invention patent application, continues to commercially exploit the invention after receiving the notice and prior to the publication of the said application.
+The claim referred to in the preceding paragraph may also be made against a person who is fully aware that the patent application for invention has been laid open but continues to commercially exploit the invention prior to its publication.
+The right to claim compensation as provided in the preceding two paragraphs does not affect the exercise of other rights. However, where an applicant having filed a patent application for invention and a patent application for utility model pursuant to Article 32 of this Act has been granted the utility model patent, the claim against such exploiter shall only be made based either on the right to claim compensation or on the utility model patent right.
+The right to claim compensation as set forth in Paragraphs 1 and 2 shall become extinguished if not exercised within two (2) years after the publication date of the said invention patent.
+Article 42
+Interview and inspection during the procedure of examination
+When examining a patent application for invention, the Specific Patent Agency may, upon request or on its own initiative, notify the applicant to conduct any of the following actions within a specified time period:
+1. to appear before the Specific Patent Agency for an interview; or
+2. to perform necessary experiment(s) or submit model(s) or sample(s).
+The Specific Patent Agency may, when necessary, visit the site or a designated place to carry out an inspection on the experiment(s) performed or model(s) or sample(s) to be submitted pursuant to Subparagraph 2 of the preceding paragraph.
+Article 43
+Amendment during examination; final notice
+Unless otherwise stipulated in this Act, when examining a patent application for invention, the Specific Patent Agency may, upon request or on its own initiative, notify the applicant to amend the description, claim(s), or drawing(s) within a specified time period.
+Except for correction of translation errors, any amendment shall not extend beyond the scope of content disclosed in the description, claim(s), or drawing(s) as filed.
+Where the Specific Patent Agency has issued a notice pursuant to Paragraph 2 of Article 46, a patent applicant shall only make amendment(s) within the specified time period in the notice.
+The Specific Patent Agency may, as it deems necessary, issue a final notice after having issued a notice prescribed in the preceding paragraph. The applicant who is to amend claim(s) after a final notice has been issued shall only make the following amendments within the time period specified therein:
+1. to delete claim(s);
+2. to narrow down the scope of claim(s);
+3. to correct errors; or
+4. to clarify ambiguous statement(s).
+In case of a violation of the provisions in the preceding two paragraphs, the Specific Patent Agency shall state the reasons in a written decision and render such decision accordingly.
+The Specific Patent Agency may issue a final notice accordingly if the original patent application or its divisional application meets any of the following conditions:
+1. where the content of the notice issued for the original patent application is the same as that of the notice issued for the divisional patent application;
+2. where the content of the notice issued for the divisional patent application is the same as that of the notice issued for the original patent application; or
+3. where the content of the notice issued for a divisional application is the same as that of the notice issued for other divisional application(s).
+Article 44
+Amendment of claim(s)
+Where a patent applicant submits a description, claim(s), and drawing(s) prepared in a foreign language pursuant to Paragraph 3 of Article 25, such foreign language documents shall not be amended.
+The Chinese translation submitted pursuant to Paragraph 3 of Article 25 shall not extend beyond the scope of content disclosed in the original foreign language documents as filed.
+Any correction of translation errors, in the Chinese version, as stated in the preceding paragraph shall not extend beyond the scope of content disclosed in the original foreign language documents as filed.
+Article 45
+Decision of examination
+Upon completion of examination of a patent application for invention, a written decision shall be rendered and served on the applicant.
+When a patent application is rejected after examination, the reason(s) shall be given in the written decision of examination.
+A written decision of examination shall bear the name of the patent examiner. This requirement shall also apply to written decisions for reexamination, post-grant amendment, invalidation, patent term extension, and invalidation against patent term extension.
+Article 46
+Grounds for the rejection of invention patent application
+When a patent application for invention is in violation of the provisions set forth in Articles 21 through 24, Article 26, Article 31, Paragraphs 1 and 3 of Article 32, Article 33, Paragraph 4 and the forepart of Paragraph 6 of Article 34, Paragraph 2 of Article 43, Paragraphs 2 and 3 of Article 44, or Paragraph 3 of Article 108, a decision of rejection shall be rendered.
+Before rendering a decision in accordance with the preceding paragraph, the Specific Patent Agency shall notify the applicant to file a response within a designated time period. If the applicant fails to make a response within the time period, a decision of rejection shall be rendered accordingly.
+Article 47
+Publication of patented invention and application for browsing
+A claimed invention shall be patented if there is no reason for negating its patentability, and the claim(s) and the drawing(s) of the patent application shall be published.
+Any person may apply to view, transcribe, photograph, or photocopy the written decision of examination, description, claim(s), abstract, drawing(s), and the file wrapper in connection with a patent application that has been published, except for the information that should be kept confidential by the Specific Patent Agency in accordance with laws.
+Article 48
+Reexamination
+An invention patent applicant disagrees with a decision of rejection may provide reason(s) to request a reexamination within two (2) months after the date on which the decision of rejection is served. If the patent application is not accepted or dismissed for formality defects or on the ground of ineligibility of the applicant, the applicant may directly file administrative remedy actions in accordance with the laws.
+Article 49
+Amendment during reexamination
+Where a decision of rejection is rendered pursuant to Paragraph 2 of Article 46, the applicant may amend the description, claim(s), or drawing(s) during the reexamination stage.
+Where a final notice has been issued before the decision of rejection is rendered for a patent application, any amendment made during the reexamination stage shall still be subject to limitations set forth in each subparagraph of Paragraph 4 of Article 43. The above shall not apply to reexamination, if the Specific Patent Agency finds that the final notice issued in the original examination procedure was improper.
+The Specific Patent Agency may issue a final notice accordingly under any of the following conditions:
+1. where the reason(s) for reexamination still entail grounds for an rejection;
+2. where the amendment(s) made during the reexamination stage still entail grounds for an rejection; or
+3. where an amendment made in accordance with the preceding paragraph is in violation of the subparagraphs of Paragraph 4 of Article 43.
+Article 50
+Appointment of a patent examiner for reexamination
+In reexamination cases, the Specific Patent Agency shall appoint a patent examiner who did not participate in the examination of the concerned patent application to conduct reexamination and render a written decision to be served on the applicant.
+Article 51
+Confidentiality of invention involving national security
+Where, through examination, an invention involves national defense secrets or any other secrets pertaining to national security, the Ministry of National Defense or relevant national security authorities shall be consulted for their comments; if it is deemed necessary to keep such invention confidential, the application documents of the said patent application shall be sealed. If a request for substantive examination has been filed for the said patent application, an examination decision shall be rendered and served on the applicant and the inventor.
+The applicant, patent agent and the inventor shall keep confidential the invention referred to in the preceding paragraph; the right to apply for a patent for such invention shall be deemed to have been abandoned if there is any violation of the confidentiality requirement.
+The confidentiality period shall last for one (1) year after the date on which a written decision is served on the applicant, and such period may be extended on an annual basis. The Specific Patent Agency shall consult with the Ministry of National Defense or relevant national security authorities one (1) month prior to the expiration of the confidentiality period and, if confidentiality is no longer required, such patent application shall be laid open.
+Where an invention referred to in Paragraph 1 is approved and where confidentiality is deemed unnecessary for such a patent application, the Specific Patent Agency shall publish the grant of the invention patent after receiving patent certificate fee and the first-year annuity paid within three (3) months by the applicant. If the said fees are not paid prior to the time period stated above, no publication shall be made.
+The Government shall pay a considerable compensation for the loss suffered by the applicant during the confidentiality period.
+Section 4 Patent Rights
+Article 52
+Payment of fees and publication of an issued invention patent
+For a patent application for invention that is approved, the grant of such a patent application shall be published only when the patent certificate fee and the first-year patent annuity are paid by the applicant within three (3) months after the date on which the approval decision is served; if the fees are not paid within the said time period, no publication shall be made.
+A patent right granted to a patent application for an invention shall start from the publication date of the patent, and a patent certificate shall be issued thereto.
+The term of an invention patent shall expire after a period of twenty (20) years from the filing date of the application.
+Where the applicant unintentionally fails to pay the required fees within the time period set forth in Paragraph 1 or Paragraph 4 of the preceding article, the applicant should pay the patent certificate fee and two times the first-year patent annuity within six (6) months after the period has expired. After the said payment has been made, the Specific Patent Agency shall publish the patent.
+Article 53
+Extension of patent term
+Where a regulatory approval shall be obtained in accordance with other laws and regulations for the exploitation of an invention patent involving a pharmaceutical or agrichemical, or the manufacturing process thereof, if such regulatory approval is obtained after the publication of the concerned invention patent, the patentee may apply for one and only one extension of the patent term of said invention patent based on the first regulatory approval. The said regulatory approval is allowed to be used only once for seeking patent term extension.
+The extension of the patent term approved under the preceding paragraph shall not exceed the length of time when the patent cannot be exploited because of the filing of a request for the regulatory approval with the central competent authorities in charge of the business. If the time needed to obtain the said regulatory approval exceeds five (5) years, the granted patent term extension shall still be five (5) years.
+The term "pharmaceutical" as set forth in Paragraph 1 does not include any veterinary drug.
+When requesting for patent term extension as provided in the Paragraph 1, a request form and document(s) of proof must be submitted to the Specific Patent Agency within three (3) months after obtaining the first regulatory approval; no request for patent term extension shall be filed within six (6) months prior to the expiry of the original patent term.
+When making a decision on an application for patent term extension, the Specific Patent Agency shall take into consideration the impact on public health and shall coordinate with the central competent authorities in charge of the business to formulate the regulations concerned.
+Article 54
+Deemed to have been extended
+Where a request for patent term extension is filed in accordance with the preceding article, the patent term shall be deemed to have been extended if the Specific Patent Agency has yet to render a decision before the original patent term expires. However, where such request for patent term extension is not allowed, the patent term shall expire on the original expiration date.
+Article 55
+Assignment of a patent examiner for extension request
+The Specific Patent Agency shall appoint a patent examiner to examine a request for patent term extension, render a written decision, and serve it on the patentee.
+Article 56
+Scope of patent term extension
+The scope of a patent, for which a term extension has been granted, shall be limited to only the effective ingredients and uses stated in the regulatory approval concerned.
+Article 57
+Invalidation of patent term extension
+Any person may file an invalidation action against the granted patent term extension with the Specific Patent Agency, along with document(s) of proof, under any of the following conditions:
+1. where it is unnecessary to obtain regulatory approval to exploit the invention patent concerned;
+2. where neither the patentee nor the licensee has obtained the regulatory approval;
+3. where the granted term of extension exceeds the period during which the patent cannot be exploited;
+4. where the requester of the patent term extension is not the patentee;
+5. where the regulatory approval for extension request is not the first approval, or a request for extension based on the said regulatory approval has been made;
+6. where the pharmaceuticals involved in the granted patent term extension are veterinary drugs.
+If an invalidation decision revoking the patent term extension has become final and binding, the granted patent term extension shall be deemed non-existent ab initio. However, if such final and binding invalidation decision of revocation is rendered due to a violation of Subparagraph 3 of the preceding paragraph, only the exceeding period of the extension shall be deemed non-existent.
+Article 58
+Effects of invention patent right
+Unless otherwise provided for in this Act, the patentee of an invention patent has an exclusive right to prevent others from exploiting the invention without the patentee’s consent.
+Where the invention is a product, exploiting of which means the acts of making, offering for sale, selling, using, or importing that product for the aforementioned purposes.
+Where the invention is a process, exploiting of which means the following acts:
+1. using the process; and
+2. using, offering for sale, selling, or importing for these purposes the product obtained directly by that process.
+The extent of the protection conferred by an invention patent shall be determined by the claim(s), and the description and drawing(s) may be considered as a reference when interpreting the claim(s).
+The abstract shall not be used for the purpose of interpreting claim(s).
+Article 59
+Limitations of patent right
+The effects of an invention patent right shall not extend to the following conditions:
+1. acts done privately and for non-commercial purposes;
+2. necessary acts to exploit the invention for research or experimental purposes;
+3. acts done by a person who has been exploiting the invention or making all the necessary preparations for doing such act in this country before the filing date of the invention. However, this provision shall not apply where the person has learned of the invention from the patent applicant for less than twelve (12) months and the patent applicant has made a statement reserving his/her right to a patent being granted;
+4. a vehicle merely passing through the territory of this country, or any device of such vehicle;
+5. where a patent granted to a person not the owner of the right to apply for a patent is revoked as a result of an invalidation action filed by the patentee, acts done by a licensee who has, prior to invalidation, been exploiting the invention or making all the necessary preparations to do such an act in good faith in ROC;
+6. where, after the sale of a patented product made by the patentee or made under consent of the patentee, using or reselling such product. The making and selling as stated above, are not limited to acts done domestically; and
+7. where, after an invention patent is extinguished pursuant to Subparagraph 3, Paragraph 1 of Article 70 and before it is reinstated and published pursuant to Paragraph 2 of Article 70, acts done by a person who has been exploiting the invention or making all the necessary preparations to do such an act in good faith.
+The person exploiting the invention as stated in Subparagraphs 3, 5, and 7 of the preceding paragraph, may continue such exploitation within the original business purpose(s).
+A licensee as stated in Subparagraph 5 of Paragraph 1, who continues to exploit the invention after the patent is revoked, shall pay the patentee a reasonable royalty, from the date of receiving a written notice from the patentee.
+Article 60
+Limitations of patent right: research and trials of pharmaceuticals
+The effects of the patent right shall not extend to research and trials, including their necessary actions, for the purpose of obtaining registration and market approval of drugs under the Pharmaceutical Affairs Act or obtaining market approval of pharmaceuticals from a foreign country.
+Article 60-1
+When an applicant of a drug permit makes a declaration in accordance with Subparagraph 4 of Article 48-9 of the Pharmaceutical Affairs Act regarding the patent(s) of the approved new drug listed by the holder of said new drug permit, the patentee of said new drug may, upon receipt of the notification of said declaration, demand to stop or prevent such infringement in accordance of Paragraph 1 of Article 96.
+Should the patentee not file a complaint against the aforementioned applicant of said drug permit within the period specified in Paragraph 1 of Article 48-13 of the Pharmaceutical Affairs Act, the applicant may initiate an action for a declaratory judgment to dictate whether the drug for which they applied for a drug permit infringes the patent.
+Article 61
+Limitations of patent right: dispensation of medicines
+The effects of the patent right for the invention of medicines to be manufactured by mixing two or more medicines or for the invention of a process thereof shall not extend to the preparing of medicines in accordance with a prescription from a physician, or the medicines so prepared.
+Article 62
+Recordation to have locus standi against a third party: transference of patent right
+The assigning, entrusting, licensing, or establishing of a pledge on a patent right by the patentee shall have no locus standi against any third party unless it is recorded with the Specific Patent Agency.
+The license as stated in the preceding paragraph may be an exclusive license or a non-exclusive license.
+An exclusive licensee shall, within the scope of the license granted, exclude the patentee and third parties from exploiting the patented invention.
+Where a patentee establishes multiple pledges on the same patent for the purpose of securing multiple creditors’ rights, the ranks of these pledges shall be determined according to the order of their recordation.
+Article 63
+Sub-licensing
+An exclusive licensee may sub-license a third party to exploit the licensed patent unless otherwise agreed upon by contract.
+A non-exclusive licensee shall not be allowed to sub-license a third party to exploit the licensed patent without the consent of the invention patentee or the exclusive licensee.
+The sub-licensing contract shall have no locus standi against any third party unless it is recorded with the Specific Patent Agency.
+Article 64
+Disposal of jointly-owned patent right
+Where a patent right is jointly owned, except for exploitation by each of the joint owners, it shall not be assigned, entrusted, licensed, pledged, or abandoned without the consent of all the joint owner(s).
+Article 65
+Disposal of one’s own share of jointly-owned patent right
+Where a patent right is jointly owned, no joint owner may assign, entrust or establish a pledge on his/her own share without the consent of all the other joint owner(s).
+Where a joint owner of a patent right has abandoned his/her own share, this share shall be vested in other joint owner(s).
+Article 66
+Prolongation of patent term
+Where an invention patentee has suffered loss as a result of a war between ROC and a foreign country, the patentee may request patent term prolongation for five (5) to ten (10) years; only one such prolongation shall be permitted. However, if the patent is owned by a national from the foreign country in war with ROC, such a request shall not be allowed.
+Article 67
+Post-grant amendment of invention patent
+The patentee filing a request to amend the description, claim(s) or drawing(s) of a granted invention patent shall only conduct the following:
+1. to delete claim(s);
+2. to narrow down the scope of claim(s);
+3. to correct errors or translation errors; and
+4. to clarify ambiguous statement(s).
+Except for correction of translation errors, a post-grant amendment shall not extend beyond the scope of content disclosed in the description, claim(s), or drawing(s) as filed.
+For a patent application for invention filed by submitting the description, claim(s), and drawing(s) in a foreign language pursuant to Paragraph 3 of Article 25, the correction of translation errors shall not extend beyond the scope of content disclosed in the original foreign language documents as filed.
+A post-grant amendment shall not substantially enlarge or alter the scope of the claim(s) as published.
+Article 68
+Examination of post-grant amendment
+The Specific Patent Agency shall appoint a patent examiner to conduct examination of post-grant amendments, render a decision, and serve it on the patentee, except for a post-grant amendment filed in accordance with Article 77.
+After approving the post-grant amendment, the Specific Patent Agency shall publish the examination decision therefor.
+Once a description, claim(s) and drawing(s) are amended and published, such post-grant amendment shall take effect retroactively from the filing date.
+Article 69
+Restriction on abandoning or amending patent right
+A patentee shall not abandon the patent right, or apply for a post-grant amendment as stated in Subparagraph 1 or 2, Paragraph 1 of Article 67 without the consent from the licensee(s) or pledgee(s).
+Where a patent right is jointly owned, no joint owner may apply for post-grant amendment as stated in Subparagraph 1 or 2, Paragraph 1 of Article 67 without the consent from all the joint owner(s).
+Article 70
+Extinguishment of patent right
+An invention patent right shall become extinguished under any of the following conditions:
+1. where the patent term has expired, and the patent shall become extinguished;
+2. where the patentee has passed away without heirs;
+3. where the annuity of the second or any subsequent years is not paid within the payment time period, the patent right shall become extinguished retrospectively after the expiration of the original due date; or
+4. where the patentee has abandoned the patent, the patent right shall be extinguished from the date the patentee makes a declaration in writing.
+The patentee who unintentionally fails to pay a patent annuity within the time period for late payment set forth in Paragraph 1 of Article 94 may apply for reinstatement of the patent rights within one (1) year after the expiration of the time period of late payment by paying triple the amount originally due, whereupon the Specific Patent Agency shall publish regarding the aforementioned.
+Article 71
+Grounds for invalidation against invention patent
+Any person may request an invalidation action against an invention patent with the Specific Patent Agency under any of the following conditions:
+1.where there is a violation of Articles 21 to 24, Article 26, Article 31, Paragraphs 1 and 3 of Article 32, Paragraph 4 and the forepart of Paragraph 6 of Article 34, Paragraph 2 of Article 43, Paragraphs 2 and 3 of Article 44, Paragraphs 2 to 4 of Article 67, or Paragraph 3 of Article 108 of this Act;
+2. where the home country of the patentee does not accept the patent applications filed by ROC nationals; or
+3. where there is a violation of Paragraph 1 of Article 12, or where the invention patentee is not the owner of the right to apply for an invention patent.
+An invalidation action based on Subparagraph 3 of the preceding paragraph shall only be filed by the interested party.
+With respect to the grounds upon which an invalidation action is based and filed against an invention patent, the provisions in effect at the time of the patent’s approved shall govern. However, if an invalidation action is filed based on the grounds under Paragraph 4 and the forepart of Paragraph 6 of Article 34, Paragraph 2 of Article 43, Paragraphs 2 and 4 of Article 67, or Paragraph 3 of Article 108, the provisions in effect at the time of filing the said action shall govern.
+Article 72
+Invalidation against extinguished patent
+Where the interested party possesses recoverable legal interests due to the revocation of a patent, such an interested party may file an invalidation action after the said patent has become extinguished ipso facto.
+Article 73
+Invalidation action
+Where an invalidation action is filed, a request form containing a statement and reason(s), along with evidence, shall be provided.
+Where a patent contains more than one claim, an invalidation action may be filed against parts of the claims.
+An invalidation statement shall not be modified or added after filing, but it can be narrowed.
+A requester of invalidation action may provide invalidation reasons or evidence within three (3) months after the date of filing the said action. The reason or evidence shall not be examined if the requester fails to provide them within the specified time period.
+Article 74
+Invalidation proceedings
+Upon receipt of a request form for invalidation action stated in the preceding article, the Specific Patent Agency shall serve a copy thereof to the patentee.
+The patentee shall provide a response within one (1) month after being served with a copy of the request form. If the patentee fails to provide such response, the invalidation proceedings shall be conducted accordingly, unless a request for extension containing reason(s) thereof has been approved.
+During the invalidation proceedings, the patentee shall only file a request for amending the invention patent when providing a response after being served with a copy of the request form, or when providing a response or supplementary response after having been served with a notification from the Specific Patent Agency. The above shall not apply if a litigation case involving the invention patent is pending.
+The Specific Patent Agency may, when necessary, notify the invalidation requester to submit comments or the patentee to provide a response or a supplementary response. The invalidation requester or patentee shall reply within one (1) month after being served with the notification. Unless a request for extension thereof has been approved, the comments or response shall not be examined if the requester or patentee fails to submit comments or provide a response within the specified time period.
+The Specific Patent Agency may conduct invalidation proceedings accordingly if the comment(s) or the response(s) submitted or provided pursuant to the preceding paragraph are likely to delay the proceedings or if the facts and evidence are sufficiently clear.
+Article 75
+Principle of ex officio
+When conducting invalidation proceedings, the Specific Patent Agency may, ex officio, examine the reasons and evidence not provided by the requester of the invalidation action but within the scope of the invalidation statement, and notify the patentee to respond within a specified time period. The invalidation proceedings shall be conducted accordingly if the patentee fails to respond within the time period.
+Article 76
+Interview and inspection in invalidation proceedings
+When conducting invalidation proceedings, the Specific Patent Agency may, upon a request or ex officio, notify the patentee to take any of the following actions within a designated time period:
+1. to appear at the Specific Patent Agency for an interview; or
+2. to conduct necessary experiments or provide models or samples.
+The Specific Patent Agency may, when necessary, visit the site or a designated place to carry out inspections on the experiments performed or models or samples to be submitted pursuant to Subparagraph 2 of the preceding paragraph.
+Article 77
+Consolidated proceedings of invalidation and post-grant amendment
+If, during the invalidation proceedings, a request for a post-grant amendment is filed, the said proceedings and post-grant amendment shall be consolidated; the decisions concerned shall be jointly rendered as well.
+If the Specific Patent Agency considers the said post-grant amendment approvable, it shall serve a copy of the amended description, claim(s) and/or drawing(s) to the requester of invalidation action. The above shall not apply if the post-grant amendment is made only to delete claim(s).
+Where there are two or more requests for post-grant amendment filed during the proceedings of same invalidation action, the earlier-filed request(s) for post-grant amendment shall be deemed to have been withdrawn.
+Article 78
+Consolidated proceedings of multiple invalidation actions
+Where there are multiple invalidation actions filed against the same patent, the Specific Patent Agency, when necessary, may consolidate the invalidation proceedings of the said actions.
+Where the invalidation proceedings have been consolidated pursuant to the preceding paragraph, decisions concerned may also be rendered jointly.
+Article 79
+Assignment of a patent examiner for invalidation
+When conducting invalidation proceedings, the Specific Patent Agency shall assign a patent examiner to render a decision and serve it to the patentee and the requester of invalidation action.
+Decision on an invalidation action shall be rendered on a claim-by-claim basis.
+Article 80
+Withdrawal of invalidation action
+An invalidation action may be withdrawn by the requester before a decision concerned has been rendered. However, if the patentee has already submitted a response, such withdrawal shall be consented to by the patentee.
+The Specific Patent Agency shall notify the patentee of the withdrawal of an invalidation action. If the patentee raises no objection within ten (10) days after the notice has been served, it shall be deemed that the patentee has consented to such withdrawal.
+Article 81
+Principle of ne bis in idem
+Under any of the following conditions, any person shall not be allowed to separately file an invalidation action against the same patent based on the same facts and evidence:
+1. where another invalidation action has been filed based on the same facts and evidence and considered groundless by a decision; or
+2. where new evidence is provided to the Intellectual Property Court pursuant to Article 33 of the Intellectual Property Case Adjudication Act and considered groundless by a judgment.
+Article 82
+Decision of invalidation action
+Where an invalidation action against an invention patent is considered well grounded, the patent right shall be revoked; such revocation may be made on a claim-by-claim basis.
+Revocation of an invention patent right shall become final and binding under any of the following conditions:
+1. where no administrative remedy proceedings are filed in accordance with laws; or
+2. where administrative remedy proceedings are filed but dismissed finally and bindingly.
+Where an invention patent is revoked finally and bindingly, the effect of the patent right shall be deemed not to have existed.
+Article 83
+Procedures to be applied mutatis mutandis to invalidation action against patent term extension
+With respect to an invalidation action filed against patent term extension of an invention patent pursuant to Paragraph 1 of Article 57, the provisions in this Act with respect to invalidation actions against invention patents shall apply mutatis mutandis.
+Article 84
+Publication in the Patent Gazette
+An invention patent with respect to grant, change, extension, prolongation, assignment, trust, licensing, compulsory licensing, revocation, extinguishment, creation of pledge, invalidation decisions, as well as other matters that should be published, shall be published in the Patent Gazette.
+Article 85
+Patent Registry
+The Specific Patent Agency shall maintain a Patent Registry, in which the patent grants, changes of patent rights, and all other matters required by laws shall be registered.
+The Patent Registry set forth in the preceding paragraph may be produced electronically and shall be made available to the public for browsing, transcribing, photographing, or photocopying.
+Article 86
+Publication by electronic means
+Matters which should be laid open and published by the Specific Patent Agency in accordance with this Act may be done electronically; the date for such implementation shall be decided by the Specific Patent Agency.
+Section 5 Compulsory Licensing
+Article 87
+Grounds for compulsory licensing
+In response to national emergency or other conditions of extreme urgency, the Specific Patent Agency shall, in accordance with an emergency order or upon notice from the central authorities in charge of the relevant business, grant compulsory licensing of a patent needed, and notify the patentee as soon as reasonably practicable.
+The Specific Patent Agency may, upon request, grant compulsory licensing of a patent under any of the following conditions for which it is deemed necessary:
+1. where a patented invention is to be exploited non-commercially for the enhancement of public interest;
+2. where a later invention or utility model patent cannot be exploited without infringing upon a prior invention or utility model patent, and where the later invention or utility model patent involves an important technical advancement of considerable economic significance in relation to the prior invention or utility model patent; or
+3. where a patentee has committed acts restricting competition or has committed unfair competition acts, for which a judgment has been made by a court of law or a decision has been rendered by the Fair Trade Commission of the Executive Yuan.
+Request for compulsory licensing of a patent involving semiconductor technology shall be filed based on the grounds set forth in Subparagraph 1 or 3 of the preceding paragraph.
+Request for compulsory licensing of a patent made pursuant to Subparagraph 1 or 2 of Paragraph 2 may only be approved if the requestor has made efforts to obtain authorization from the right holder on reasonable commercial terms and conditions, and that such efforts have not been successful within a reasonable time period.
+Where a request for compulsory licensing of a patent is made pursuant to Subparagraph 2 of Paragraph 2, the owner of the prior patent may propose reasonable terms and conditions and seek the grant of compulsory licensing of the later patent owned by the requestor.
+Article 88
+Procedure and decision of compulsory licensing
+After receiving a request for compulsory licensing filed pursuant to Paragraph 2 of the preceding Article or Article 90, the Specific Patent Agency shall notify and require the patentee concerned to respond within a specified time period. If no response is made within the specified time period, the Specific Patent Agency may then proceed to the examination of the compulsory licensing request.
+Exploitation of a compulsory license shall be predominantly for the supply of the domestic market. The above shall not apply to the compulsory license granted pursuant to Subparagraph 3, Paragraph 2 of the preceding Article.
+The decision on a request for a compulsory license shall be made in writing and shall indicate the reasons, scope, duration, and the required remuneration.
+Granting of compulsory licensing shall not affect the exercise of patent right by the patentee concerned.
+The right(s) granted under a compulsory license shall not be assigned, entrusted, inherited, licensed or pledged except for any of the following conditions:
+1. where a compulsory license is granted pursuant to Subparagraph 1 or Subparagraph 3, Paragraph 2 of the preceding Article and is assigned, entrusted, inherited, licensed or pledged with the business involving the exploitation of the patent; or
+2. where a compulsory license is granted pursuant to Subparagraph 2 of Paragraph 2 or Paragraph 5 of the preceding Article and is assigned, entrusted, inherited, licensed, or pledged with the patent right of the licensee.
+Article 89
+Repeal of a compulsory license
+Where a compulsory license granted pursuant to Paragraph 1 of Article 87 is considered no longer necessary by the central authorities in charge of the relevant business, the Specific Patent Agency shall repeal the compulsory license upon notice from the said authorities.
+The Specific Patent Agency may, upon request, repeal a granted compulsory license under any of the following conditions:
+1. where the fact warranting the compulsory license has changed and compulsory licensing is no longer necessary;
+2. where the licensee fails to properly exploit the patent as required in the compulsory license; or
+3. where the licensee fails to pay the remuneration as determined by the Specific Patent Agency.
+Article 90
+Compulsory licensing of pharmaceuticals: grounds and procedures
+For purposes of assisting countries with insufficient or no manufacturing capacities in pharmaceutical sector to obtain pharmaceutical product(s) needed for treating HIV/AIDS, tuberculosis, malaria and other epidemics, the Specific Patent Agency may, upon request, grant a compulsory license to the requestor to exploit a patent concerned for the purpose of producing and importing pharmaceutical product(s) to these countries.
+Request for a compulsory license made pursuant to the preceding paragraph may only be granted if the requestor has made efforts to obtain authorization from the right holder on reasonable commercial terms and conditions and that such efforts have not been successful within a reasonable period of time; however, the above shall not apply if compulsory licensing of the required pharmaceutical product(s) has been granted in the importing country.
+If the importing country concerned is a WTO member, the requestor shall, when filing a request pursuant to Paragraph 1, provide document(s) proving that the importing country has fulfilled the following:
+1. the Council for Trade-related Aspects of Intellectual Property Rights has been notified of the name(s) and expected quantities of the pharmaceutical product(s) needed;
+2. the Council for Trade-related Aspects of Intellectual Property Rights has been notified of its intention as an importer and has established that it has insufficient or no manufacturing capacities in the pharmaceutical sector. However, such document(s) of proof is not required if the importing country is a least-developed country; and
+3. where the required pharmaceutical product(s) is not patented in the importing country, or where the pharmaceutical product(s) is patented in its territory, the importing country has granted or is about to grant a compulsory license.
+The so called "least-developed countries" mentioned in the preceding paragraph refers to countries announced by the United Nations (UN) as being least-developed countries.
+Where the importing country is not a WTO member, but a least-developed country or a country with insufficient or no manufacturing capacities in the pharmaceutical sector, the requestor shall, when filing a request for compulsory licensing pursuant to Paragraph 1, provide document(s) proving that the importing country has fulfilled the following conditions:
+1. the name(s) and expected quantities of the pharmaceutical product(s) needed have been filed in writing with the foreign affairs authorities of the ROC; and
+2. stating that it agrees to prevent re-exportation of the pharmaceutical product(s) needed.
+Article 91
+Compulsory licensing of pharmaceuticals: export and remuneration
+Pharmaceutical product(s) produced under compulsory licensing pursuant to the preceding Article shall be exported to the importing country entirely, and the quantity of the product authorized to be produced shall not be more than the quantity required by the importing country in its notice sent to the Council for Trade-related Aspects of Intellectual Property Rights or the foreign affairs authorities of the ROC.
+Pharmaceutical product(s) produced under compulsory licensing granted pursuant to the preceding Article and the external packaging thereof shall be marked with the license basis specified by the Specific Patent Agency; the packaging, coloring or shaping of the pharmaceutical product(s) produced under compulsory licensing shall be sufficiently distinguishable from pharmaceutical product(s) produced by the patentee or his/her licensee(s).
+The licensee of a compulsory license shall pay appropriate remuneration to the patentee. The amount of remuneration shall be decided by the Specific Patent Agency, taking into account the economic value of the patent of the required pharmaceutical product(s) to the importing country with reference to the human development index issued by the United Nations.
+Before exporting the pharmaceutical product(s) produced under a compulsory license, the licensee shall post on a website the quantities, name(s) and destination(s) of such pharmaceutical product(s), as well as distinctive features thereof.
+Inspection and registration of the pharmaceutical product(s) produced and exported under compulsory licensing pursuant to the preceding Article shall not be bound by Paragraph 2, Article 40-2 of the Pharmaceutical Affairs Act.
+Section 6 Payment of Fees
+Article 92
+Fees
+With respect to each request for patent-related matters, the requestor shall pay fees at the time of filing.
+For a granted invention patent, the patentee shall pay patent certificate fee and patent annuities. If extension or prolongation of patent term is allowed, patent annuities shall still be paid during the extended or prolonged patent term.
+Article 93
+Time period for payment of annuity
+The annuity for an invention patent shall be paid starting from the publication date. Payment of the first-year annuity shall be made pursuant to the provision set forth in Paragraph 1, Article 52 hereof, while the payment of the second-year annuity and the annuities thereafter shall be made before the period thereof expires.
+The annuity for several years may be paid at one time. Under such circumstance, if the annuity rate is adjusted upward, the patentee concerned will not be required to pay the deficit.
+Article 94
+Addition of annuity
+If the annuity for the second or any subsequent year is not paid within the specified time period, a late payment can be made within six (6) months after the original due date with a specified percentage addition.
+The additional annuities based on the specified percentage addition as stated in the preceding paragraph means that the additional annuity shall be paid depending on the amount of time elapsed from the original due date. For every month that has elapsed, an additional fee at a ratio of 20% shall be paid; the maximum of the additional fee shall be the same as the amount originally due. The elapsed time from one day to one month shall be deemed as one month.
+Article 95
+Reduction of annuity
+Where the patentee of an invention patent is a natural person, school or small and medium enterprise, they may request for a reduction of patent annuity with the Specific Patent Agency.
+Section 7 Damages and Litigation Action
+Article 96
+Right to claim in the event of patent right infringement
+A patentee of an invention patent may demand a person who infringes or is likely to infringe the patent right to stop or prevent such infringement.
+In case infringement of an invention patent occurs due to intentional acts or negligence, the patentee may claim damages suffered as a result.
+When making a demand pursuant to Paragraph 1, the patentee may request for destruction of the infringing articles, the materials, or implements used in the infringing act, or request other necessary disposal.
+An exclusive licensee may, within the licensed scope, make demands in accordance with the preceding three paragraphs. However, if otherwise provided for in an agreement, such agreement shall prevail.
+Where the inventor’s right to be indicated as such is infringed, the inventor may request necessary dispositions to have his/her name indicated or to restore the impaired reputation.
+The rights to claim as set forth in Paragraph 2 and the preceding paragraph shall become extinguished if not exercised within two (2) years after the patentee becomes aware of the damage and the person liable for damages. This right shall also become extinguished if not exercised within ten (10) years after the time of infringement.
+Article 97
+Calculation of damages
+The damages claimed pursuant to the preceding article may be calculated according to any of the following methods:
+1. the method as set forth in Article 216 of the Civil Code; if no method of proof can be produced to prove the damages suffered, a patentee may claim damages based on the difference between the profit earned through patent exploitation after infringement and the profit normally expected through exploitation of the same patent;
+2. the profit obtained by the infringer as a result of patent infringement; or
+3. the amount calculated on the basis of reasonable royalties that may be collected from exploiting the invention patent being licensed.
+Subject to the preceding paragraph, where the infringement is found to be intentionally committed, the court may, upon request and based on the severity of the infringement, increased the proven damages up to three times
+Article 97-1
+Border measures: detention request, security and counter security
+A patentee may request Customs to detain the imported articles suspected of infringing the patent right(s).
+The request referred to in the preceding paragraph shall be made in wring, accompanied by a preliminary showing of the facts of infringement and a security amounting to the duty-paid price of the imported articles, as assessed by Customs, or equivalent assurance.
+Customs shall immediately notify the detention requester upon acceptance of the request. Deeming such request to be in compliance with the preceding paragraph, Customs shall notify in writing both the detention requester and the owner of the detained articles when carrying out the detention.
+By providing security amounting to two times the security or equivalent assurance referred to in Paragraph 2, the owner of the detained articles may request Customs to repeal the detention and to follow the procedures under applicable regulations governing customs clearance of imported articles.
+Customs may allow the detention requester or the owner of the detained articles to examine the detained articles, provided that confidential information protection of the detained articles is not compromised.
+If the detention requester obtains a court judgment deeming that the detained articles infringe the patent right(s), the owner of the detained articles shall be liable for relevant costs including demurrage, warehousing, loading, and unloading.
+Article 97-2
+Border measures: repeal of detention and subsequent procedures
+Customs shall repeal the detention under any of the following conditions:
+1. customs has not been notified by the detention requester, within twelve (12) days following the date of Customs’ acceptance of the request, that a litigation claiming that the detained articles infringe the patent right(s) has been initiated in accordance with Article 96;
+2. a litigation initiated by the detention requester claiming that the detained articles infringe the patent right(s) has been dismissed by a final and binding court judgment;
+3. a court of law in a final and binding judgment has held that the detained articles do not infringe patent right(s);
+4. the detention requester has requested the repeal of detention; or
+5. the condition stated in Paragraph 4 of the preceding article has been met.
+If necessary, Customs may extend the time period as prescribed in Subparagraph 1 of the preceding paragraph by another twelve (12) days.
+Customs repealing the detention in accordance with Paragraph 1 shall follow the procedures under applicable regulations governing customs clearance of imported articles.
+If the detention is repealed in accordance with Subparagraphs 1 through 4 of Paragraph 1, the detention requester shall be liable for relevant costs including demurrage, warehousing, loading, and unloading.
+Article 97-3
+Border measures: compensation and return of security
+If a court of law in a final and binding judgment has held that the detained articles do not infringe the patent right(s), the detention requester shall be liable to compensate the owner of the detained articles for the loss incurred from such detention or from providing the security as prescribed in Paragraph 4 of Article 97-1.
+The detention requester enjoys the same right as a pledgee regarding the security as prescribed in Paragraph 4 of Article 97-1; the owner of the detained articles enjoys the same right as a pledgee regarding the security as prescribed in Paragraph 2 of Article 97-1. Notwithstanding the foregoing, the relevant costs including demurrage, warehousing, loading, and unloading as prescribed in Paragraph 4 of the preceding article and Paragraph 6 of Article 97-1 shall be paid prior to compensation for the loss suffered by the detention requester or the owner of the detained articles.
+In case of any of the following, Customs shall, upon request from the detention requester, return the security as prescribed in Paragraph 2 of Article 97-1:
+1. the security is no longer required as a final and binding court judgment has been rendered in favor of the detention requester or the detention requester has reached a settlement with the owner of the detained articles;
+2. where the owner of the detained articles has suffered loss due to a repeal of detention in accordance with Subparagraphs 1 through 4, Paragraph 1 of the preceding article, or where a final and binding court judgment has been rendered in favor of the owner of the detained articles, the detention requester proves that the owner of the detained articles has been notified to exercise the right within a specified time period of no less than twenty (20) days but the owner of the detained articles has yet to do so within the said period; or
+3. the owner of the detained articles has agreed upon such return.
+In case of any of the following, Customs shall, upon request from the owner of the detained articles, return the security as prescribed in Paragraph 4 of Article 97-1:
+1. the security is no longer required as the detention has been repealed in accordance with Subparagraphs 1 through 4, Paragraph 1 of the preceding article, or a settlement has been reached between the owner of the detained articles and the detention requester;
+2. where a final and binding court judgment has been rendered in favor of the detention requester, the owner of the detained articles proves that the detention requester has been notified to exercise the right within a specified time period of no less than twenty (20) days but the detention requester has yet to do so within the said period; or
+3. the detention requester has agreed upon such return.
+Article 97-4
+Border measures: formulation of procedural regulations
+The competent authority shall, in coordination with the Ministry of Finance, formulate regulations governing the request of detention, repeal of detention, examination of detained articles, the procedures involving payment, provision, and return of security or assurance, provision of required documents, and other requirements, as prescribed in the preceding three (3) articles.
+Article 98
+Marking of patent certificate number
+The patent certificate number shall be marked on the patented article. If such marking cannot be fixed on the patented article, the patentee may place it on the labels or packaging, or mark it in a distinct manner sufficient to draw people’s attention. In cases where no patent marking is present, evidence must be provided when claiming damages to demonstrate that the infringer knows or has a reason to know that the said article protected by a patent.
+Article 99
+Presumption of manufacturing process used
+Where an article produced through a manufacturing process remains undisclosed within and outside of this country before the filing of a patent application for the said process, another article identical to it made by another person shall be presumed to have been produced through the same manufacturing process.
+The presumption made under the preceding paragraph may be rebutted by providing proof to the contrary. A proof made by the defendant that the process used in manufacturing the article at issue is different from the patented process shall be deemed as proof to the contrary. The legitimate rights and interests with respect to manufacturing and trade secrets disclosed in the defendant ‘s evidence shall be fully protected.
+Article 100
+Forwarding a certified copy of judgment
+A court of law shall forward to the Specific Patent Agency a certified copy of the judgment issued thereby for a litigation case involving invention patent.
+Article 101
+Acceleration of invalidation proceedings
+Where an invalidation action involves the trial of an infringement litigation case, the Specific Patent Agency shall prioritize such invalidation proceedings.
+Article 102
+Unrecognized foreign juristic person or organization
+An unrecognized foreign juristic person or organization may file civil suits in respect of the matters governed by this Act.
+Article 103
+Patent infringement assessment
+A court of law may establish specialized tribunals or appoint specific staff members to handle invention patent litigation cases.
+The Judicial Yuan may designate specialized institutions to conduct patent infringement assessments.
+A court of law, when handling litigation related to an invention patent, may request the specialized institutions designated according to the preceding paragraph to conduct patent infringement assessments.
+Chapter III Utility Model Patent
+Article 104
+Definition of utility model
+"Utility model" means the conception of technical ideas relating to the shape or structure of an article or combination of articles, utilizing the laws of nature.
+Article 105
+Statutory exclusion
+A utility model patent shall not be granted if it is contrary to public order or morality.
+Article 106
+Application
+An application for a utility model patent shall be filed with the Specific Patent Agency by the owner of the right to apply for a patent, providing an application form, a description, claim(s), an abstract, and drawing(s).
+The filing date of a patent application for utility model shall be the date on which the application form, description, claim(s), and drawing(s) are fully provided.
+If an applicant does not initially provide a description, claim(s) and drawing(s) in Chinese at the time of filing, but submits them in a foreign language, and if the Chinese translation is provided within the time period specified by the Specific Patent Agency, the filing date shall be the date on which the foreign language version was originally submitted.
+Where the Chinese translation is not provided within the specified time period as stated in the preceding paragraph, the patent application shall be dismissed. However, if the Chinese translation is provided before the dismissal decision is served, the date of providing the Chinese translation shall be considered the filing date, and the foreign language version shall be deemed as not having been provided.
+Article 107
+Divisional application of utility model patent
+A patent application for a utility model that substantially contains two or more utility models may, upon notice by the Specific Patent Agency or upon request by the applicant, be divided into two or more divisional applications.
+A request for division shall be filed within the time periods specified below:
+1. before a decision is made on the original utility model application; or
+2. within three (3) months after the date on which an approval decision on the original utility model application is rendered.
+Article 108
+Conversion of application
+Where a patent application originally filed for invention or design is converted into a patent application for utility model, or where a patent application originally filed for utility model is converted into a patent application for invention, the filing date of the original patent application shall be deemed to be the filing date of the converted patent application.
+A request for patent conversion shall not be made under any of the following conditions:
+1. after a written decision allowing the original patent application is served;
+2. two (2) months after the date on which a written decision rejecting the original patent application for invention or design is served; or
+3. thirty (30) days after the date on which a written decision rejecting the original patent application for utility model is served.
+A converted patent application shall not extend beyond the scope of content disclosed in the description, claim(s), or drawing(s) of the original patent application as filed.
+Article 109
+Amending patent application
+When conducting formality examination of a patent application for utility model, the Specific Patent Agency may, upon request or ex officio, notify the applicant to amend the description, claim(s) or drawing(s) within a designated time period.
+Article 110
+Foreign language documents
+The description, claim(s), and drawing(s) of an application for utility model that are provided in a foreign language pursuant to Paragraph 3 of Article 106 shall not be amended.
+The Chinese translation provided pursuant to Paragraph 3 of Article 106 shall not extend beyond the scope of content disclosed in the original foreign language documents as filed.
+Article 111
+Decision of Formality Examination
+Upon completion of the formality examination of a patent application for utility model, a written decision shall be rendered and served on the applicant.
+When a patent application for utility model is determined to be rejected after formality examination, the reason(s) therefor shall be given in the written decision.
+Article 112
+Formality examination
+A patent application for utility model undergoing formality examination shall be rejected under any of the following conditions:
+1. where the utility model does not relate to the shape, structure of an article or combination of articles;
+2. where there is a violation of Article 105;
+3. where there is a violation of Paragraph 4 of Article 26, applicable mutatis mutandis under Article 120;
+4. where there is a violation of Article 33, applicable mutatis mutandis under Article 120;
+5. where the description, claim(s), or drawing(s) does not disclose the essential matters or the disclosure therein is obviously unclear;
+6. where an amendment obviously extends beyond the scope of content disclosed in the description, claim(s) or drawing(s) as filed.
+Article 113
+Grant of patent; publication
+A claimed utility model shall be patented if, after formality examination, there is no event negating its patentability, and the claim(s) and the drawing(s) thereof shall be published.
+Article 114
+Patent term
+The term of a utility model patent shall expire after a period of ten (10) years starting from the filing date.
+Article 115
+Request for technical evaluation report
+After a patent application for utility model is published, any person may file a request with the Specific Patent Agency for a technical evaluation report of the utility model patent.
+The Specific Patent Agency shall publish the request for the technical evaluation report of the utility model patent in the Patent Gazette.
+The Specific Patent Agency shall appoint a patent examiner to issue the technical evaluation report of the utility model patent, and the report shall bear the name of the appointed patent examiner.
+In regard of the request filed pursuant to Paragraph 1, the Specific Patent Agency shall issue the technical evaluation report of the utility model patent with respect to matters set forth in Subparagraph 1, Paragraph 1, Paragraph 2 of Article 22, applicable mutatis mutandis under Article 120, Article 23, applicable mutatis mutandis under Article 120, and Article 31, applicable mutatis mutandis under Article 120.
+If a request for the technical evaluation report of the utility model patent is made pursuant to Paragraph 1 and stated that the utility model patent is commercially exploited by a party other than the patentee, and relevant document(s) of proof are provided, the Specific Patent Agency shall issue the technical evaluation report of the utility model patent within six (6) months.
+A request for a technical evaluation report of the utility model patent can still be filed after the utility model patent has become extinguished.
+Requests filed pursuant to Paragraph 1 shall not be withdrawn.
+Article 116
+Presentation of technical report
+When exercising a utility model patent, the patentee shall not make a warning without presenting the technical evaluation report of the utility model patent.
+Article 117
+Liability of damages; immunity
+Where a utility model patent is revoked, the patentee shall be liable for the damages suffered by another person due to the patentee’s exercise of utility model patent right prior to its revocation. The above shall not apply if such exercise is based on the content of the technical evaluation report of utility model patent and carried out with due care.
+Article 118
+Post-grant amendment of utility model patent
+With the exception to the situation set forth in Paragraph 3 of Article 74, applicable mutatis mutandis under Article 120, the patentee requesting to amend a utility model patent shall do so only within the time periods specified below:
+1. a request for technical evaluation report of the utility model patent is pending.
+2. a litigation case involving the utility model patent is pending.
+Article 119
+Grounds for invalidation action against utility model patent
+Any person may request for an invalidation action against a utility model patent with the Specific Patent Agency under any of the following conditions:
+1. where there is a violation of Article 104, Article 105, Paragraph 3 of Article 108, Paragraph 2 of Article 110, Article 22 applicable mutatis mutandis under Article 120, Article 23 applicable mutatis mutandis under Article 120, Article 26 applicable mutatis mutandis under Article 120, Article 31 applicable mutatis mutandis under Article 120, Paragraph 4 and the forepart of Paragraph 6 of Article 34 applicable mutatis mutandis under Article 120, Paragraph 2 of Article 43 applicable mutatis mutandis under Article 120, Paragraph 3 of Article 44 applicable mutatis mutandis under Article 120, Paragraphs 2 to 4 of Article 67 applicable mutatis mutandis under Article 120 of this Act;
+2. where the home country of the patentee does not accept patent applications filed by ROC nationals; or
+3. where there is a violation of Paragraph 1 of Article 12, or where the utility model patentee is not the owner of the right to apply for a utility model patent.
+An invalidation action based on Subparagraph 3 of the preceding paragraph shall only be filed by the interested party.
+With respect to the ground(s) for an invalidation action against a utility model patent, the provisions in effect at the time of the said patent being approved shall govern. However, if an invalidation request is filed based on violation of the ground(s) under Paragraph 3 of Article 108, Paragraph 4 and the forepart of Paragraph 6 of Article 34 applicable mutatis mutandis under Article 120, Paragraph 2 of Article 43 applicable mutatis mutandis under Article 120, or Paragraph 2 and paragraph 4 of Article 67 applicable mutatis mutandis under Article 120, the provisions in effect at the time of filing the said request shall govern.
+A written decision on an invalidation action shall bear the names of the patent examiners.
+Article 120
+Provisions applied mutatis mutandis to utility model patent
+Article 22, Article 23, Article 26, Articles 28 to 31, Article 33, Paragraphs 3 to 7 of Article 34, Article 35, Paragraphs 2 and 3 of Article 43, Paragraph 3 of Article 44, Paragraph 2 of Article 46, Paragraph 2 of Article 47, Article 51, Paragraphs 1, 2 and 4 of Article 52, Paragraphs 1, 2, 4 and 5 of Article 58, Article 59, Articles 62 to 65, Article 67, Paragraphs 2 and 3 of Article 68, Article 69, Article 70, Articles 72 to 82, Articles 84 to 98, and Articles 100 to 103 shall apply mutatis mutandis to the utility model patent.
+Chapter IV Design Patent
+Article 121
+Definition of design
+"Design" means the creation made in respect of the shape, pattern, color, or any combination thereof, of an article as a whole or in part by visual appeal.
+For computer generated icons (Icons) and graphic user interface (GUI) applied to an article, an application may also be filed pursuant to this Act for obtaining a design patent.
+Article 122
+Substantial conditions
+A design which is industrially applicable may be granted a design patent upon application in accordance with this Act, provided any of the following does not exist:
+1. an identical or similar design was disclosed in a printed publication prior to the filing of the patent application;
+2. an identical or similar design was publicly exploited prior to the filing of the patent application; or
+3. the design was known to the public prior to the filing of the patent application.
+A design that is without the conditions prescribed in the preceding paragraph but can be easily conceived by a person ordinarily skilled in the art based on prior art shall not be patented.
+A disclosure made by or against the applicant’s will shall not be deemed as one of the conditions that would preclude the grant of a design patent prescribed in the subparagraphs of Paragraph 1 or the preceding paragraph, provided that the concerned patent application is filed within six (6) months after the date of the disclosure.
+For the publication in a gazette made in this country or a foreign country in accordance with the laws as the consequence of filing a patent application and made by the applicant’s will, the preceding paragraph is not applicable.
+Article 123
+Design deemed as lack of novelty
+Where a design claimed in a patent application for design is identical or similar to a design disclosed in the description or drawing(s) of an earlier-filed patent application for design which is published after the filing of the later-filed patent application for design, the design patent shall not be granted; however, this shall not apply where the applicant of the later-filed patent application for design is also the applicant of the earlier-filed patent application for design.
+Article 124
+Statutory exclusion
+A design patent shall not be granted in respect of any of the following:
+1. the shape of an article solely dictated by its function;
+2. fine arts;
+3. the layout of integrated circuits and electronic circuits; or
+4. an article contrary to public order or morality.
+Article 125
+Application
+A patent application for a design shall be filed with the Specific Patent Agency by the owner of the right to apply for a patent, providing an application form, description, and drawing(s).
+The filing date of a patent application for design shall be the day on which the application form, description, and drawing(s) are fully provided.
+If an applicant does not initially provide a description and drawing(s) in Chinese at the time of filing, but submits them in a foreign language, and if the Chinese translation is provided within the time period specified by the Specific Patent Agency, the filing date shall be the date on which the foreign language version was originally submitted.
+Where the Chinese translation is not provided within the specified time period as stated in the preceding paragraph, the patent application for design shall be dismissed. However, if the Chinese translation is provided before the dismissal decision is served, the date of providing the Chinese translation shall be considered as the filing date, and the foreign language version shall be deemed as not having been provided.
+Article 126
+Disclosure
+The description and drawing(s) shall fully disclose the design in a manner that is clear and sufficient for a person having ordinarily skilled in the art of the design to understand and implement it.
+The methods of disclosure for the description and drawing(s) shall be specified in the Enforcement Rules of the Patent Act.
+Article 127
+Application and restriction of derivative design patent
+For two or more similar designs owned by the same person, applications may be filed for a design patent and its derivative design patent(s).
+The filing date of a patent application for derivative design shall not be earlier than the filing date of the original patent application for design.
+A patent application for derivative design filed after the publication of the original design patent is not acceptable.
+An applicant shall not file a patent application for derivative design patent if the design therein is only similar to another derivative design patent but not to the original design patent.
+Article 128
+First-to-file principle
+Where two or more patent applications are filed for the same or similar design(s), only the earlier-filed application can be granted. The above shall not apply if the priority date claimed for the later-filed application is earlier than the filing date of the earlier application.
+Where the filing date and the priority date referred to in the preceding paragraph are the same, the applicants shall be notified to reach an agreement with respect to the matter concerned. If such an agreement cannot be reached, none of the applications shall be granted. If the said patent applications are filed by the same applicant, the applicant shall be notified to select one patent application within a specified time period; failure to make a selection within the time period shall result in the rejection of all such patent applications.
+While the applicants concerned are in the process of reaching an agreement, the Specific Patent Agency shall require that these applicants report the results of the negotiation within an appropriate time period. If the said report is not provided within the specified time period, it shall be deemed that the agreement has not been reached.
+The above three paragraphs shall not apply to any of the following:
+1. the applications for the original design and its derivative design(s); or
+2. the applications for two or more derivative designs that originate from the same design.
+Article 129
+Unity; design for a set of articles
+An application for a design patent shall relate to one design.
+Two or more articles belonging to the same class and are customarily sold or used together may be filed as one design.
+A patent application for design shall indicate the article to which the design is applied.
+Article 130
+Division of application
+A patent application for design that substantially contains two or more designs may, upon notice by the Specific Patent Agency or upon request by the applicant, be divided into two or more divisional applications.
+A request for division shall be made before a reexamination decision on the original application is rendered.
+Examination of a divisional patent application shall resume the completed procedure of the original patent application.
+Article 131
+Conversion between design patent and derivative design patent
+Where a patent application for design is converted into a patent application for derivative design or where a patent application for derivative design is converted into a patent application for design, the filing date of the original patent application shall be deemed to be the filing date of the converted patent application.
+A request for the conversion shall not be made under any of the following conditions:
+1. after a written decision allowing the original application is served; or
+2. two (2) months after the date on which a written decision rejecting the original application is served.
+A converted patent application for design or derivative design shall not extend beyond the scope of content disclosed in the description or drawing(s) of the original application as filed.
+Article 132
+Conversion into design patent
+Where an application originally filed for invention or utility model patent is converted into a patent application for design, the filing date of the original application shall be deemed to be the filing date of the converted patent application for design.
+A request for the conversion shall not be made under any of the following conditions:
+1. after a written decision allowing the original patent application is served;
+2. two (2) months after the date on which a written decision rejecting the original patent application for invention is served; or
+3. thirty (30) days after the date on which a written decision rejecting the original patent application for utility model is served.
+A converted patent application shall not extend beyond the scope of content disclosed in the description, claim(s), or drawing(s) of the original patent application as filed.
+Article 133
+Foreign language documents
+The description and drawing(s) provided in a foreign language pursuant to Paragraph 3 of Article 125 shall not be amended.
+The Chinese translation provided pursuant to Paragraph 3 of Article 125 shall not extend beyond the scope of content disclosed in the original foreign language documents as filed.
+Article 134
+Grounds for rejection decision
+When a patent application for design is in violation of any of the provisions set forth in Articles 121 to 124, Article 126, Article 127, Paragraphs 1 to 3 of Article 128, Paragraphs 1 and 2 of Article 129, Paragraph 3 of Article 131, Paragraph 3 of Article 132, Paragraph 2 of Article 133, Paragraph 4 of Article 34 applicable mutatis mutandis under Paragraph 1 of Article 142, Paragraph 2 of Article 43 applicable mutatis mutandis under Paragraph 1 of Article 142, and Paragraph 3 of Article 44 applicable mutatis mutandis under Paragraph 1 of Article 142 of this Act, a decision of rejection shall be rendered.
+Article 135
+Patent term of design patent
+The term of a design patent shall expire after a period of fifteen (15) years from the filing date of the application. A derivative design patent shall expire simultaneously with the original design patent.
+Article 136
+Effects of design patent right
+Unless otherwise provided in this Act, the patentee of a design patent has the exclusive right to prevent others from exploiting the design or similar design(s) without the patentee’s consent.
+The extent of the protection conferred by a design patent shall be determined by the drawing(s), with the description serving as a reference.
+Article 137
+Claim of derivative design patent
+The right of a derivative design patent may be claimed independently, and its effect shall be extended to the scope of similarity.
+Article 138
+Disposal of derivative design patent
+A derivative design patent right shall be assigned, entrusted, inherited, licensed or pledged along with its original design patent.
+Where the original design patent right becomes extinguished or is revoked finally and bindingly pursuant to Subparagraph 3 or 4, Paragraph 1 of Article 70 applicable mutatis mutandis under Paragraph 1 of Article 142, the two or more derivative design patents that are still in force shall not be separately assigned, entrusted, inherited, licensed, or pledged.
+Article 139
+Post-grant amendment of design patent
+The patentee filing a request for amending the description or drawing(s) of a granted design patent shall only conduct the followings:
+1. to correct errors or translation errors; or
+2. to clarify ambiguous statement.
+Except for correction of translation errors, a post-grant amendment shall not extend beyond the scope of content disclosed in the description or drawing(s) as filed.
+For a patent application for design filed by providing the description and drawing(s) in a foreign language pursuant to Paragraph 3 of Article 125, correction of translation errors shall not extend beyond the scope of content disclosed in the original foreign language documents as filed.
+A post-grant amendment shall not substantially enlarge or alter the scope of drawing(s) as published.
+Article 140
+Restriction on abandoning design patent right
+A design patentee shall not abandon his/her design patent right without consent from the licensee(s) or pledgee(s).
+Article 141
+Grounds for invalidation
+Any person may request for an invalidation action against a design patent with the Specific Patent Agency under any of the following conditions:
+1. where there is a violation of any of the provisions set forth in Articles 121 to 124, Article 126, Article 127, Paragraphs 1 to 3 of Article 128, Paragraph 3 of Article 131, Paragraph 3 of Article 132, Paragraph 2 of Article 133, Paragraphs 2 to 4 of Article 139, Paragraph 4 of Article 34 applicable mutatis mutandis under Paragraph 1 of Article 142, Paragraph 2 of Article 43 applicable mutatis mutandis under Paragraph 1 of Article 142 and Paragraph 3 of Article 44 applicable mutatis mutandis under Paragraph 1 of Article 142;
+2. where the home country of the patentee does not accept patent applications filed by ROC nationals; or
+3. where there is a violation of Paragraph 1 of Article 12 or where the design patentee is not the owner of the right to apply for a design patent.
+An invalidation action based on Subparagraph 3 of the preceding paragraph shall only be filed by the interested party.
+With respect to the ground(s) of an invalidation action against a design patent, the provisions in effect at the time of the said patent being approved shall govern. However, if an invalidation action is filed based on the ground(s) under Paragraph 3 of Article 131, Paragraph 3 of Article 132, Paragraphs 2 and 4 of Article 139, Paragraph 4 of Article 34 applicable mutatis mutandis under Paragraph 1, Article 142, or Paragraph 2 of Article 43 applicable mutatis mutandis under Paragraph 1, Article 142 of this Act, such invalidation action shall be governed by the provisions in effect at the time of filing the said action.
+Article 142
+Provisions applied mutatis mutandis to design patent
+The provisions of Article 28, Article 29, Paragraphs 3 and 4 of Article 34, Article 35, Article 36, Article 42, Paragraphs 1 to 3 of Article 43, Paragraph 3 of Article 44, Article 45, Paragraph 2 of Article 46, Article 47, Article 48, Article 50, Paragraphs 1, 2 and 4 of Article 52, Paragraph 2 of Article 58, Article 59, Articles 62 to 65, Article 68, Article 70, Article 72, Paragraphs 1, 3 and 4 of Article 73, Articles 74 to 78, Paragraph 1 of Article 79, Articles 80 to 82, Articles 84 to 86, Articles 92 to 98, and Articles 100 to 103 shall apply mutatis mutandis to design patent.
+In the case of a patent application for design, the time period specified in Paragraph 1 of Article 28 shall be six (6) months.
+In the case of a patent application for design, the time period specified in Paragraphs 2 and 4 of Article 29 shall be ten (10) months.
+In the case of a patent application for design, the time period specified in Subparagraph 3, Paragraph 1 of Article 59 shall be six (6) months.
+Chapter V Supplementary Provisions
+Article 143
+Preservation of patent files
+Patent files such as application documents, description, claim(s), abstract, drawing(s) deemed worth preserving by the Specific Patent Agency shall be permanently kept.
+Patent files not referred to in the preceding paragraph shall be kept for the duration specified below:
+1. invention patent files shall be preserved for 20 years except for the files of approved cases, which shall be preserved for 30 years.
+2. utility model patent files shall be preserved for 10 years except for the files of approved cases, which shall be preserved for 15 years.
+3. design patent files shall be preserved for 15 years except for the files of approved cases, which shall be preserved for 20 years.
+The duration of preservation referred to in the preceding paragraph shall be calculated on the first day following the year when the decision is rendered on the patent application, the patent application has been withdrawn or deemed to have been withdrawn.
+With respect to patent files which are kept at the time of the implementation of the April 16, 2019 amendment to this Act, the amended Patent Act shall apply.
+Article 144
+Prescription of regulations governing awards for creations
+The competent authority may prescribe the regulations governing awards for the creations of inventions, utility models, or designs.
+Article 145
+Prescription of regulations governing submission of foreign language documents
+With respect to foreign language documents provided pursuant to Paragraph 3 of Article 25, Paragraph 3 of Article 106, and Paragraph 3 of Article 125, the competent authority shall prescribe regulations governing the types of foreign languages and other matters.
+Article 146
+Prescription of regulations governing fees
+With respect to the application fee, patent certificate fee and annuity set forth in Article 92, Article 92 applicable mutatis mutandis under Article 120, and Article 92 applicable mutatis mutandis under Paragraph 1 of Article 142, the competent authority shall prescribe regulations governing the methods of collection therefor.
+With respect to the reduction or exemption of patent annuities as set forth in Article 95, Article 95 applicable mutatis mutandis under Article 120, and Article 95 applicable mutatis mutandis under Paragraph 1 of Article 142, the competent authority shall prescribe regulations governing the conditions, number of years, amount, and other matters therefor.
+Article 147
+Transitional provisions: patent term extension
+A patent application filed before January 23, 1994 shall not apply for patent term extension under Article 53.
+Article 148
+Transitional provisions: patent term
+With respect to a patent that is published prior to the implementation of the January 21, 1994 amendment of this Act, the patent term thereof shall be calculated in accordance with the Patent Act in effect prior to the 1994 amendment. However, for an invention patent that is still in force on the date when the WTO Agreement took effect in the territory of the ROC, the patent term thereof shall be governed by the amended Act.
+For a utility model patent that is published prior to the implementation of the January 3, 2003 amendment of this Act, the patent term thereof shall be governed by the Patent Act in effect prior to the amendment.
+For a design patent that is still in force on the date when the WTO Agreement takes effect in the territory of the ROC, the patent term shall be governed by the May 7, 1997 amendment of the Patent Act.
+Article 149
+Transitional provisions: pending cases
+Unless otherwise provided for in the Act, for a patent application which is still pending at the time of the implementation of the November 29, 2011 amendment of this Act, the amended Patent Act shall govern.
+With respect to a request for post-grant amendment and invalidation action which is still pending at the time of the implementation of the November 29, 2011 amendment of this Act, the amended Patent Act shall govern.
+Article 150
+Transitional provisions: Priority claim based on earlier application; division
+With respect to a patent application for invention or utility model which is filed prior to the implementation of the November 29, 2011 amendment of this Act with priority claim made pursuant to the former Article 29, if the prior patent application has not been published or the decision of rejection has not become final and binding, Paragraph 1 of Article 30 shall apply.
+With respect to an examination decision regarding patent application for invention rendered prior to the implementation of the November 29, 2011 amendment to this Act, if the time period stated in Subparagraph 2, Paragraph 2 of Article 34 has not expired, Subparagraph 2, Paragraph 2 and Paragraph 6 of Article 34 shall apply.
+Article 151
+Transitional provisions: grace period; design patent
+Subparagraph 2, Paragraph 3 of Article 22, Subparagraph 2, Paragraph 3 of Article 22 applicable mutatis mutandis under Article 120, Paragraph 1 of Article 121, which pertains to partial design of articles, Paragraph 2 of Article 121, Subparagraph 1, Paragraph 3 of Article 122, Article 127, and Paragraph 2 of Article 129 shall be applicable only to patent applications filed after the implementation of the November 29, 2011 amendment of this Act.
+Article 152
+Transitional provisions: deposit of biological material
+In respect of a patent application for invention that violates the former Paragraph 2, Article 30 and the deposits therefor is deemed not to have been made before the implementation of the November 29, 2011, amendment, if the application is still pending at the time of the implementation, Paragraph 2 of Article 27 shall apply. For a patent application to which priority claim is made, if the time period of sixteen (16) month after the earliest priority date has not expired, Paragraph 3 of Article 27 shall apply.
+Article 153
+Transitional provisions: Priority claim under WTO membership, etc.
+In respect of a patent application that, prior to the implementation of the November 29, 2011 amendment of this Act, violates the former Paragraph 1 of Article 28, Paragraph 1 of Article 28 applicable mutatis mutandis under Article 108, or Paragraph 1 of Article 28 applicable mutatis mutandis under Paragraph 1 of Article 129 of this Act, and therefore cannot claim priority pursuant to the former Paragraph 3 of Article 28, Paragraph 3 of Article 28 applicable mutatis mutandis under Article 108, or Paragraph 3 of Article 28 applicable mutatis mutandis under Paragraph 1 of Article 129 of this Act, in the event that the patent application is still pending at the time of the implementation, if, with respect to a patent application for invention and utility model, the period of sixteen (16) months after the earliest priority date has not expired, and if, with respect to a patent application for design, the period of ten (10) months after the earliest priority date has not expired, Paragraph 4 of Article 29, Paragraph 4 of Article 29 applicable mutatis mutandis under Article 120, and Paragraph 4 of Article 29 applicable mutatis mutandis under Paragraph 1 of Article 142 shall apply.
+In respect of a patent application that, prior to the implementation of the November 29, 2011 amendment of this Act, violates the former Paragraph 2 of Article 28, Paragraph 2 of Article 28 applicable mutatis mutandis under Article 108, or Paragraph 2 of Article 28 applicable mutatis mutandis under Paragraph 1 of Article 129 of this Act, and therefore cannot claim priority pursuant to the former Paragraph 3 of Article 28, Paragraph 3 of Article 28 applicable mutatis mutandis under Article 108, or Paragraph 3 of Article 28 applicable mutatis mutandis under Paragraph 1 of Article 129 of this Act, in the event that the patent application is still pending at the time of the implementation, if, with respect to a patent application for invention and utility model, the period of the sixteen (16) months period after the earliest priority date has not expired, and if, with respect to a patent application for design, the period of ten (10) months after the earliest priority date has not expired, the provisions of Paragraph 2 of Article 29, Paragraph 2 of Article 29 applicable mutatis mutandis under Article 120, and Paragraph 2 of Article 29 applicable mutatis mutandis under Paragraph 1 of Article 142 shall apply.
+Article 154
+Transitional provisions: request for patent term extension
+In respect of a request for invention patent term extension that is filed prior to the implementation of the November 29, 2011 amendment of this Act, if the decision has not been issued for such a request and if the invention patent is still in force at the time of the implementation, the amended Act shall govern.
+Article 155
+Transitional provisions: no revival of extinguished patent right
+If any of the following events exists at the time of the implementation of November 29, 2011 amendment of this Act, Paragraph 4 of Article 52, Paragraph 2 of Article 70, Paragraph 4 of Article 52 applicable mutatis mutandis under Article 120, Paragraph 2 of Article 70 applicable mutatis mutandis under Article 120, Paragraph 4 of Article 52 applicable mutatis mutandis under Paragraph 1 of Article 142, and Paragraph 2 of Article 70 applicable mutatis mutandis under Paragraph 1 of Article 142 shall not apply:
+1. where, at the time of the said implementation, the time period for payment of annuity has expired and the patent concerned has become non-existent ab initio pursuant to the former Paragraph 1 of Article 51, Paragraph 1 of Article 101, or Paragraph 1 of Article 113 of this Act; or
+2. where, at the time of the said implementation, a patent has become extinguished pursuant to the former Subparagraph 3 of Article 66, Subparagraph 3 of Article 66 applicable mutatis mutandis under Article 108, or Subparagraph 3 of Article 66 applicable mutatis mutandis under Paragraph 1, Article 129 of this Act.
+Article 156
+Transitional provisions: pending patent application for design
+In respect of a patent application for design that is still pending at the time of the implementation of the November 29, 2011 amendment of this Act, the applicant may, within three (3) months after the implementation, file a request to convert it to a patent application for partial design.
+Article 157
+Transitional provisions: pending patent application for associated design
+In respect of a patent application for associated design that is still pending at the time of the implementation of the November 29, 2011 amendment of this Act, the provisions of this Act prior to amendment with respect to associated design patent shall apply.
+In respect of a patent application for associated design that is still pending at the time of the implementation of the November 29, 2011 amendment of this Act, if the patent application for associated design is filed prior to the publication of its original patent application for design, the applicant may file a request to convert it to a patent application for derivative design within three (3) months after the implementation of the amended Act.
+Article 157-1
+Transitional provisions: grace period
+Article 157-2
+Transitional provisions: pending applications
+Unless otherwise provided for in the Act, for a patent application which is still pending at the time of the implementation of the April 16, 2019 amendment to this Act, the amended Patent Act shall apply.
+With respect to a request for post-grant amendment and invalidation action which is still pending at the time of the implementation of the April 16, 2019 amendment to this Act, the amended Patent Act shall apply.
+Article 157-3
+Transitional provisions: Divisional application after rendering a decision of patent application
+With respect to an examination decision on patent application for invention or utility model rendered prior to the implementation of the April 16, 2019 amendment to this Act, if the corresponding time period set forth in Subparagraph 2, Paragraph 2 of Article 34 or Subparagraph 2, Paragraph 2 of Article 107 has not expired, Subparagraph 2, the amended Patent Act shall apply.
+Article 157-4
+Transitional provisions: patent term of design patent
+With respect to the term of a design patent, when the term of the patent has not expired prior to the implementation of the April 16, 2019 amendment to this Act, the amended Patent Act shall apply.
+With respect to the term of a design patent, when the patent right has become extinguished pursuant to Subparagraph 3, Paragraph 1 of Article 70 applicable mutatis mutandis under Paragraph 1 of Article 142 prior to the implementation of the April 16, 2019 amendment to this Act, and then has been reinstated through an application made according to Paragraph 2 of Article 70 applicable mutatis mutandis under Paragraph 1of Article 142 after the implementation of the April 16, 2019 amendment to this Act, the amended Patent Act shall apply.
+Article 158
+Prescription of Enforcement Rules
+The Enforcement Rules of this Act shall be prescribed by the competent authority.
+Article 159
+Date of implementation
+The date on which this Act takes effect shall be decided by the Executive Yuan.
+The May 31, 2013 amendment of this Act is to be implemented on the date of its promulgation.
+Web site：Laws & Regulations Database of The Republic of China (Taiwan)

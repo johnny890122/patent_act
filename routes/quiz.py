@@ -54,9 +54,14 @@ def check_available_questions():
             return jsonify({"error": "Invalid or missing 'mode'. Must be new, review, or mixed"}), 400
         
         # Count available questions
+        lang = request.args.get('lang', 'zh-TW')
+        if lang not in ['zh-TW', 'en', 'both']:
+            return jsonify({"error": "Invalid 'lang'. Must be 'zh-TW', 'en', or 'both'"}), 400
+
         available = inventory_service.count_available_questions(
             question_type=question_type,
-            session_mode=session_mode
+            session_mode=session_mode,
+            lang=lang
         )
         
         logger.info(f"Available questions check: type={question_type}, mode={session_mode}, available={available}")
@@ -103,12 +108,17 @@ def create_session():
         
         if not count or not isinstance(count, int) or count <= 0:
             return jsonify({"error": "Invalid or missing 'count'. Must be a positive integer"}), 400
-        
-        # Get questions using inventory service
+        # Language selection (optional)
+        lang = data.get('lang', 'zh-TW')
+        if lang not in ['zh-TW', 'en', 'both']:
+            return jsonify({"error": "Invalid 'lang'. Must be 'zh-TW', 'en', or 'both'"}), 400
+
+        # Get questions using inventory service (pass lang)
         questions, is_loading = inventory_service.get_session_questions(
             question_type=question_type,
             session_mode=session_mode,
-            count=count
+            count=count,
+            lang=lang
         )
         
         if not questions:
@@ -136,6 +146,9 @@ def create_session():
                 "content": q["content"],
                 "law_id": q["law_id"]
             }
+            # include language metadata if present
+            if q.get('lang'):
+                safe_q['lang'] = q.get('lang')
             # Include options for MCQ
             if q["type"] == "MCQ" and "options" in q:
                 safe_q["options"] = q["options"]

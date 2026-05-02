@@ -133,3 +133,50 @@
         - [ ] 驗證警告彈窗正確顯示
         - [ ] 測試三個選項的功能
         - [ ] 確保調整後能正常開始測驗
+
+## Phase 9: Internationalization (i18n) - Content & Questions
+
+### 9.1 Database Schema Updates
+- [ ] TASK-9.1.1: Update `LawModel` in [`db/models.py`](../db/models.py) to add `lang: str = "zh-TW"` field [REQ-7]
+- [ ] TASK-9.1.2: Update `QuestionModel` in [`db/models.py`](../db/models.py) to add `lang` and `base_question_id` fields [REQ-7]
+- [ ] TASK-9.1.3: Create `I18nMappingModel` in [`db/models.py`](../db/models.py) for bidirectional law article linking [REQ-7]
+- [ ] TASK-9.1.4: Create MongoDB index on `(law_id, lang)` and `(base_question_id, lang)` for efficient i18n queries
+
+### 9.2 Law Article i18n Initialization
+- [ ] TASK-9.2.1: Parse [`knowledge/patent_law_en.md`](../knowledge/patent_law_en.md) and generate [`knowledge/truth_law_en.json`](../knowledge/truth_law_en.json) using [`scripts/parse_patent_law_en.py`](../scripts/parse_patent_law_en.py) [REQ-7]
+- [ ] TASK-9.2.2: Modify [`scripts/init_truth_laws.py`](../scripts/init_truth_laws.py) to add `lang` field to zh-TW laws during insertion (backfill existing data) [REQ-7]
+- [ ] TASK-9.2.3: Create new script [`scripts/init_truth_laws_en.py`](../scripts/init_truth_laws_en.py) to insert English laws with `lang: en` [REQ-7]
+- [ ] TASK-9.2.4: Create [`scripts/create_i18n_mapping.py`](../scripts/create_i18n_mapping.py) to populate `i18n_mapping` collection for zh-TW ↔ en law pairs [REQ-7]
+- [ ] TASK-9.2.5: Execute backfill + insertion scripts for both local and remote databases [REQ-7]
+
+### 9.3 Translation Service & Question Generation
+- [ ] TASK-9.3.1: Create [`services/translator.py`](../services/translator.py) with methods:
+  - `translate_question_to_en(question_dict) → dict` — translates a single zh-TW question to EN
+  - `generate_bilingual_question(law_content, question_type) → tuple[dict, dict]` — generates both zh-TW and EN versions simultaneously [REQ-7.1]
+- [ ] TASK-9.3.2: Update [`services/question_gen.py`](../services/question_gen.py) to use translator for bilingual generation [REQ-7.1]
+  - Modify prompt to request both zh-TW and EN in a single LLM call
+  - Ensure semantic consistency between languages
+  - Link both versions via shared `base_question_id`
+- [ ] TASK-9.3.3: Test bilingual question generation end-to-end with sample law articles [REQ-7.1]
+
+### 9.4 Data Migration: Translate Existing Questions
+- [ ] TASK-9.4.1: Create [`scripts/migrate_questions_to_en.py`](../scripts/migrate_questions_to_en.py) script to:
+  - Iterate over all zh-TW questions in `questions` collection
+  - Call `translator.translate_question_to_en()` for each
+  - Insert EN version with shared `base_question_id`
+  - Log translation results and any failures [REQ-7.1]
+- [ ] TASK-9.4.2: Test migration on local database with 10% of questions (dry-run with logging)
+- [ ] TASK-9.4.3: Execute migration on local database and verify question counts [REQ-7.1]
+- [ ] TASK-9.4.4: Execute migration on remote (production) database [REQ-7.1]
+
+### 9.5 Frontend: Display Bilingual Question Content
+- [ ] TASK-9.5.1: Modify [`routes/quiz.py`](../routes/quiz.py) `POST /quiz/session` to accept optional `lang` parameter (default: zh-TW)
+- [ ] TASK-9.5.2: Update [`routes/laws.py`](../routes/laws.py) `GET /laws` endpoint to support language filtering (`?lang=zh-TW` or `?lang=en`)
+- [ ] TASK-9.5.3: Modify law article detail template to display law content in the selected language
+- [ ] TASK-9.5.4: Update quiz session template to show question content in selected language
+
+### 9.6 Testing & Validation
+- [ ] TASK-9.6.1: Create [`test/test_i18n_migration.py`](../test/test_i18n_migration.py) — test question translation and data migration logic
+- [ ] TASK-9.6.2: Create [`test/test_i18n_schema.py`](../test/test_i18n_schema.py) — verify database schema changes and indexes
+- [ ] TASK-9.6.3: Create [`test/test_bilingual_questions.py`](../test/test_bilingual_questions.py) — end-to-end test for generating bilingual questions
+- [ ] TASK-9.6.4: Run all tests and ensure no regression in existing functionality 

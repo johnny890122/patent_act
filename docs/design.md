@@ -41,6 +41,7 @@ class LawModel:
     article_number: str
     content: str
     chapter: str
+    lang: str = "zh-TW"  # NEW: Language tag (zh-TW or en)
     is_starred: bool = False
     total_score: float = 0.0
     attempt_count: int = 0
@@ -56,8 +57,10 @@ class QuestionModel:
     content: str
     correct_answer: str
     ai_explanation: str
+    lang: str = "zh-TW"  # NEW: Language tag (zh-TW or en)
     options: Optional[List[str]] = None
     is_deleted: bool = False
+    base_question_id: Optional[str] = None  # NEW: Links zh-TW ↔ en translations
 ```
 
 **user_progress**
@@ -71,6 +74,15 @@ class UserProgressModel:
     is_appealed: bool = False
 ```
 
+**i18n_mapping (NEW)**
+```python
+@dataclass
+class I18nMappingModel:
+    zh_tw_law_id: str      # ObjectId of zh-TW law
+    en_law_id: str         # ObjectId of en law
+    article_number: str    # Common article number (e.g., "Article 1")
+```
+
 ## 4. LLM Integration (OpenRouter)
 - **Question Generation**: Uses a thinking model (quality over speed). Always passes the 3 most-recent questions for that `law_id` for diversity.  
   Output schema: `{ content, options, correct_answer, ai_explanation }`
@@ -78,6 +90,10 @@ class UserProgressModel:
   Output schema: `{ score, feedback }`
 - **Law Parsing**: Converts raw Markdown article text into structured `laws` documents.  
   Output schema: `{ chapter, article_number, content }`
+- **Translation Service (NEW)**: LLM agent that translates questions from zh-TW ↔ en while preserving meaning and structure.
+  - Used for data migration: translates existing zh-TW questions to EN
+  - Used for new questions: generates both zh-TW and EN versions simultaneously
+  - Output schema: `{ content_en, options_en, correct_answer_en, ai_explanation_en }`
 
 ## 5. Question Inventory Logic & Rules
 
@@ -119,3 +135,37 @@ Session Types:
 | S-06 | Session Summary | Aggregated stats for completed session |
 | S-07 | Law Article Browser | Paginated list of all laws |
 | S-08 | Law Article Detail | One article + its question history |
+
+## 7. Internationalization (i18n) Architecture
+
+### 7.1 Language Support
+- **Content-only i18n**: Laws and questions are available in zh-TW and EN
+- **UI remains in Chinese**: All buttons, labels, navigation, and system messages stay in Traditional Chinese (zh-TW)
+- **Database structure**: 
+  - Each law article is stored with a `lang` field (zh-TW or en)
+  - Questions are similarly tagged with `lang` field
+  - Bidirectional mapping via `article_number` for laws and `base_question_id` for questions
+
+### 7.2 Question Translation Flow
+1. **New Question Generation**:
+   - When a question is generated, `services/question_gen.py` simultaneously generates zh-TW and EN versions
+   - Both versions share the same `base_question_id` for linking
+   - Both are stored as separate documents with their respective `lang` field
+   - LLM prompt is enhanced to ensure both languages have identical meaning (same correct answer semantically)
+
+2. **Data Migration (Existing Questions)**:
+   - Existing zh-TW questions in the database are translated to EN using `services/translator.py`
+   - Translation uses an LLM agent with strict prompts to preserve question integrity
+   - For each zh-TW question, an EN version is created and linked via `base_question_id`
+   - Process is idempotent (can be re-run safely)
+
+3. **User Progress Tracking**:
+   - Grading is language-agnostic: when a user answers a zh-TW question and gets a score, the `user_progress` record is marked
+   - When querying questions for a session, the system can optionally filter by `lang` parameter
+   - Currently, UI remains zh-TW, so most queries filter for zh-TW questions
+
+### 7.3 Law Article i18n
+- Existing zh-TW laws from `knowledge/truth_law.json` remain unchanged with `lang: zh-TW`
+- New EN laws from `knowledge/patent_law_en.json` are inserted with `lang: en`
+- Bidirectional mapping is stored in a separate `i18n_mapping` collection for easy lookups
+- Law detail pages can show both versions side-by-side or allow language switching (UI enhancement for future)

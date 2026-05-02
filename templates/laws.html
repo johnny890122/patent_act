@@ -73,6 +73,8 @@
     let currentChapter = 'all';
     let currentSearchTerm = '';
     const PAGE_SIZE = 20;
+    // Language state: read from localStorage (set by language toggle)
+    let currentLang = localStorage.getItem('appLang') || 'zh-TW';
 
     // DOM elements
     const loadingEl = document.getElementById('loading');
@@ -94,8 +96,9 @@
             loadingEl.classList.remove('hidden');
             lawsListEl.classList.add('hidden');
             emptyStateEl.classList.add('hidden');
-            
-            const response = await fetch('/api/laws?per_page=1000');
+            // include lang param when requesting
+            const qs = `per_page=1000${currentLang ? '&lang=' + encodeURIComponent(currentLang) : ''}`;
+            const response = await fetch('/api/laws?' + qs);
             if (!response.ok) throw new Error('Failed to fetch laws');
             
             const data = await response.json();
@@ -148,7 +151,7 @@
             return a.localeCompare(b);
         });
         
-        // Render chapter tabs
+        // Render chapter tabs (rebuild to avoid duplicates when switching language)
         let html = '';
         sortedChapters.forEach(chapter => {
             // Shorten chapter name for display
@@ -160,12 +163,15 @@
                 </div>
             `;
         });
-        
-        // Append to chapter selector (after "全部")
-        chapterSelector.insertAdjacentHTML('beforeend', html);
-        
-        // Attach click handlers
-        document.querySelectorAll('.chapter-tab').forEach(tab => {
+
+        // Preserve the initial "全部" tab and rebuild the rest
+        const allTab = chapterSelector.querySelector('[data-chapter="all"]');
+        const allHtml = allTab ? allTab.outerHTML : `<div class="chapter-tab active" data-chapter="all"><span>📑 全部</span><span class="chapter-badge" id="count-all">0</span></div>`;
+        chapterSelector.innerHTML = allHtml + html;
+
+        // Attach click handlers to updated tabs
+        chapterSelector.querySelectorAll('.chapter-tab').forEach(tab => {
+            tab.removeEventListener && tab.removeEventListener('click', filterByChapter);
             tab.addEventListener('click', () => {
                 const chapter = tab.getAttribute('data-chapter');
                 filterByChapter(chapter);
@@ -387,7 +393,6 @@
 
     // View law details (placeholder for future implementation)
     function viewLawDetails(lawId) {
-        // TODO: Navigate to law detail page or show modal
         console.log('View law details:', lawId);
         window.location.href = `/laws/${lawId}`;
     }
@@ -473,7 +478,7 @@
         }
     });
 
-    // Initialize
+    // Initialize on page load
     document.addEventListener('DOMContentLoaded', () => {
         fetchLaws();
     });

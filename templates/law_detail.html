@@ -160,12 +160,15 @@
     // Load law detail
     async function loadLawDetail() {
         try {
-            // Fetch law data
-            const lawResponse = await window.appUtils.apiCall(`/api/laws/${lawId}`);
-            lawData = lawResponse;
+            // Get language from localStorage (global language setting)
+            const reqLang = localStorage.getItem('appLang') || 'zh-TW';
             
-            // Fetch questions for this law
-            const questionsResponse = await window.appUtils.apiCall(`/api/laws/${lawId}/questions`);
+            // Fetch law data with language parameter (API will auto-map to correct language version)
+            const lawResponse = await window.appUtils.apiCall(`/api/laws/${lawId}?lang=${reqLang}`);
+            lawData = lawResponse;
+
+            // Fetch questions for this law (use returned law id in case mapping occurred)
+            const questionsResponse = await window.appUtils.apiCall(`/api/laws/${lawData._id}/questions`);
             questions = questionsResponse.questions || [];
             
             // Sort by _id (which contains timestamp) - newest first

@@ -71,6 +71,46 @@ def load_truth_laws():
     return laws_data
 
 
+def backfill_lang_field(mongo_uri, db_name=None):
+    """
+    Backfill existing laws with lang='zh-TW' field.
+    
+    Args:
+        mongo_uri: MongoDB connection string
+        db_name: Database name (for logging)
+    """
+    if db_name is None:
+        db_name = "local" if "localhost" in mongo_uri else "remote"
+    
+    try:
+        logger.info(f"Connecting to {db_name} MongoDB for lang field backfill...")
+        client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
+        client.admin.command('ping')
+        
+        db = client.get_database()
+        laws_collection = db['laws']
+        
+        # Find laws without lang field
+        laws_without_lang = laws_collection.count_documents({'lang': {'$exists': False}})
+        
+        if laws_without_lang > 0:
+            logger.info(f"Found {laws_without_lang} laws without lang field, backfilling with 'zh-TW'...")
+            result = laws_collection.update_many(
+                {'lang': {'$exists': False}},
+                {'$set': {'lang': 'zh-TW'}}
+            )
+            logger.info(f"✅ Updated {result.modified_count} documents with lang='zh-TW'")
+        else:
+            logger.info("All laws already have lang field")
+        
+        client.close()
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error backfilling lang field: {str(e)}")
+        return False
+
+
 def init_laws_to_db(mongo_uri, db_name=None):
     """
     將法條插入到指定的資料庫。
@@ -112,23 +152,37 @@ def init_laws_to_db(mongo_uri, db_name=None):
                 article_number_int = extract_article_number_int(law_data['article_number'])
                 law_data['article_number_int'] = article_number_int
                 
+                # 確保 lang field 設定為 zh-TW (預設值)
+                if 'lang' not in law_data:
+                    law_data['lang'] = 'zh-TW'
+                
                 # 透過 dataclass 驗證
                 law_model = LawModel(**law_data)
-                law_dict = {
+                
+                # 分離需要更新的欄位和只在插入時設置的欄位
+                content_fields = {
                     'article_number': law_model.article_number,
                     'content': law_model.content,
                     'chapter': law_model.chapter,
                     'article_number_int': law_model.article_number_int,
+                    'lang': law_model.lang,
+                }
+                
+                # 統計欄位只在插入時設置，更新時保留現有值
+                stats_fields = {
                     'is_starred': law_model.is_starred,
                     'total_score': law_model.total_score,
                     'attempt_count': law_model.attempt_count,
                     'avg_score': law_model.avg_score
                 }
                 
-                # Upsert: 若存在則更新，不存在則插入
+                # Upsert: 使用複合鍵 (article_number, lang) 以同時處理 zh-TW 和 en
                 result = laws_collection.update_one(
-                    {'article_number': law_model.article_number},
-                    {'$set': law_dict},
+                    {'article_number': law_model.article_number, 'lang': law_model.lang},
+                    {
+                        '$set': content_fields,  # 總是更新內容欄位
+                        '$setOnInsert': stats_fields  # 只在新插入時設置統計欄位
+                    },
                     upsert=True
                 )
                 
@@ -205,6 +259,21 @@ def main():
         sys.exit(1)
     
     success = True
+    
+    # Backfill lang field for existing zh-TW laws
+    if args.local or args.both:
+        logger.info("\n" + "=" * 60)
+        logger.info("Backfilling lang field for local database...")
+        logger.info("=" * 60)
+        backfill_success = backfill_lang_field(LOCAL_MONGO_URI, "local")
+        success = success and backfill_success
+    
+    if args.remote or args.both:
+        logger.info("\n" + "=" * 60)
+        logger.info("Backfilling lang field for remote database...")
+        logger.info("=" * 60)
+        backfill_success = backfill_lang_field(REMOTE_MONGO_URI, "remote")
+        success = success and backfill_success
     
     # 插入到本地資料庫
     if args.local or args.both:

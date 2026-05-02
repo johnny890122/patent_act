@@ -46,3 +46,20 @@ Core loop: AI dynamically generates exam questions bound to specific law article
 ### 6. Law Article Reference
 - **Story:** As a user, I want to browse law articles directly when needed.
 - **Scenario:** User can browse a paginated list of all Patent Law articles, view single article details, view history of questions on that article, and star (★) the article for reference.
+
+### 7. Multilingual Support (i18n)
+- **Story:** As a user, I want to view patent law articles and practice questions in both Traditional Chinese (zh-TW) and English, so I can prepare for the exam in both languages.
+- **Scenario:**
+  - Law articles are available in both zh-TW and EN (same article_number, different lang field)
+  - When viewing a law article detail, both language versions are available
+  - Questions can be generated/viewed in both zh-TW and EN
+  - UI language remains in Traditional Chinese (buttons, labels, navigation)
+  - Content-only i18n: Only laws and question content are multilingual; UI stays in Chinese
+
+### 7.1 Question Translation & Consistency
+- **Story:** As a user, I want translated questions to be accurate and consistent between languages.
+- **Scenario:**
+  - For existing questions (data migration): Questions are translated into EN using an LLM agent (one-time)
+  - For new questions: Questions are generated in both zh-TW and EN simultaneously with identical meaning
+  - Both language versions of a question share the same `question_id`, tracked via `lang` field
+  - Grading is language-agnostic: scoring a zh-TW question also updates user_progress for both language versions

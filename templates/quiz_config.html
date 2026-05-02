@@ -265,10 +265,12 @@
         
         // Get form values
         const formData = new FormData(e.target);
+        const currentLang = localStorage.getItem('appLang') || 'zh-TW';
         const config = {
             type: formData.get('type'),
             mode: formData.get('mode'),
-            count: parseInt(formData.get('count'))
+            count: parseInt(formData.get('count')),
+            lang: currentLang
         };
         
         console.log('Starting quiz with config:', config);

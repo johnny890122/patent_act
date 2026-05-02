@@ -63,6 +63,7 @@ a:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
 }
 
 .logo {
@@ -78,6 +79,9 @@ a:hover {
 .nav {
   display: flex;
   gap: 1rem;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
 }
 
 .nav-link {
@@ -96,6 +100,77 @@ a:hover {
 .nav-link.active {
   color: var(--primary-color);
   font-weight: 600;
+}
+
+/* Language Toggle - 低調次要樣式 */
+.lang-toggle {
+  display: flex;
+  gap: 0.125rem;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 0.313rem;
+  padding: 0.125rem;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.lang-toggle:hover {
+  opacity: 1;
+}
+
+.lang-btn {
+  padding: 0.188rem 0.438rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 400;
+  border-radius: 0.188rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  min-width: 1.75rem;
+}
+
+.lang-btn:hover {
+  background: var(--bg-color);
+  color: var(--text-primary);
+}
+
+.lang-btn.active {
+  background: var(--primary-color);
+  color: white;
+  font-weight: 500;
+}
+
+/* Responsive: mobile optimization */
+@media (max-width: 640px) {
+  .header-content {
+    padding: 0 0.5rem;
+  }
+  
+  .nav {
+    gap: 0.5rem;
+  }
+  
+  .nav-link {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.875rem;
+  }
+  
+  .logo {
+    font-size: 1.063rem;
+  }
+  
+  .lang-toggle {
+    border-width: 0.5px;
+  }
+  
+  .lang-btn {
+    font-size: 0.688rem;
+    padding: 0.156rem 0.375rem;
+    min-width: 1.5rem;
+  }
 }
 
 /* Container */
@@ -348,6 +423,29 @@ a:hover {
 .chapter-tab:not(.active) .chapter-badge {
   background: var(--border-color);
   color: var(--text-secondary);
+}
+
+/* Language switch buttons */
+.language-switch .lang-btn {
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.language-switch .lang-btn:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+.language-switch .lang-btn.active {
+  background: var(--primary-color);
+  color: #fff;
+  border-color: var(--primary-color);
 }
 
 /* Search Bar with Clear Button */
