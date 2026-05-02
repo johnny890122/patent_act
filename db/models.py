@@ -58,9 +58,21 @@ class Database:
 
     def init_db(self):
         """Ensure indexes are created for performance."""
+        # Laws indexes
         self.laws_collection.create_index('article_number', unique=True)
+        self.laws_collection.create_index('article_number_int')  # For sorting
+        self.laws_collection.create_index('is_starred')  # For filtering starred laws
+        self.laws_collection.create_index('chapter')  # For filtering by chapter
+        
+        # Questions indexes
         self.questions_collection.create_index('law_id')
+        self.questions_collection.create_index([('is_deleted', 1), ('type', 1)])  # For filtered queries
+        self.questions_collection.create_index('is_starred')  # For starred questions
+        
+        # User progress indexes
         self.user_progress_collection.create_index('question_id', unique=True)
+        self.user_progress_collection.create_index('needs_review')  # For review mode queries
+        
         print("Database indexes initialized.")
 
 db = Database()

@@ -288,10 +288,14 @@ def get_law_questions(law_id):
         # Get all questions for this law
         all_questions = list(questions_collection.find({"law_id": law_id}))
         
-        # Get user progress for all questions
-        progress_map = {}
-        for progress in user_progress_collection.find({}):
-            progress_map[progress['question_id']] = progress
+        # OPTIMIZED: Only fetch progress for these specific questions
+        question_ids = [str(q['_id']) for q in all_questions]
+        progress_records = list(user_progress_collection.find({
+            "question_id": {"$in": question_ids}
+        }))
+        
+        # Build progress lookup map
+        progress_map = {p['question_id']: p for p in progress_records}
         
         # Filter to only include answered questions and add progress info
         questions = []
