@@ -50,3 +50,12 @@ def quiz_session(session_id):
     Handles both MCQ and Short Answer question types.
     """
     return render_template('quiz_session.html')
+
+
+@frontend_bp.route('/my-questions')
+def my_questions():
+    """
+    My Questions Page
+    Display starred questions and wrong answers with tab switching.
+    """
+    return render_template('my_questions.html')

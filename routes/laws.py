@@ -371,4 +371,123 @@ def toggle_question_star(question_id):
         return jsonify({"error": "Internal server error"}), 500
 
 
-# 答錯標記改為自動判斷（last_score < 0.7），不再需要手動切換 API
+@questions_bp.route('/my-questions', methods=['GET'])
+def get_my_questions():
+    """
+    Get starred or wrong answered questions with pagination.
+    
+    Query Parameters:
+        tab: str (required) - "starred" or "wrong"
+        page: int (optional, default: 1) - Page number
+        per_page: int (optional, default: 20, max: 50) - Items per page
+        type: str (optional) - Filter by question type: "MCQ" or "ShortAnswer"
+    
+    Response:
+        {
+            "questions": [...],
+            "total": int,
+            "page": int,
+            "per_page": int,
+            "total_pages": int
+        }
+    """
+    try:
+        from db.models import questions_collection, user_progress_collection
+        
+        # Get tab parameter
+        tab = request.args.get('tab', 'starred')
+        if tab not in ['starred', 'wrong']:
+            return jsonify({"error": "Invalid tab. Must be 'starred' or 'wrong'"}), 400
+        
+        # Get pagination parameters
+        page = max(1, int(request.args.get('page', 1)))
+        per_page = min(50, max(1, int(request.args.get('per_page', 20))))
+        
+        # Get type filter (optional)
+        question_type = request.args.get('type')
+        if question_type and question_type not in ['MCQ', 'ShortAnswer', 'all']:
+            return jsonify({"error": "Invalid type. Must be 'MCQ', 'ShortAnswer', or 'all'"}), 400
+        
+        # Build base filter
+        base_filter = {"is_deleted": False}
+        if question_type and question_type != 'all':
+            base_filter["type"] = question_type
+        
+        if tab == 'starred':
+            # Get starred questions
+            query_filter = {**base_filter, "is_starred": True}
+            total = questions_collection.count_documents(query_filter)
+            
+            # Calculate pagination
+            total_pages = (total + per_page - 1) // per_page
+            skip = (page - 1) * per_page
+            
+            # Find starred questions with pagination
+            questions_list = list(questions_collection.find(query_filter).skip(skip).limit(per_page))
+            
+        else:  # tab == 'wrong'
+            # Get questions with wrong answers (last_score < 0.7)
+            # First, get all progress records with last_score < 0.7
+            wrong_progress = list(user_progress_collection.find({
+                "last_score": {"$lt": 0.7}
+            }))
+            
+            # Get question IDs
+            question_ids = [ObjectId(p['question_id']) for p in wrong_progress]
+            
+            # Apply type filter
+            query_filter = {**base_filter, "_id": {"$in": question_ids}}
+            
+            # Get total count
+            total = questions_collection.count_documents(query_filter)
+            
+            # Calculate pagination
+            total_pages = (total + per_page - 1) // per_page
+            skip = (page - 1) * per_page
+            
+            # Find wrong questions with pagination
+            questions_list = list(questions_collection.find(query_filter).skip(skip).limit(per_page))
+        
+        # Get law info for each question
+        result_questions = []
+        for q in questions_list:
+            q_id = str(q['_id'])
+            
+            # Get law info
+            law = laws_collection.find_one({"_id": ObjectId(q['law_id'])})
+            law_info = {
+                "article_number": law.get('article_number', 'N/A') if law else 'N/A',
+                "chapter": law.get('chapter', '') if law else ''
+            }
+            
+            # Get progress info (if answered)
+            progress = user_progress_collection.find_one({"question_id": q_id})
+            
+            question_data = {
+                "_id": q_id,
+                "type": q['type'],
+                "content": q['content'],
+                "correct_answer": q.get('correct_answer', ''),
+                "ai_explanation": q.get('ai_explanation', ''),
+                "options": q.get('options', []) if q['type'] == 'MCQ' else None,
+                "law_id": q['law_id'],
+                "law_info": law_info,
+                "is_starred": q.get('is_starred', False),
+                "last_score": progress.get('last_score') if progress else None
+            }
+            
+            result_questions.append(question_data)
+        
+        logger.info(f"Retrieved {len(result_questions)} {tab} questions (page {page}/{total_pages})")
+        
+        return jsonify({
+            "questions": result_questions,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": total_pages
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting my questions: {e}")
+        return jsonify({"error": "Internal server error"}), 500

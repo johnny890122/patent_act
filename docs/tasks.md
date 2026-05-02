@@ -34,6 +34,7 @@
 ## Phase 5: UI refinement ✅
 - [x] homepage (route: http://127.0.0.1:5001)
     - [x] Remove '🔥 連續答對天數' and '⭐ 收藏的法條' cards
+    - [x] 加入顯示「收藏題目」功能
 
 - [x] http://127.0.0.1:5001/laws
     - [x] 請考慮在手機版面的顯示畫面，讓法條內容可以完整顯示
