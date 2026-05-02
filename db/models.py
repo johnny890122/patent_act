@@ -90,7 +90,12 @@ class Database:
         self.user_progress_collection.create_index('needs_review')  # For review mode queries
         
         # i18n mapping indexes
-        self.i18n_mapping_collection.create_index([('article_number', 1)], unique=True)  # NEW: For quick lookup
+        # Drop old unique index if exists, then create non-unique index
+        try:
+            self.i18n_mapping_collection.drop_index('article_number_1')
+        except:
+            pass  # Index doesn't exist, which is fine
+        self.i18n_mapping_collection.create_index([('article_number', 1)])  # NEW: For quick lookup (non-unique)
         self.i18n_mapping_collection.create_index('zh_tw_law_id')  # NEW
         self.i18n_mapping_collection.create_index('en_law_id')  # NEW
         

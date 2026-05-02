@@ -269,12 +269,15 @@ class Phase9Migrator:
             laws_collection = self.db['laws']
             mapping_collection = self.db['i18n_mapping']
             
-            # Clear existing mappings
+            # Drop and recreate collection to avoid index conflicts
             existing_mappings = mapping_collection.count_documents({})
             if existing_mappings > 0:
-                logger.info(f"Clearing {existing_mappings} existing mappings...")
+                logger.info(f"Dropping i18n_mapping collection (had {existing_mappings} mappings)...")
                 if not self.dry_run:
-                    mapping_collection.delete_many({})
+                    mapping_collection.drop()
+                    logger.info("✅ Collection dropped successfully")
+            else:
+                logger.info("No existing mappings found")
             
             # Get all laws
             zh_tw_laws = list(laws_collection.find({'lang': 'zh-TW'}, {'_id': 1, 'article_number': 1}))
