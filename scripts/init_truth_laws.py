@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 # MongoDB URIs (從 .env 讀取或使用預設值)
 LOCAL_MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/localdb')
-REMOTE_MONGO_URI = "mongodb+srv://admin:03ra64XqDM8sOBdV@cluster0.lsu6m2w.mongodb.net/patent-act?retryWrites=true&w=majority"
+REMOTE_MONGO_URI = os.environ.get('REMOTE_MONGO_URI', '')
 
 # Path to truth laws data
 TRUTH_LAWS_PATH = os.path.join(

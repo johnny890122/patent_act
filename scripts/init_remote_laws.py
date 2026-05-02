@@ -29,7 +29,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Remote MongoDB URI (Heroku MongoDB Atlas)
-REMOTE_MONGO_URI = "mongodb+srv://admin:03ra64XqDM8sOBdV@cluster0.lsu6m2w.mongodb.net/patent-act?retryWrites=true&w=majority"
+REMOTE_MONGO_URI = os.environ.get('REMOTE_MONGO_URI', '')
 
 # Path to mock laws data
 MOCK_LAWS_PATH = os.path.join(
