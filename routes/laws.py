@@ -385,24 +385,11 @@ def toggle_question_star(question_id):
         current_starred = question.get('is_starred', False)
         new_starred = not current_starred
         
-        # Update this question
+        # Update only this question (keep language versions independent)
         questions_collection.update_one(
             {"_id": ObjectId(question_id)},
             {"$set": {"is_starred": new_starred}}
         )
-        
-        # Sync with linked translation (if exists)
-        base_q_id = question.get('base_question_id')
-        if base_q_id:
-            # Update all questions with the same base_question_id
-            questions_collection.update_many(
-                {
-                    "base_question_id": base_q_id,
-                    "_id": {"$ne": ObjectId(question_id)}  # Exclude current question
-                },
-                {"$set": {"is_starred": new_starred}}
-            )
-            logger.info(f"Synced starred status for linked translations of question {question_id}")
         
         action = "已收藏" if new_starred else "已取消收藏"
         logger.info(f"Question {question_id} starred status changed to {new_starred}")
