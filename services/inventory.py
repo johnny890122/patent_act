@@ -131,6 +131,7 @@ class QuestionInventory:
     ) -> List[Dict]:
         """
         Internal helper to fetch questions by specific mode.
+        OPTIMIZED: Batch fetch all progress records to avoid N+1 queries.
         
         Args:
             question_type: Type of questions
@@ -153,11 +154,20 @@ class QuestionInventory:
             "is_deleted": False
         }))
         
+        # Batch fetch all progress records (OPTIMIZED!)
+        question_ids = [str(q["_id"]) for q in all_questions]
+        progress_records = list(user_progress_collection.find({
+            "question_id": {"$in": question_ids}
+        }))
+        
+        # Build a lookup dictionary for fast access
+        progress_map = {p["question_id"]: p for p in progress_records}
+        
         # Filter based on mode
         filtered_questions = []
         for q in all_questions:
             qid = str(q["_id"])
-            progress = user_progress_collection.find_one({"question_id": qid})
+            progress = progress_map.get(qid)
             
             if session_mode == "new":
                 # New: not in progress OR (streak == 0 AND not needs_review)
