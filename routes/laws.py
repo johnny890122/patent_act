@@ -35,7 +35,7 @@ def get_laws():
         per_page: int (default: 10, max: 50)
         chapter: str (optional filter by chapter)
         starred: bool (optional filter by is_starred)
-        sort: str (default: "article_number", options: "article_number", "avg_score", "attempt_count")
+        sort: str (default: "article_number", options: "article_number")
         order: str (default: "asc", options: "asc", "desc")
         search: str (optional search by article_number or content, case-insensitive)
         lang: str (optional language filter: zh-TW, en)
@@ -91,7 +91,7 @@ def get_laws():
             ]
         
         # Validate sort field (保留 article_number 作為相容選項，但實際使用 article_number_int)
-        valid_sort_fields = ['article_number', 'article_number_int', 'avg_score', 'attempt_count']
+        valid_sort_fields = ['article_number', 'article_number_int']
         if sort_field not in valid_sort_fields:
             sort_field = 'article_number_int'
         
@@ -704,13 +704,26 @@ def get_my_questions():
         result_questions = []
         for q in questions_list:
             q_id = str(q['_id'])
+            law_id = q['law_id']
             
             # Get law info
-            law = laws_collection.find_one({"_id": ObjectId(q['law_id'])})
+            law = laws_collection.find_one({"_id": ObjectId(law_id)})
             law_info = {
                 "article_number": law.get('article_number', 'N/A') if law else 'N/A',
                 "chapter": law.get('chapter', '') if law else ''
             }
+            
+            # Get user's law statistics (答對率)
+            user_law_stat = user_law_stats_collection.find_one({
+                "user_id": user_id,
+                "law_id": law_id
+            })
+            if user_law_stat:
+                law_info["avg_score"] = user_law_stat.get('avg_score', 0.0)
+                law_info["attempt_count"] = user_law_stat.get('attempt_count', 0)
+            else:
+                law_info["avg_score"] = 0.0
+                law_info["attempt_count"] = 0
             
             # Get user's progress info and starred status
             progress = user_progress_collection.find_one({
@@ -730,7 +743,7 @@ def get_my_questions():
                 "correct_answer": q.get('correct_answer', ''),
                 "ai_explanation": q.get('ai_explanation', ''),
                 "options": q.get('options', []) if q['type'] == 'MCQ' else None,
-                "law_id": q['law_id'],
+                "law_id": law_id,
                 "law_info": law_info,
                 "is_starred": is_starred,
                 "last_score": progress.get('last_score') if progress else None

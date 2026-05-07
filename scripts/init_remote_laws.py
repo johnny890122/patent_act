@@ -87,10 +87,6 @@ def init_remote_laws():
                     'article_number': law_model.article_number,
                     'content': law_model.content,
                     'chapter': law_model.chapter,
-                    'is_starred': law_model.is_starred,
-                    'total_score': law_model.total_score,
-                    'attempt_count': law_model.attempt_count,
-                    'avg_score': law_model.avg_score
                 }
                 
                 # Upsert: update if exists, insert if not

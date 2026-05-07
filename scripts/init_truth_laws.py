@@ -168,21 +168,10 @@ def init_laws_to_db(mongo_uri, db_name=None):
                     'lang': law_model.lang,
                 }
                 
-                # 統計欄位只在插入時設置，更新時保留現有值
-                stats_fields = {
-                    'is_starred': law_model.is_starred,
-                    'total_score': law_model.total_score,
-                    'attempt_count': law_model.attempt_count,
-                    'avg_score': law_model.avg_score
-                }
-                
                 # Upsert: 使用複合鍵 (article_number, lang) 以同時處理 zh-TW 和 en
                 result = laws_collection.update_one(
                     {'article_number': law_model.article_number, 'lang': law_model.lang},
-                    {
-                        '$set': content_fields,  # 總是更新內容欄位
-                        '$setOnInsert': stats_fields  # 只在新插入時設置統計欄位
-                    },
+                    {'$set': content_fields},
                     upsert=True
                 )
                 

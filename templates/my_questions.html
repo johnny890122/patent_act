@@ -373,6 +373,14 @@ function createQuestionCard(q) {
         scoreBadgeHtml = `<span>·</span><span class="score-badge ${scoreClass}">得分: ${scorePercent}%</span>`;
     }
     
+    // Law accuracy badge (答對率)
+    let lawAccuracyHtml = '';
+    if (q.law_info && q.law_info.attempt_count > 0) {
+        const accuracy = Math.round(q.law_info.avg_score * 100);
+        const accuracyClass = q.law_info.avg_score >= PASS_THRESHOLD ? 'score-good' : 'score-bad';
+        lawAccuracyHtml = `<span>·</span><span class="score-badge ${accuracyClass}" title="此法條答對率 (${q.law_info.attempt_count}次作答)">法條: ${accuracy}%</span>`;
+    }
+    
     // Options for MCQ
     let optionsHtml = '';
     if (q.type === QUESTION_TYPES.MCQ && q.options && q.options.length > 0) {
@@ -409,10 +417,11 @@ function createQuestionCard(q) {
                 <span>${typeIcon} ${typeName}</span>
                 <span>·</span>
                 <span class="question-clickable law-link" data-law-id="${escapeHtml(q.law_id)}" style="color: var(--primary);">${escapeHtml(q.law_info.article_number)}</span>
+                ${lawAccuracyHtml}
                 ${scoreBadgeHtml}
             </div>
-            <button class="star-btn" 
-                    data-question-id="${escapeHtml(q._id)}" 
+            <button class="star-btn"
+                    data-question-id="${escapeHtml(q._id)}"
                     data-is-starred="${q.is_starred}"
                     aria-label="${starLabel}">
                 ${starIcon}

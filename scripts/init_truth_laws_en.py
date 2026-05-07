@@ -119,10 +119,6 @@ def init_laws_en_to_db(mongo_uri, db_name=None):
                     'chapter': law_model.chapter,
                     'article_number_int': law_model.article_number_int,
                     'lang': law_model.lang,  # EN: English language tag
-                    'is_starred': law_model.is_starred,
-                    'total_score': law_model.total_score,
-                    'attempt_count': law_model.attempt_count,
-                    'avg_score': law_model.avg_score
                 }
                 
                 # Upsert: Update if exists, insert if not
