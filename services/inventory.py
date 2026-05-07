@@ -69,7 +69,9 @@ class QuestionInventory:
         # Filter by user_id for multi-user support
         progress_filter = {"question_id": {"$in": question_ids}}
         if user_id:
-            progress_filter["user_id"] = user_id
+            # Convert string user_id to ObjectId for DB query
+            from bson import ObjectId as OID
+            progress_filter["user_id"] = OID(user_id) if isinstance(user_id, str) else user_id
         
         progress_records = list(user_progress_collection.find(progress_filter))
         
@@ -186,7 +188,9 @@ class QuestionInventory:
         question_ids = [str(q["_id"]) for q in all_questions]
         progress_filter = {"question_id": {"$in": question_ids}}
         if user_id:
-            progress_filter["user_id"] = user_id
+            # Convert string user_id to ObjectId for DB query
+            from bson import ObjectId as OID
+            progress_filter["user_id"] = OID(user_id) if isinstance(user_id, str) else user_id
         
         progress_records = list(user_progress_collection.find(progress_filter))
         

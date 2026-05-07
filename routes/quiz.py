@@ -49,10 +49,11 @@ def check_available_questions():
         }
     """
     try:
-        # Get current user
-        user_id = get_current_user()
-        if not user_id:
+        # Get current user (convert string to ObjectId for DB queries)
+        user_id_str = get_current_user()
+        if not user_id_str:
             return jsonify({"error": "Not authenticated"}), 401
+        user_id = ObjectId(user_id_str)
         
         question_type = request.args.get('type')
         session_mode = request.args.get('mode')
@@ -107,10 +108,11 @@ def create_session():
         }
     """
     try:
-        # Get current user
-        user_id = get_current_user()
-        if not user_id:
+        # Get current user (convert string to ObjectId for DB queries)
+        user_id_str = get_current_user()
+        if not user_id_str:
             return jsonify({"error": "Not authenticated"}), 401
+        user_id = ObjectId(user_id_str)
         
         data = request.get_json()
         
@@ -211,10 +213,11 @@ def submit_answer(session_id):
         }
     """
     try:
-        # Get current user
-        user_id = get_current_user()
-        if not user_id:
+        # Get current user (convert string to ObjectId for DB queries)
+        user_id_str = get_current_user()
+        if not user_id_str:
             return jsonify({"error": "Not authenticated"}), 401
+        user_id = ObjectId(user_id_str)
         
         data = request.get_json()
         question_id = data.get('question_id')
@@ -425,10 +428,11 @@ def appeal_answer(session_id, answer_id):
         }
     """
     try:
-        # Get current user
-        user_id = get_current_user()
-        if not user_id:
+        # Get current user (convert string to ObjectId for DB queries)
+        user_id_str = get_current_user()
+        if not user_id_str:
             return jsonify({"error": "Not authenticated"}), 401
+        user_id = ObjectId(user_id_str)
         
         # Validate and get session (must belong to user)
         try:
@@ -598,10 +602,11 @@ def toggle_star_question(question_id):
         }
     """
     try:
-        # Get current user
-        user_id = get_current_user()
-        if not user_id:
+        # Get current user (convert string to ObjectId for DB queries)
+        user_id_str = get_current_user()
+        if not user_id_str:
             return jsonify({"error": "Not authenticated"}), 401
+        user_id = ObjectId(user_id_str)
         
         # Validate question exists
         try:

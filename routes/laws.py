@@ -48,10 +48,11 @@ def get_laws():
         }
     """
     try:
-        # Get current user
-        user_id = get_current_user()
-        if not user_id:
+        # Get current user (convert string to ObjectId for DB queries)
+        user_id_str = get_current_user()
+        if not user_id_str:
             return jsonify({"error": "Not authenticated"}), 401
+        user_id = ObjectId(user_id_str)
         
         # Get query parameters
         page = max(1, int(request.args.get('page', 1)))
@@ -180,10 +181,11 @@ def get_law(law_id):
         }
     """
     try:
-        # Get current user
-        user_id = get_current_user()
-        if not user_id:
+        # Get current user (convert string to ObjectId for DB queries)
+        user_id_str = get_current_user()
+        if not user_id_str:
             return jsonify({"error": "Not authenticated"}), 401
+        user_id = ObjectId(user_id_str)
         
         # Validate and get law
         try:
@@ -259,10 +261,11 @@ def toggle_star(law_id):
         }
     """
     try:
-        # Get current user
-        user_id = get_current_user()
-        if not user_id:
+        # Get current user (convert string to ObjectId for DB queries)
+        user_id_str = get_current_user()
+        if not user_id_str:
             return jsonify({"error": "Not authenticated"}), 401
+        user_id = ObjectId(user_id_str)
         
         # Validate law exists
         try:
@@ -392,10 +395,11 @@ def get_stats():
         }
     """
     try:
-        # Get current user
-        user_id = get_current_user()
-        if not user_id:
+        # Get current user (convert string to ObjectId for DB queries)
+        user_id_str = get_current_user()
+        if not user_id_str:
             return jsonify({"error": "Not authenticated"}), 401
+        user_id = ObjectId(user_id_str)
         
         # Get total count (global)
         total_laws = laws_collection.count_documents({})
@@ -455,10 +459,11 @@ def get_law_questions(law_id):
         }
     """
     try:
-        # Get current user
-        user_id = get_current_user()
-        if not user_id:
+        # Get current user (convert string to ObjectId for DB queries)
+        user_id_str = get_current_user()
+        if not user_id_str:
             return jsonify({"error": "Not authenticated"}), 401
+        user_id = ObjectId(user_id_str)
         
         # Validate law exists
         try:
@@ -534,10 +539,11 @@ def toggle_question_star(question_id):
         }
     """
     try:
-        # Get current user
-        user_id = get_current_user()
-        if not user_id:
+        # Get current user (convert string to ObjectId for DB queries)
+        user_id_str = get_current_user()
+        if not user_id_str:
             return jsonify({"error": "Not authenticated"}), 401
+        user_id = ObjectId(user_id_str)
         
         # Validate question exists
         try:
@@ -605,10 +611,11 @@ def get_my_questions():
         }
     """
     try:
-        # Get current user
-        user_id = get_current_user()
-        if not user_id:
+        # Get current user (convert string to ObjectId for DB queries)
+        user_id_str = get_current_user()
+        if not user_id_str:
             return jsonify({"error": "Not authenticated"}), 401
+        user_id = ObjectId(user_id_str)
         
         # Get tab parameter
         tab = request.args.get('tab', 'starred')
