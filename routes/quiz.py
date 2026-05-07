@@ -482,6 +482,13 @@ def appeal_answer(session_id, answer_id):
             "question_id": question_id
         })
         if progress:
+            # Recalculate streak/review based on new_score after appeal
+            if new_score >= 1.0:
+                new_streak = progress.get('correct_streak', 0) + 1
+                needs_review = new_streak < 3
+            else:
+                new_streak = 0
+                needs_review = True
             user_progress_collection.update_one(
                 {
                     "user_id": user_id,
@@ -490,11 +497,13 @@ def appeal_answer(session_id, answer_id):
                 {
                     "$set": {
                         "is_appealed": True,
-                        "last_score": new_score
+                        "last_score": new_score,
+                        "correct_streak": new_streak,
+                        "needs_review": needs_review
                     }
                 }
             )
-        
+
         # Update per-user law statistics (adjust for score change)
         question = questions_collection.find_one({"_id": ObjectId(question_id)})
         if question:

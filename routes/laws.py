@@ -91,14 +91,7 @@ def get_laws():
         # Sort direction
         sort_direction = 1 if order == 'asc' else -1
         
-        # Get total count
-        total = laws_collection.count_documents(query_filter)
-        total_pages = (total + per_page - 1) // per_page
-        
-        # Get paginated results
-        skip = (page - 1) * per_page
-        
-        # Handle starred filter for per-user stars
+        # Handle starred filter for per-user stars (must happen before counting total)
         if starred_param is not None:
             starred = starred_param.lower() in ['true', '1', 'yes']
             if starred:
@@ -106,7 +99,14 @@ def get_laws():
                 user_stars = list(user_law_stars_collection.find({"user_id": user_id}))
                 starred_law_ids = [ObjectId(s['law_id']) for s in user_stars]
                 query_filter['_id'] = {'$in': starred_law_ids}
-        
+
+        # Get total count (after all filters are applied)
+        total = laws_collection.count_documents(query_filter)
+        total_pages = (total + per_page - 1) // per_page
+
+        # Get paginated results
+        skip = (page - 1) * per_page
+
         laws = list(laws_collection.find(query_filter)
                    .sort(sort_field, sort_direction)
                    .skip(skip)
@@ -307,6 +307,7 @@ def toggle_star(law_id):
 
 
 @laws_bp.route('/chapters', methods=['GET'])
+@login_required
 def get_chapters():
     """
     Get all chapters with law counts.
