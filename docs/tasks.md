@@ -283,3 +283,37 @@
   - New user logs in
   - New user completes quiz session
   - Verify data isolation
+
+## Phase 11: Law Search Feature ⏳
+
+### 11.1 Backend: Search API Implementation
+- [ ] TASK-11.1.1: Update [`routes/laws.py`](../routes/laws.py:25) `get_laws()` function to accept `search` query parameter [REQ-6.1]
+- [ ] TASK-11.1.2: Implement MongoDB text search using `$regex` with case-insensitive flag (`$options: "i"`)
+- [ ] TASK-11.1.3: Search logic should use `$or` to query both `article_number` and `content` fields
+- [ ] TASK-11.1.4: Ensure search filter can be combined with existing filters (chapter, starred, lang)
+- [ ] TASK-11.1.5: Test search with Chinese and English keywords
+
+### 11.2 Frontend: Search UI Integration
+- [ ] TASK-11.2.1: Update [`templates/laws.html`](../templates/laws.html:392) `filterLaws()` function to call backend API with search parameter
+- [ ] TASK-11.2.2: Remove placeholder toast message ("搜尋功能即將推出")
+- [ ] TASK-11.2.3: Implement real-time search with debounce (300ms) to reduce API calls
+- [ ] TASK-11.2.4: Update `fetchLaws()` to include `search` parameter in query string
+- [ ] TASK-11.2.5: Reset to page 1 when search term changes
+- [ ] TASK-11.2.6: Show "找不到法條" empty state when search returns no results
+
+### 11.3 Search UX Enhancements
+- [ ] TASK-11.3.1: Ensure clear button (✕) properly resets search and fetches all laws
+- [ ] TASK-11.3.2: Display search result count in UI (e.g., "找到 5 條法條")
+- [ ] TASK-11.3.3: Maintain chapter filter when searching (search within chapter)
+- [ ] TASK-11.3.4: Clear search when switching chapters (avoid confusion)
+- [ ] TASK-11.3.5: Add loading indicator during search
+- [ ] TASK-11.3.6: Highlight search keywords in results (optional enhancement)
+
+### 11.4 Testing: Search Functionality
+- [ ] TASK-11.4.1: Test search by article number (e.g., "第 10 條", "10")
+- [ ] TASK-11.4.2: Test search by content keywords (e.g., "發明", "專利權")
+- [ ] TASK-11.4.3: Test search with chapter filter combination
+- [ ] TASK-11.4.4: Test search with no results (empty state)
+- [ ] TASK-11.4.5: Test search debouncing (rapid typing doesn't cause excess API calls)
+- [ ] TASK-11.4.6: Test search in both zh-TW and EN languages
+- [ ] TASK-11.4.7: Verify pagination works correctly with search results

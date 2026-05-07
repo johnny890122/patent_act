@@ -40,7 +40,21 @@ knowledge/          ← Markdown files of 專利法 articles & mock JSON data
 
 ### 2.3 Laws Endpoints
 - `PUT /laws/:id/star`: Toggle star status for current user. **Requires login.**
-- `GET /laws`: Retrieve paginated laws. **Requires login.**
+- `GET /laws`: Retrieve paginated laws with optional search. **Requires login.**
+  - Query Parameters:
+    - `page`: int (pagination)
+    - `per_page`: int (items per page)
+    - `chapter`: str (filter by chapter)
+    - `starred`: bool (filter by starred status)
+    - `sort`: str (sort field)
+    - `order`: str (asc/desc)
+    - `search`: str (NEW - search by article_number or content, case-insensitive)
+    - `lang`: str (language filter)
+  - Search Implementation:
+    - Uses MongoDB `$regex` with case-insensitive flag
+    - Searches in both `article_number` and `content` fields using `$or`
+    - Can be combined with chapter filter and other filters
+    - Example: `/api/laws?search=發明&chapter=第二章&page=1`
 
 ## 3. Database Schema (MongoDB)
 

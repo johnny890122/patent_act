@@ -37,6 +37,8 @@ def get_laws():
         starred: bool (optional filter by is_starred)
         sort: str (default: "article_number", options: "article_number", "avg_score", "attempt_count")
         order: str (default: "asc", options: "asc", "desc")
+        search: str (optional search by article_number or content, case-insensitive)
+        lang: str (optional language filter: zh-TW, en)
     
     Response:
         {
@@ -72,6 +74,7 @@ def get_laws():
                 lang = None
         sort_field = request.args.get('sort', 'article_number_int')
         order = request.args.get('order', 'asc')
+        search_term = request.args.get('search', '').strip()
         
         # Build filter
         query_filter = {}
@@ -79,6 +82,13 @@ def get_laws():
             query_filter['chapter'] = chapter
         if lang in ['zh-TW', 'en']:
             query_filter['lang'] = lang
+        
+        # Add search filter (case-insensitive search in article_number and content)
+        if search_term:
+            query_filter['$or'] = [
+                {'article_number': {'$regex': search_term, '$options': 'i'}},
+                {'content': {'$regex': search_term, '$options': 'i'}}
+            ]
         
         # Validate sort field (保留 article_number 作為相容選項，但實際使用 article_number_int)
         valid_sort_fields = ['article_number', 'article_number_int', 'avg_score', 'attempt_count']
@@ -144,7 +154,8 @@ def get_laws():
                 law['attempt_count'] = 0
                 law['avg_score'] = 0.0
         
-        logger.info(f"Retrieved {len(laws)} laws (page {page}/{total_pages})")
+        search_info = f" with search '{search_term}'" if search_term else ""
+        logger.info(f"Retrieved {len(laws)} laws (page {page}/{total_pages}){search_info}")
         
         return jsonify({
             "laws": laws,

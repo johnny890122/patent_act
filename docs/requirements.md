@@ -48,6 +48,17 @@ Core loop: AI dynamically generates exam questions bound to specific law article
 - **Story:** As a user, I want to browse law articles directly when needed.
 - **Scenario:** User can browse a paginated list of all Patent Law articles, view single article details, view history of questions on that article, and star (★) the article for reference.
 
+### 6.1 Law Article Search
+- **Story:** As a user, I want to search for law articles by content or article number, so I can quickly find relevant legal provisions.
+- **Scenario:**
+  - User enters search term in the search bar on laws page
+  - System searches by article_number (exact/partial match) or content (text contains)
+  - Results are displayed in real-time with pagination maintained
+  - Search works across current language (zh-TW or EN)
+  - Search can be combined with chapter filter
+  - Clear button allows user to reset search and return to full list
+  - Empty state is shown when no results are found with helpful message
+
 ### 7. Multilingual Support (i18n)
 - **Story:** As a user, I want to view patent law articles and practice questions in both Traditional Chinese (zh-TW) and English, so I can prepare for the exam in both languages.
 - **Scenario:**
