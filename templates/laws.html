@@ -68,13 +68,13 @@
     // State management
     let currentPage = 1;
     let totalPages = 1;
-    let allLaws = [];
-    let filteredLaws = [];
     let currentChapter = 'all';
     let currentSearchTerm = '';
-    const PAGE_SIZE = 20;
+    const PAGE_SIZE = 10;  // Match backend default
     // Language state: read from localStorage (set by language toggle)
     let currentLang = localStorage.getItem('appLang') || 'zh-TW';
+    let allChapters = [];
+    let totalLawCount = 0;
 
     // DOM elements
     const loadingEl = document.getElementById('loading');
@@ -90,25 +90,50 @@
     const chapterSelectorWrapper = document.getElementById('chapter-selector-wrapper');
     const chapterToggleBtn = document.getElementById('chapter-toggle-btn');
 
-    // Fetch all laws and chapters from API
-    async function fetchLaws() {
+    // Fetch chapters from API
+    async function fetchChapters() {
+        try {
+            const qs = currentLang ? '?lang=' + encodeURIComponent(currentLang) : '';
+            const response = await fetch('/api/laws/chapters' + qs);
+            if (!response.ok) throw new Error('Failed to fetch chapters');
+            
+            const data = await response.json();
+            allChapters = data.chapters || [];
+            totalLawCount = data.total || 0;
+            
+            await buildChapterIndex();
+        } catch (error) {
+            console.error('Error fetching chapters:', error);
+        }
+    }
+
+    // Fetch laws with pagination from API
+    async function fetchLaws(page = 1) {
         try {
             loadingEl.classList.remove('hidden');
             lawsListEl.classList.add('hidden');
             emptyStateEl.classList.add('hidden');
-            // include lang param when requesting
-            const qs = `per_page=1000${currentLang ? '&lang=' + encodeURIComponent(currentLang) : ''}`;
-            const response = await fetch('/api/laws?' + qs);
+            
+            // Build query string
+            const params = new URLSearchParams({
+                page: page,
+                per_page: PAGE_SIZE
+            });
+            
+            if (currentLang) {
+                params.append('lang', currentLang);
+            }
+            
+            if (currentChapter !== 'all') {
+                params.append('chapter', currentChapter);
+            }
+            
+            const response = await fetch('/api/laws?' + params.toString());
             if (!response.ok) throw new Error('Failed to fetch laws');
             
             const data = await response.json();
-            allLaws = data.laws || [];
-            filteredLaws = [...allLaws];
             
-            // Build chapter index
-            await buildChapterIndex();
-            
-            renderPage(1);
+            renderLaws(data.laws || [], data.page, data.total_pages, data.total);
         } catch (error) {
             console.error('Error fetching laws:', error);
             loadingEl.classList.add('hidden');
@@ -118,16 +143,8 @@
 
     // Build chapter selector (horizontal tabs)
     async function buildChapterIndex() {
-        const chapterCounts = {};
-        
-        // Count laws per chapter
-        allLaws.forEach(law => {
-            const chapter = law.chapter || '未分類';
-            chapterCounts[chapter] = (chapterCounts[chapter] || 0) + 1;
-        });
-        
         // Update "all" count
-        document.getElementById('count-all').textContent = allLaws.length;
+        document.getElementById('count-all').textContent = totalLawCount;
         
         // 中文數字對照表
         const chineseNumbers = {
@@ -136,10 +153,10 @@
         };
         
         // Sort chapters by number (第 X 章)
-        const sortedChapters = Object.keys(chapterCounts).sort((a, b) => {
+        const sortedChapters = allChapters.sort((a, b) => {
             // Extract chapter number from "第 X 章 ..."
-            const matchA = a.match(/第\s*([一二三四五六七八九十]+)\s*章/);
-            const matchB = b.match(/第\s*([一二三四五六七八九十]+)\s*章/);
+            const matchA = a.name.match(/第\s*([一二三四五六七八九十]+)\s*章/);
+            const matchB = b.name.match(/第\s*([一二三四五六七八九十]+)\s*章/);
             
             if (matchA && matchB) {
                 const numA = chineseNumbers[matchA[1]] || 0;
@@ -148,18 +165,18 @@
             }
             
             // If no match, sort alphabetically
-            return a.localeCompare(b);
+            return a.name.localeCompare(b.name);
         });
         
         // Render chapter tabs (rebuild to avoid duplicates when switching language)
         let html = '';
         sortedChapters.forEach(chapter => {
             // Shorten chapter name for display
-            const shortName = chapter.replace('第 ', '').replace(' 章', '');
+            const shortName = chapter.name.replace('第 ', '').replace(' 章', '');
             html += `
-                <div class="chapter-tab" data-chapter="${chapter}">
+                <div class="chapter-tab" data-chapter="${chapter.name}">
                     <span>${shortName}</span>
-                    <span class="chapter-badge">${chapterCounts[chapter]}</span>
+                    <span class="chapter-badge">${chapter.count}</span>
                 </div>
             `;
         });
@@ -171,7 +188,6 @@
 
         // Attach click handlers to updated tabs
         chapterSelector.querySelectorAll('.chapter-tab').forEach(tab => {
-            tab.removeEventListener && tab.removeEventListener('click', filterByChapter);
             tab.addEventListener('click', () => {
                 const chapter = tab.getAttribute('data-chapter');
                 filterByChapter(chapter);
@@ -198,43 +214,16 @@
             }
         });
         
-        // Apply filters
-        applyFilters();
-    }
-
-    // Apply all filters (chapter + search)
-    function applyFilters() {
-        let laws = [...allLaws];
-        
-        // Filter by chapter
-        if (currentChapter !== 'all') {
-            laws = laws.filter(law => (law.chapter || '未分類') === currentChapter);
-        }
-        
-        // Filter by search term
-        if (currentSearchTerm) {
-            const term = currentSearchTerm.toLowerCase();
-            laws = laws.filter(law =>
-                law.article_number.toLowerCase().includes(term) ||
-                law.content.toLowerCase().includes(term) ||
-                (law.chapter && law.chapter.toLowerCase().includes(term))
-            );
-        }
-        
-        filteredLaws = laws;
-        renderPage(1);
+        // Fetch laws with new filter
+        fetchLaws(1);
     }
 
     // Render laws for current page
-    function renderPage(page) {
+    function renderLaws(laws, page, pages, total) {
         currentPage = page;
-        totalPages = Math.ceil(filteredLaws.length / PAGE_SIZE);
+        totalPages = pages;
         
-        const startIdx = (page - 1) * PAGE_SIZE;
-        const endIdx = startIdx + PAGE_SIZE;
-        const pageData = filteredLaws.slice(startIdx, endIdx);
-        
-        if (pageData.length === 0) {
+        if (laws.length === 0) {
             loadingEl.classList.add('hidden');
             lawsListEl.classList.add('hidden');
             emptyStateEl.classList.remove('hidden');
@@ -242,9 +231,18 @@
             return;
         }
         
-        // Group laws by chapter
-        const lawsByChapter = groupByChapter(pageData);
-        lawsListEl.innerHTML = renderGroupedLaws(lawsByChapter);
+        // Group laws by chapter (only if not filtering by chapter)
+        let html = '';
+        if (currentChapter === 'all') {
+            const lawsByChapter = groupByChapter(laws);
+            html = renderGroupedLaws(lawsByChapter);
+        } else {
+            // Render without chapter headers when filtering
+            laws.forEach(law => {
+                html += createLawItem(law);
+            });
+        }
+        lawsListEl.innerHTML = html;
         
         loadingEl.classList.add('hidden');
         lawsListEl.classList.remove('hidden');
@@ -376,15 +374,9 @@
             const data = await response.json();
             const isStarred = data.is_starred;
             
-            // Update UI
+            // Update UI only (no need to update local data cache)
             starElement.textContent = isStarred ? '⭐' : '☆';
             starElement.classList.toggle('starred', isStarred);
-            
-            // Update data
-            const lawIndex = allLaws.findIndex(l => (l._id || l.article_number) === lawId);
-            if (lawIndex !== -1) {
-                allLaws[lawIndex].is_starred = isStarred;
-            }
         } catch (error) {
             console.error('Error toggling star:', error);
             alert('收藏失敗，請稍後再試');
@@ -397,20 +389,9 @@
         window.location.href = `/laws/${lawId}`;
     }
 
-    // Search functionality
+    // Search functionality (client-side filtering for current page)
     function filterLaws(searchTerm) {
         currentSearchTerm = searchTerm.toLowerCase().trim();
-        
-        // Clear chapter filter when searching
-        if (currentSearchTerm && currentChapter !== 'all') {
-            currentChapter = 'all';
-            document.querySelectorAll('.chapter-tab').forEach(tab => {
-                tab.classList.remove('active');
-                if (tab.getAttribute('data-chapter') === 'all') {
-                    tab.classList.add('active');
-                }
-            });
-        }
         
         // Show/hide clear button
         if (currentSearchTerm) {
@@ -419,7 +400,11 @@
             clearSearchBtn.classList.add('hidden');
         }
         
-        applyFilters();
+        // For now, just hide search as backend doesn't support it yet
+        // TODO: Implement backend search
+        if (currentSearchTerm) {
+            showToast('搜尋功能即將推出', 'info');
+        }
     }
 
     // Clear search
@@ -427,7 +412,13 @@
         searchInput.value = '';
         currentSearchTerm = '';
         clearSearchBtn.classList.add('hidden');
-        applyFilters();
+    }
+    
+    // Helper function to show toast
+    function showToast(message, type) {
+        if (window.appUtils && window.appUtils.showToast) {
+            window.appUtils.showToast(message, type);
+        }
     }
 
     // Toggle chapter selector visibility
@@ -466,21 +457,22 @@
 
     prevBtn.addEventListener('click', () => {
         if (currentPage > 1) {
-            renderPage(currentPage - 1);
+            fetchLaws(currentPage - 1);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
 
     nextBtn.addEventListener('click', () => {
         if (currentPage < totalPages) {
-            renderPage(currentPage + 1);
+            fetchLaws(currentPage + 1);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
 
     // Initialize on page load
-    document.addEventListener('DOMContentLoaded', () => {
-        fetchLaws();
+    document.addEventListener('DOMContentLoaded', async () => {
+        await fetchChapters();
+        await fetchLaws(1);
     });
 </script>
 {% endblock %}

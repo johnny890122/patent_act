@@ -18,7 +18,7 @@ def get_laws():
     
     Query Parameters:
         page: int (default: 1)
-        per_page: int (default: 20, max: 100)
+        per_page: int (default: 10, max: 50)
         chapter: str (optional filter by chapter)
         starred: bool (optional filter by is_starred)
         sort: str (default: "article_number", options: "article_number", "avg_score", "attempt_count")
@@ -36,7 +36,7 @@ def get_laws():
     try:
         # Get query parameters
         page = max(1, int(request.args.get('page', 1)))
-        per_page = min(500, max(1, int(request.args.get('per_page', 20))))
+        per_page = min(50, max(1, int(request.args.get('per_page', 10))))
         chapter = request.args.get('chapter')
         starred_param = request.args.get('starred')
         # Normalize language query param (accept zh-tw, zh-TW, en, both)
@@ -212,24 +212,65 @@ def toggle_star(law_id):
 @laws_bp.route('/chapters', methods=['GET'])
 def get_chapters():
     """
-    Get list of all unique chapters.
+    Get all chapters with law counts.
+    
+    Query Parameters:
+        lang: str (optional) - Filter by language: "zh-TW" or "en"
     
     Response:
         {
-            "chapters": [str, ...]
+            "chapters": [
+                {
+                    "name": str,
+                    "count": int
+                }
+            ],
+            "total": int
         }
     """
     try:
-        # Get distinct chapters
-        chapters = laws_collection.distinct('chapter')
+        # Get language filter
+        req_lang = request.args.get('lang')
+        lang = None
+        if req_lang:
+            nl = req_lang.lower()
+            if nl in ['zh-tw', 'zh_tw', 'zh']:
+                lang = 'zh-TW'
+            elif nl in ['en', 'english']:
+                lang = 'en'
         
-        # Sort chapters
-        chapters.sort()
+        # Build filter
+        query_filter = {}
+        if lang in ['zh-TW', 'en']:
+            query_filter['lang'] = lang
         
-        logger.info(f"Retrieved {len(chapters)} chapters")
+        # Aggregate chapters with counts
+        pipeline = [
+            {'$match': query_filter},
+            {
+                '$group': {
+                    '_id': '$chapter',
+                    'count': {'$sum': 1}
+                }
+            },
+            {
+                '$project': {
+                    '_id': 0,
+                    'name': '$_id',
+                    'count': 1
+                }
+            },
+            {'$sort': {'name': 1}}
+        ]
+        
+        chapters = list(laws_collection.aggregate(pipeline))
+        total = sum(chapter['count'] for chapter in chapters)
+        
+        logger.info(f"Retrieved {len(chapters)} chapters with total {total} laws")
         
         return jsonify({
-            "chapters": chapters
+            "chapters": chapters,
+            "total": total
         }), 200
         
     except Exception as e:
@@ -435,7 +476,7 @@ def get_my_questions():
         
         # Get pagination parameters
         page = max(1, int(request.args.get('page', 1)))
-        per_page = min(50, max(1, int(request.args.get('per_page', 20))))
+        per_page = min(50, max(1, int(request.args.get('per_page', 5))))
         
         # Get type filter (optional)
         question_type = request.args.get('type')
