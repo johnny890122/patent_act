@@ -27,15 +27,18 @@ class QuestionInventory:
         self,
         question_type: Literal["MCQ", "ShortAnswer", "Mixed"],
         session_mode: Literal["new", "review", "mixed"],
-        lang: str = 'zh-TW'
+        lang: str = 'zh-TW',
+        user_id: str = None
     ) -> int:
         """
-        Count available questions based on type and session mode.
+        Count available questions based on type and session mode for a specific user.
         OPTIMIZED: Batch fetch all progress records to avoid N+1 queries.
         
         Args:
             question_type: Type of questions to count
             session_mode: Session mode (new/review/mixed)
+            lang: Language filter
+            user_id: User ID for filtering progress (required for multi-user)
             
         Returns:
             Count of available questions
@@ -63,9 +66,12 @@ class QuestionInventory:
         question_ids = [str(q["_id"]) for q in all_questions]
         
         # Batch fetch all progress records for these questions (OPTIMIZED!)
-        progress_records = list(user_progress_collection.find({
-            "question_id": {"$in": question_ids}
-        }))
+        # Filter by user_id for multi-user support
+        progress_filter = {"question_id": {"$in": question_ids}}
+        if user_id:
+            progress_filter["user_id"] = user_id
+        
+        progress_records = list(user_progress_collection.find(progress_filter))
         
         # Build a lookup dictionary for fast access
         progress_map = {p["question_id"]: p for p in progress_records}
@@ -107,17 +113,19 @@ class QuestionInventory:
         self,
         question_type: Literal["MCQ", "ShortAnswer", "Mixed"],
         session_mode: Literal["new", "review", "mixed"],
-        count: int
-    ,
-        lang: str = 'zh-TW'
+        count: int,
+        lang: str = 'zh-TW',
+        user_id: str = None
     ) -> List[Dict]:
         """
-        Fetch questions from database based on type and mode.
+        Fetch questions from database based on type and mode for a specific user.
         
         Args:
             question_type: Type of questions to fetch
             session_mode: Session mode (new/review/mixed)
             count: Number of questions to fetch
+            lang: Language filter
+            user_id: User ID for filtering progress (required for multi-user)
             
         Returns:
             List of question documents with full details
@@ -126,27 +134,30 @@ class QuestionInventory:
             # Split 50/50
             new_count = count // 2
             review_count = count - new_count
-            new_qs = self._fetch_by_mode(question_type, "new", new_count, lang)
-            review_qs = self._fetch_by_mode(question_type, "review", review_count, lang)
+            new_qs = self._fetch_by_mode(question_type, "new", new_count, lang, user_id)
+            review_qs = self._fetch_by_mode(question_type, "review", review_count, lang, user_id)
             return new_qs + review_qs
         else:
-            return self._fetch_by_mode(question_type, session_mode, count, lang)
+            return self._fetch_by_mode(question_type, session_mode, count, lang, user_id)
     
     def _fetch_by_mode(
         self,
         question_type: Literal["MCQ", "ShortAnswer", "Mixed"],
         session_mode: Literal["new", "review"],
         count: int,
-        lang: str = 'zh-TW'
+        lang: str = 'zh-TW',
+        user_id: str = None
     ) -> List[Dict]:
         """
-        Internal helper to fetch questions by specific mode.
+        Internal helper to fetch questions by specific mode for a specific user.
         OPTIMIZED: Batch fetch all progress records to avoid N+1 queries.
         
         Args:
             question_type: Type of questions
             session_mode: Either "new" or "review"
             count: Number to fetch
+            lang: Language filter
+            user_id: User ID for filtering progress (required for multi-user)
             
         Returns:
             List of question documents
@@ -171,10 +182,13 @@ class QuestionInventory:
         }))
         
         # Batch fetch all progress records (OPTIMIZED!)
+        # Filter by user_id for multi-user support
         question_ids = [str(q["_id"]) for q in all_questions]
-        progress_records = list(user_progress_collection.find({
-            "question_id": {"$in": question_ids}
-        }))
+        progress_filter = {"question_id": {"$in": question_ids}}
+        if user_id:
+            progress_filter["user_id"] = user_id
+        
+        progress_records = list(user_progress_collection.find(progress_filter))
         
         # Build a lookup dictionary for fast access
         progress_map = {p["question_id"]: p for p in progress_records}
@@ -324,10 +338,11 @@ class QuestionInventory:
         session_mode: Literal["new", "review", "mixed"],
         count: int,
         law_ids: Optional[List[str]] = None,
-        lang: str = 'zh-TW'
+        lang: str = 'zh-TW',
+        user_id: str = None
     ) -> tuple[List[Dict], bool]:
         """
-        Main entry point for getting session questions. 
+        Main entry point for getting session questions for a specific user.
         Implements n, 4n inventory logic with sync/async generation.
         
         Rules:
@@ -340,25 +355,27 @@ class QuestionInventory:
             session_mode: Session mode (new/review/mixed)
             count: Number of questions requested (n)
             law_ids: Optional list of law IDs to focus on
+            lang: Language filter
+            user_id: User ID for filtering progress (required for multi-user)
             
         Returns:
             Tuple of (questions list, is_loading_state)
             - questions: List of question documents
             - is_loading_state: True if had to generate synchronously
         """
-        available = self.count_available_questions(question_type, session_mode, lang)
-        logger.info(f"Available questions: {available}, Requested: {count}, Type: {question_type}, Mode: {session_mode}")
+        available = self.count_available_questions(question_type, session_mode, lang, user_id)
+        logger.info(f"User {user_id}: Available questions: {available}, Requested: {count}, Type: {question_type}, Mode: {session_mode}")
         
         if available >= 4 * count:
             # Plenty available, just return n questions
             logger.info("Sufficient inventory (>= 4n), fetching directly")
-            questions = self.fetch_questions(question_type, session_mode, count, lang)
+            questions = self.fetch_questions(question_type, session_mode, count, lang, user_id)
             return questions, False
             
         elif available >= count:
             # Have enough for this session, but trigger background generation
             logger.info(f"Adequate inventory ({count} <= {available} < {4*count}), fetching + async generation")
-            questions = self.fetch_questions(question_type, session_mode, count, lang)
+            questions = self.fetch_questions(question_type, session_mode, count, lang, user_id)
 
             # Trigger async generation of 40 more
             self.generate_questions_async(question_type, 40, law_ids, lang)
@@ -374,7 +391,7 @@ class QuestionInventory:
             new_questions = self.generate_questions_sync(question_type, needed, law_ids, lang)
             
             # Fetch any existing ones if available
-            existing = self.fetch_questions(question_type, session_mode, available, lang) if available > 0 else []
+            existing = self.fetch_questions(question_type, session_mode, available, lang, user_id) if available > 0 else []
             
             all_questions = existing + new_questions
             return all_questions[:count], True  # True indicates loading state was needed

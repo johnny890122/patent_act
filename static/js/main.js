@@ -1,5 +1,58 @@
 // 專利法 AI 刷題助手 - Main JavaScript
 
+// ==================== Authentication Management ====================
+// Check current user and display user info
+async function checkAuth() {
+    try {
+        const response = await fetch('/auth/current');
+        if (response.ok) {
+            const userData = await response.json();
+            displayUserInfo(userData);
+            return userData;
+        } else {
+            // Not authenticated, redirect to login
+            console.log('Not authenticated');
+            return null;
+        }
+    } catch (error) {
+        console.error('Auth check failed:', error);
+        return null;
+    }
+}
+
+// Display user info in header
+function displayUserInfo(userData) {
+    const displayNameElement = document.getElementById('user-display-name');
+    if (displayNameElement && userData) {
+        displayNameElement.textContent = userData.display_name || userData.username;
+    }
+}
+
+// Logout function
+async function logout() {
+    if (confirm('確定要登出嗎？')) {
+        try {
+            // Use GET method for logout (simpler)
+            window.location.href = '/auth/logout';
+        } catch (error) {
+            console.error('Logout failed:', error);
+            showToast('登出失敗', 'error');
+        }
+    }
+}
+
+// Initialize auth on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication
+    checkAuth();
+    
+    // Add logout button listener
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
+    }
+});
+
 // ==================== Language Management ====================
 // Get current language from localStorage (default: zh-TW)
 function getCurrentLang() {
@@ -26,7 +79,7 @@ function updateLanguageButtons(lang) {
     });
 }
 
-// Initialize language toggle on page load
+// Initialize language toggle on page load (integrated with auth check)
 document.addEventListener('DOMContentLoaded', function() {
     const currentLang = getCurrentLang();
     updateLanguageButtons(currentLang);

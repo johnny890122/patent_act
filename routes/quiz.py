@@ -1,5 +1,6 @@
 """
 Quiz Routes - Handles quiz session management, answer submission, and appeals.
+Multi-user support: All routes require authentication and filter by user_id.
 """
 import os
 import logging
@@ -7,13 +8,16 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify
 from bson import ObjectId
 from db.models import (
-    questions_collection, 
+    questions_collection,
     user_progress_collection,
+    user_law_stats_collection,
+    user_question_stars_collection,
     laws_collection,
     db
 )
 from services.inventory import QuestionInventory
 from services.grader import Grader
+from services.auth import login_required, get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -29,9 +33,11 @@ sessions_collection = db.db['sessions']
 
 
 @quiz_bp.route('/available', methods=['GET'])
+@login_required
 def check_available_questions():
     """
-    Check how many questions are available for a given type and mode.
+    Check how many questions are available for the current user.
+    Requires authentication.
     
     Query Parameters:
         type: "MCQ" | "ShortAnswer" | "Mixed"
@@ -43,6 +49,11 @@ def check_available_questions():
         }
     """
     try:
+        # Get current user
+        user_id = get_current_user()
+        if not user_id:
+            return jsonify({"error": "Not authenticated"}), 401
+        
         question_type = request.args.get('type')
         session_mode = request.args.get('mode')
         
@@ -53,7 +64,7 @@ def check_available_questions():
         if not session_mode or session_mode not in ['new', 'review', 'mixed']:
             return jsonify({"error": "Invalid or missing 'mode'. Must be new, review, or mixed"}), 400
         
-        # Count available questions
+        # Count available questions for this user
         lang = request.args.get('lang', 'zh-TW')
         if lang not in ['zh-TW', 'en', 'both']:
             return jsonify({"error": "Invalid 'lang'. Must be 'zh-TW', 'en', or 'both'"}), 400
@@ -61,10 +72,11 @@ def check_available_questions():
         available = inventory_service.count_available_questions(
             question_type=question_type,
             session_mode=session_mode,
-            lang=lang
+            lang=lang,
+            user_id=user_id
         )
         
-        logger.info(f"Available questions check: type={question_type}, mode={session_mode}, available={available}")
+        logger.info(f"User {user_id}: Available questions check: type={question_type}, mode={session_mode}, available={available}")
         
         return jsonify({"available": available}), 200
         
@@ -74,9 +86,11 @@ def check_available_questions():
 
 
 @quiz_bp.route('/session', methods=['POST'])
+@login_required
 def create_session():
     """
-    Start a new quiz session.
+    Start a new quiz session for the current user.
+    Requires authentication.
     
     Request Body:
         {
@@ -93,6 +107,11 @@ def create_session():
         }
     """
     try:
+        # Get current user
+        user_id = get_current_user()
+        if not user_id:
+            return jsonify({"error": "Not authenticated"}), 401
+        
         data = request.get_json()
         
         # Validate required fields
@@ -113,19 +132,21 @@ def create_session():
         if lang not in ['zh-TW', 'en', 'both']:
             return jsonify({"error": "Invalid 'lang'. Must be 'zh-TW', 'en', or 'both'"}), 400
 
-        # Get questions using inventory service (pass lang)
+        # Get questions using inventory service (pass user_id)
         questions, is_loading = inventory_service.get_session_questions(
             question_type=question_type,
             session_mode=session_mode,
             count=count,
-            lang=lang
+            lang=lang,
+            user_id=user_id
         )
         
         if not questions:
             return jsonify({"error": "Unable to fetch questions. Please try again later."}), 503
         
-        # Create session document
+        # Create session document (include user_id)
         session_doc = {
+            "user_id": user_id,
             "type": question_type,
             "mode": session_mode,
             "question_ids": [q["_id"] for q in questions],
@@ -154,7 +175,7 @@ def create_session():
                 safe_q["options"] = q["options"]
             safe_questions.append(safe_q)
         
-        logger.info(f"Created session {session_id} with {len(questions)} questions")
+        logger.info(f"User {user_id}: Created session {session_id} with {len(questions)} questions")
         
         return jsonify({
             "session_id": session_id,
@@ -168,9 +189,11 @@ def create_session():
 
 
 @quiz_bp.route('/session/<session_id>/answer', methods=['POST'])
+@login_required
 def submit_answer(session_id):
     """
-    Submit an answer for a question in a session.
+    Submit an answer for a question in the current user's session.
+    Requires authentication.
     
     Request Body:
         {
@@ -188,6 +211,11 @@ def submit_answer(session_id):
         }
     """
     try:
+        # Get current user
+        user_id = get_current_user()
+        if not user_id:
+            return jsonify({"error": "Not authenticated"}), 401
+        
         data = request.get_json()
         question_id = data.get('question_id')
         user_answer = data.get('user_answer')
@@ -195,14 +223,17 @@ def submit_answer(session_id):
         if not question_id or not user_answer:
             return jsonify({"error": "Missing question_id or user_answer"}), 400
         
-        # Validate session exists
+        # Validate session exists and belongs to current user
         try:
-            session = sessions_collection.find_one({"_id": ObjectId(session_id)})
+            session = sessions_collection.find_one({
+                "_id": ObjectId(session_id),
+                "user_id": user_id
+            })
         except:
             return jsonify({"error": "Invalid session_id format"}), 400
         
         if not session:
-            return jsonify({"error": "Session not found"}), 404
+            return jsonify({"error": "Session not found or access denied"}), 404
         
         if session.get('status') != 'active':
             return jsonify({"error": "Session is not active"}), 400
@@ -289,8 +320,11 @@ def submit_answer(session_id):
             {"$push": {"answers": answer_doc}}
         )
         
-        # Update user progress
-        progress = user_progress_collection.find_one({"question_id": question_id})
+        # Update user progress (per-user)
+        progress = user_progress_collection.find_one({
+            "user_id": user_id,
+            "question_id": question_id
+        })
         
         if progress:
             # Update existing progress
@@ -298,7 +332,10 @@ def submit_answer(session_id):
             needs_review = new_streak < 3  # Need to get it right 3 times in a row
             
             user_progress_collection.update_one(
-                {"question_id": question_id},
+                {
+                    "user_id": user_id,
+                    "question_id": question_id
+                },
                 {
                     "$set": {
                         "correct_streak": new_streak,
@@ -310,6 +347,7 @@ def submit_answer(session_id):
         else:
             # Create new progress entry
             user_progress_collection.insert_one({
+                "user_id": user_id,
                 "question_id": question_id,
                 "correct_streak": 1 if score >= 1.0 else 0,
                 "needs_review": score < 1.0,
@@ -317,16 +355,20 @@ def submit_answer(session_id):
                 "is_appealed": False
             })
         
-        # Update law statistics
+        # Update per-user law statistics
         law_id = question['law_id']
-        law = laws_collection.find_one({"_id": ObjectId(law_id)})
-        if law:
-            new_total = law.get('total_score', 0.0) + score
-            new_count = law.get('attempt_count', 0) + 1
+        user_law_stat = user_law_stats_collection.find_one({
+            "user_id": user_id,
+            "law_id": law_id
+        })
+        
+        if user_law_stat:
+            new_total = user_law_stat.get('total_score', 0.0) + score
+            new_count = user_law_stat.get('attempt_count', 0) + 1
             new_avg = new_total / new_count
             
-            laws_collection.update_one(
-                {"_id": ObjectId(law_id)},
+            user_law_stats_collection.update_one(
+                {"user_id": user_id, "law_id": law_id},
                 {
                     "$set": {
                         "total_score": new_total,
@@ -335,11 +377,20 @@ def submit_answer(session_id):
                     }
                 }
             )
+        else:
+            # Create new stat entry
+            user_law_stats_collection.insert_one({
+                "user_id": user_id,
+                "law_id": law_id,
+                "total_score": score,
+                "attempt_count": 1,
+                "avg_score": score
+            })
         
         # Generate answer_id from the index in answers array
         answer_id = len(session.get('answers', []))
         
-        logger.info(f"Answer submitted for session {session_id}, question {question_id}, score: {score}")
+        logger.info(f"User {user_id}: Answer submitted for session {session_id}, question {question_id}, score: {score}")
         
         # Prepare correct_answer for response (use full option text for MCQ if available)
         display_correct_answer = question['correct_answer']
@@ -360,9 +411,11 @@ def submit_answer(session_id):
 
 
 @quiz_bp.route('/session/<session_id>/answer/<answer_id>/appeal', methods=['POST'])
+@login_required
 def appeal_answer(session_id, answer_id):
     """
-    Appeal a graded answer to reverse the score.
+    Appeal a graded answer to reverse the score for the current user.
+    Requires authentication.
     
     Response:
         {
@@ -372,14 +425,22 @@ def appeal_answer(session_id, answer_id):
         }
     """
     try:
-        # Validate and get session
+        # Get current user
+        user_id = get_current_user()
+        if not user_id:
+            return jsonify({"error": "Not authenticated"}), 401
+        
+        # Validate and get session (must belong to user)
         try:
-            session = sessions_collection.find_one({"_id": ObjectId(session_id)})
+            session = sessions_collection.find_one({
+                "_id": ObjectId(session_id),
+                "user_id": user_id
+            })
         except:
             return jsonify({"error": "Invalid session_id format"}), 400
         
         if not session:
-            return jsonify({"error": "Session not found"}), 404
+            return jsonify({"error": "Session not found or access denied"}), 404
         
         # Get answer by index
         try:
@@ -415,11 +476,17 @@ def appeal_answer(session_id, answer_id):
             }
         )
         
-        # Update user progress
-        progress = user_progress_collection.find_one({"question_id": question_id})
+        # Update user progress (per-user)
+        progress = user_progress_collection.find_one({
+            "user_id": user_id,
+            "question_id": question_id
+        })
         if progress:
             user_progress_collection.update_one(
-                {"question_id": question_id},
+                {
+                    "user_id": user_id,
+                    "question_id": question_id
+                },
                 {
                     "$set": {
                         "is_appealed": True,
@@ -428,19 +495,22 @@ def appeal_answer(session_id, answer_id):
                 }
             )
         
-        # Update law statistics (adjust for score change)
+        # Update per-user law statistics (adjust for score change)
         question = questions_collection.find_one({"_id": ObjectId(question_id)})
         if question:
             law_id = question['law_id']
-            law = laws_collection.find_one({"_id": ObjectId(law_id)})
-            if law:
+            user_law_stat = user_law_stats_collection.find_one({
+                "user_id": user_id,
+                "law_id": law_id
+            })
+            if user_law_stat:
                 score_diff = new_score - old_score
-                new_total = law.get('total_score', 0.0) + score_diff
-                count = law.get('attempt_count', 1)
+                new_total = user_law_stat.get('total_score', 0.0) + score_diff
+                count = user_law_stat.get('attempt_count', 1)
                 new_avg = new_total / count if count > 0 else 0
                 
-                laws_collection.update_one(
-                    {"_id": ObjectId(law_id)},
+                user_law_stats_collection.update_one(
+                    {"user_id": user_id, "law_id": law_id},
                     {
                         "$set": {
                             "total_score": new_total,
@@ -449,7 +519,7 @@ def appeal_answer(session_id, answer_id):
                     }
                 )
         
-        logger.info(f"Answer appealed for session {session_id}, answer {answer_id}, new score: {new_score}")
+        logger.info(f"User {user_id}: Answer appealed for session {session_id}, answer {answer_id}, new score: {new_score}")
         
         return jsonify({
             "message": "申訴成功！分數已更新。",
@@ -463,9 +533,11 @@ def appeal_answer(session_id, answer_id):
 
 
 @quiz_bp.route('/questions/<question_id>', methods=['DELETE'])
+@login_required
 def delete_question(question_id):
     """
     Soft delete a question (mark as deleted).
+    Requires authentication.
     
     Response:
         {
@@ -504,9 +576,11 @@ def delete_question(question_id):
 
 
 @quiz_bp.route('/questions/<question_id>/star', methods=['POST'])
+@login_required
 def toggle_star_question(question_id):
     """
-    Toggle starred status for a question.
+    Toggle starred status for a question (per-user).
+    Requires authentication.
     
     Response:
         {
@@ -515,7 +589,12 @@ def toggle_star_question(question_id):
         }
     """
     try:
-        # Validate and get question
+        # Get current user
+        user_id = get_current_user()
+        if not user_id:
+            return jsonify({"error": "Not authenticated"}), 401
+        
+        # Validate question exists
         try:
             question = questions_collection.find_one({"_id": ObjectId(question_id)})
         except:
@@ -524,17 +603,28 @@ def toggle_star_question(question_id):
         if not question:
             return jsonify({"error": "Question not found"}), 404
         
-        # Toggle starred status
-        current_starred = question.get('is_starred', False)
-        new_starred = not current_starred
+        # Check if user has starred this question
+        existing_star = user_question_stars_collection.find_one({
+            "user_id": user_id,
+            "question_id": question_id
+        })
         
-        questions_collection.update_one(
-            {"_id": ObjectId(question_id)},
-            {"$set": {"is_starred": new_starred}}
-        )
+        if existing_star:
+            # Remove star
+            user_question_stars_collection.delete_one({"_id": existing_star["_id"]})
+            new_starred = False
+            action = "取消收藏"
+        else:
+            # Add star
+            user_question_stars_collection.insert_one({
+                "user_id": user_id,
+                "question_id": question_id,
+                "created_at": datetime.utcnow()
+            })
+            new_starred = True
+            action = "收藏"
         
-        action = "收藏" if new_starred else "取消收藏"
-        logger.info(f"Question {question_id} starred status toggled to {new_starred}")
+        logger.info(f"User {user_id}: Question {question_id} starred status toggled to {new_starred}")
         
         return jsonify({
             "is_starred": new_starred,

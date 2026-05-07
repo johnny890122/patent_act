@@ -179,4 +179,107 @@
 - [ ] TASK-9.6.1: Create [`test/test_i18n_migration.py`](../test/test_i18n_migration.py) — test question translation and data migration logic
 - [ ] TASK-9.6.2: Create [`test/test_i18n_schema.py`](../test/test_i18n_schema.py) — verify database schema changes and indexes
 - [ ] TASK-9.6.3: Create [`test/test_bilingual_questions.py`](../test/test_bilingual_questions.py) — end-to-end test for generating bilingual questions
-- [ ] TASK-9.6.4: Run all tests and ensure no regression in existing functionality 
+- [ ] TASK-9.6.4: Run all tests and ensure no regression in existing functionality
+
+## Phase 10: Multi-User Support (NEW)
+
+### 10.1 Database Schema Updates
+- [ ] TASK-10.1.1: Create `UserModel` in [`db/models.py`](../db/models.py) with fields: `username`, `display_name`, `created_at`, `last_login` [REQ-8]
+- [ ] TASK-10.1.2: Create `UserLawStarModel` in [`db/models.py`](../db/models.py) for per-user law stars [REQ-8.2]
+- [ ] TASK-10.1.3: Create `UserLawStatsModel` in [`db/models.py`](../db/models.py) for per-user law statistics [REQ-8.2]
+- [ ] TASK-10.1.4: Create `UserQuestionStarModel` in [`db/models.py`](../db/models.py) for per-user question stars [REQ-8.2]
+- [ ] TASK-10.1.5: Update `UserProgressModel` to add `user_id` field [REQ-8.2]
+- [ ] TASK-10.1.6: Remove `is_starred`, `total_score`, `attempt_count`, `avg_score` from `LawModel` (移至 per-user collections) [REQ-8.2]
+- [ ] TASK-10.1.7: Remove `is_starred` from `QuestionModel` (移至 per-user collections) [REQ-8.2]
+- [ ] TASK-10.1.8: Update MongoDB indexes in [`db/models.py`](../db/models.py):
+  - Add `username` unique index on `users` collection
+  - Add composite index `(user_id, question_id)` on `user_progress`
+  - Add composite index `(user_id, law_id)` on `user_law_stars` and `user_law_stats`
+  - Add composite index `(user_id, question_id)` on `user_question_stars`
+
+### 10.2 Authentication Service & Routes
+- [ ] TASK-10.2.1: Create [`services/auth.py`](../services/auth.py) with helper functions:
+  - `get_current_user() → Optional[str]` — Get user_id from session
+  - `get_current_user_info() → Optional[dict]` — Get full user info from session
+  - `login_required` decorator — Redirect to login if not authenticated [REQ-8.1]
+- [ ] TASK-10.2.2: Create [`routes/auth.py`](../routes/auth.py) with endpoints:
+  - `GET /auth/login` — Show login page
+  - `POST /auth/login` — Validate username and create session [REQ-8.1]
+  - `POST /auth/logout` — Clear session and redirect to login
+  - `GET /auth/current` — Return current user info (for frontend)
+- [ ] TASK-10.2.3: Register auth blueprint in [`app.py`](../app.py)
+- [ ] TASK-10.2.4: Configure `SECRET_KEY` in Flask app for session signing
+
+### 10.3 Frontend: Login Page
+- [ ] TASK-10.3.1: Create [`templates/login.html`](../templates/login.html) with username input form [REQ-8.1]
+- [ ] TASK-10.3.2: Add login form styles to [`static/css/style.css`](../static/css/style.css)
+- [ ] TASK-10.3.3: Add client-side validation for username field
+
+### 10.4 Update Existing Routes for Multi-User
+- [ ] TASK-10.4.1: Update [`routes/quiz.py`](../routes/quiz.py) — Add `@login_required` decorator and filter by `user_id`:
+  - `GET /api/quiz/available` — Filter by current user's progress
+  - `POST /quiz/session` — Create session for current user
+  - `POST /quiz/session/:id/answer` — Update current user's progress
+  - `POST /quiz/session/:id/answer/:aid/appeal` — Appeal for current user [REQ-8.2]
+- [ ] TASK-10.4.2: Update [`routes/laws.py`](../routes/laws.py) — Add `@login_required` and user filtering:
+  - `GET /laws` — Show laws with current user's star status
+  - `PUT /laws/:id/star` — Toggle star for current user only
+  - `GET /laws/:id` — Show law detail with current user's stats
+  - `GET /api/laws/:id/questions` — Show questions with current user's progress [REQ-8.2]
+- [ ] TASK-10.4.3: Update [`routes/frontend.py`](../routes/frontend.py) — Add `@login_required` to dashboard and other pages [REQ-8.2]
+
+### 10.5 Update Services for Multi-User
+- [ ] TASK-10.5.1: Update [`services/inventory.py`](../services/inventory.py):
+  - Modify `count_available_questions()` to accept and filter by `user_id`
+  - Modify `get_session_questions()` to filter by `user_id` [REQ-8.3]
+- [ ] TASK-10.5.2: Update [`services/grader.py`](../services/grader.py):
+  - Ensure grading saves to correct user's progress record
+
+### 10.6 Data Migration: Single-User to Multi-User
+- [ ] TASK-10.6.1: Create [`scripts/migrate_to_multiuser.py`](../scripts/migrate_to_multiuser.py) to:
+  - Create a default admin user (e.g., username: "admin", display_name: "Administrator")
+  - Migrate existing `user_progress` records to include default user's `user_id`
+  - Migrate law stars from `laws.is_starred` to `user_law_stars` collection for default user
+  - Migrate law stats from `laws` to `user_law_stats` collection for default user
+  - Migrate question stars from `questions.is_starred` to `user_question_stars` for default user [REQ-8.2]
+- [ ] TASK-10.6.2: Test migration script on local database
+- [ ] TASK-10.6.3: Create backup of production database
+- [ ] TASK-10.6.4: Execute migration on production database
+
+### 10.7 Admin Tools: User Management
+- [ ] TASK-10.7.1: Create [`scripts/add_user.py`](../scripts/add_user.py) CLI tool to add new users:
+  - Accept `username` and `display_name` as arguments
+  - Validate username uniqueness
+  - Insert into `users` collection [REQ-8.4]
+- [ ] TASK-10.7.2: Document user management process in [`README.md`](../README.md)
+
+### 10.8 Frontend: Session & User Context
+- [ ] TASK-10.8.1: Update [`templates/base.html`](../templates/base.html) to:
+  - Show current user's display name in header
+  - Add logout button
+  - Check authentication status on page load
+- [ ] TASK-10.8.2: Update [`static/js/main.js`](../static/js/main.js):
+  - Add function to check current user (`GET /auth/current`)
+  - Redirect to login if not authenticated on protected pages
+
+### 10.9 Testing: Multi-User Functionality
+- [ ] TASK-10.9.1: Create [`test/test_auth.py`](../test/test_auth.py) — Test login, logout, session management
+- [ ] TASK-10.9.2: Create [`test/test_multiuser_isolation.py`](../test/test_multiuser_isolation.py) — Verify data isolation between users:
+  - User A's stars don't appear for User B
+  - User A's progress doesn't affect User B's progress
+  - Quiz sessions are correctly filtered by user [REQ-8.2]
+- [ ] TASK-10.9.3: Update existing tests to include authentication context
+- [ ] TASK-10.9.4: Test edge cases:
+  - Multiple users answering same question simultaneously
+  - User logout and re-login preserves data
+  - Invalid username login attempt
+
+### 10.10 Documentation & Deployment
+- [ ] TASK-10.10.1: Update [`README.md`](../README.md) with multi-user setup instructions
+- [ ] TASK-10.10.2: Document how to add new users via MongoDB or script
+- [ ] TASK-10.10.3: Update environment variables documentation (add `SECRET_KEY` requirement)
+- [ ] TASK-10.10.4: Test complete user flow end-to-end:
+  - Admin adds new user
+  - New user logs in
+  - New user completes quiz session
+  - Verify data isolation

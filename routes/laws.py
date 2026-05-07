@@ -1,10 +1,21 @@
 """
 Laws Routes - Handles law article browsing and starring functionality.
+Multi-user support: All routes require authentication and use per-user data.
 """
 import logging
 from flask import Blueprint, request, jsonify
 from bson import ObjectId
-from db.models import laws_collection, i18n_mapping_collection
+from datetime import datetime
+from db.models import (
+    laws_collection,
+    i18n_mapping_collection,
+    user_law_stars_collection,
+    user_law_stats_collection,
+    user_question_stars_collection,
+    questions_collection,
+    user_progress_collection
+)
+from services.auth import login_required, get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -12,9 +23,12 @@ laws_bp = Blueprint('laws', __name__, url_prefix='/api/laws')
 
 
 @laws_bp.route('', methods=['GET'])
+@login_required
 def get_laws():
     """
-    Get paginated list of law articles.
+    Get paginated list of law articles for the current user.
+    Shows per-user starred status and statistics.
+    Requires authentication.
     
     Query Parameters:
         page: int (default: 1)
@@ -34,6 +48,11 @@ def get_laws():
         }
     """
     try:
+        # Get current user
+        user_id = get_current_user()
+        if not user_id:
+            return jsonify({"error": "Not authenticated"}), 401
+        
         # Get query parameters
         page = max(1, int(request.args.get('page', 1)))
         per_page = min(50, max(1, int(request.args.get('per_page', 10))))
@@ -59,10 +78,6 @@ def get_laws():
             query_filter['chapter'] = chapter
         if lang in ['zh-TW', 'en']:
             query_filter['lang'] = lang
-        if starred_param is not None:
-            # Parse boolean
-            starred = starred_param.lower() in ['true', '1', 'yes']
-            query_filter['is_starred'] = starred
         
         # Validate sort field (保留 article_number 作為相容選項，但實際使用 article_number_int)
         valid_sort_fields = ['article_number', 'article_number_int', 'avg_score', 'attempt_count']
@@ -82,14 +97,51 @@ def get_laws():
         
         # Get paginated results
         skip = (page - 1) * per_page
+        
+        # Handle starred filter for per-user stars
+        if starred_param is not None:
+            starred = starred_param.lower() in ['true', '1', 'yes']
+            if starred:
+                # Get user's starred law IDs
+                user_stars = list(user_law_stars_collection.find({"user_id": user_id}))
+                starred_law_ids = [ObjectId(s['law_id']) for s in user_stars]
+                query_filter['_id'] = {'$in': starred_law_ids}
+        
         laws = list(laws_collection.find(query_filter)
                    .sort(sort_field, sort_direction)
                    .skip(skip)
                    .limit(per_page))
         
-        # Convert ObjectId to string
+        # Get user's starred laws and stats
+        law_ids = [law['_id'] for law in laws]
+        user_stars = list(user_law_stars_collection.find({
+            "user_id": user_id,
+            "law_id": {"$in": [str(lid) for lid in law_ids]}
+        }))
+        starred_law_ids_set = {s['law_id'] for s in user_stars}
+        
+        user_stats = list(user_law_stats_collection.find({
+            "user_id": user_id,
+            "law_id": {"$in": [str(lid) for lid in law_ids]}
+        }))
+        stats_map = {s['law_id']: s for s in user_stats}
+        
+        # Convert ObjectId to string and add per-user data
         for law in laws:
-            law['_id'] = str(law['_id'])
+            law_id = str(law['_id'])
+            law['_id'] = law_id
+            # Add per-user starred status
+            law['is_starred'] = law_id in starred_law_ids_set
+            # Add per-user statistics
+            if law_id in stats_map:
+                stat = stats_map[law_id]
+                law['total_score'] = stat.get('total_score', 0.0)
+                law['attempt_count'] = stat.get('attempt_count', 0)
+                law['avg_score'] = stat.get('avg_score', 0.0)
+            else:
+                law['total_score'] = 0.0
+                law['attempt_count'] = 0
+                law['avg_score'] = 0.0
         
         logger.info(f"Retrieved {len(laws)} laws (page {page}/{total_pages})")
         
@@ -109,9 +161,11 @@ def get_laws():
 
 
 @laws_bp.route('/<law_id>', methods=['GET'])
+@login_required
 def get_law(law_id):
     """
-    Get a single law article by ID.
+    Get a single law article by ID with per-user data.
+    Requires authentication.
     
     Response:
         {
@@ -126,6 +180,11 @@ def get_law(law_id):
         }
     """
     try:
+        # Get current user
+        user_id = get_current_user()
+        if not user_id:
+            return jsonify({"error": "Not authenticated"}), 401
+        
         # Validate and get law
         try:
             law = laws_collection.find_one({"_id": ObjectId(law_id)})
@@ -157,7 +216,27 @@ def get_law(law_id):
         # Convert ObjectId to string
         law['_id'] = str(law['_id'])
         
-        logger.info(f"Retrieved law {law_id}")
+        # Add per-user data
+        user_star = user_law_stars_collection.find_one({
+            "user_id": user_id,
+            "law_id": law_id
+        })
+        law['is_starred'] = user_star is not None
+        
+        user_stat = user_law_stats_collection.find_one({
+            "user_id": user_id,
+            "law_id": law_id
+        })
+        if user_stat:
+            law['total_score'] = user_stat.get('total_score', 0.0)
+            law['attempt_count'] = user_stat.get('attempt_count', 0)
+            law['avg_score'] = user_stat.get('avg_score', 0.0)
+        else:
+            law['total_score'] = 0.0
+            law['attempt_count'] = 0
+            law['avg_score'] = 0.0
+        
+        logger.info(f"User {user_id}: Retrieved law {law_id}")
         
         return jsonify(law), 200
         
@@ -167,9 +246,11 @@ def get_law(law_id):
 
 
 @laws_bp.route('/<law_id>/star', methods=['PUT'])
+@login_required
 def toggle_star(law_id):
     """
-    Toggle the starred status of a law article.
+    Toggle the starred status of a law article for the current user.
+    Requires authentication.
     
     Response:
         {
@@ -178,7 +259,12 @@ def toggle_star(law_id):
         }
     """
     try:
-        # Validate and get law
+        # Get current user
+        user_id = get_current_user()
+        if not user_id:
+            return jsonify({"error": "Not authenticated"}), 401
+        
+        # Validate law exists
         try:
             law = laws_collection.find_one({"_id": ObjectId(law_id)})
         except:
@@ -187,17 +273,28 @@ def toggle_star(law_id):
         if not law:
             return jsonify({"error": "Law not found"}), 404
         
-        # Toggle starred status
-        current_starred = law.get('is_starred', False)
-        new_starred = not current_starred
+        # Check if user has starred this law
+        existing_star = user_law_stars_collection.find_one({
+            "user_id": user_id,
+            "law_id": law_id
+        })
         
-        laws_collection.update_one(
-            {"_id": ObjectId(law_id)},
-            {"$set": {"is_starred": new_starred}}
-        )
+        if existing_star:
+            # Remove star
+            user_law_stars_collection.delete_one({"_id": existing_star["_id"]})
+            new_starred = False
+            action = "已移除"
+        else:
+            # Add star
+            user_law_stars_collection.insert_one({
+                "user_id": user_id,
+                "law_id": law_id,
+                "created_at": datetime.utcnow()
+            })
+            new_starred = True
+            action = "已加入"
         
-        action = "已加入" if new_starred else "已移除"
-        logger.info(f"Law {law_id} starred status changed to {new_starred}")
+        logger.info(f"User {user_id}: Law {law_id} starred status changed to {new_starred}")
         
         return jsonify({
             "message": f"{action}收藏",
@@ -279,9 +376,11 @@ def get_chapters():
 
 
 @laws_bp.route('/stats', methods=['GET'])
+@login_required
 def get_stats():
     """
-    Get overall statistics about laws.
+    Get overall statistics about laws for the current user.
+    Requires authentication.
     
     Response:
         {
@@ -292,14 +391,20 @@ def get_stats():
         }
     """
     try:
-        # Get total count
+        # Get current user
+        user_id = get_current_user()
+        if not user_id:
+            return jsonify({"error": "Not authenticated"}), 401
+        
+        # Get total count (global)
         total_laws = laws_collection.count_documents({})
         
-        # Get starred count
-        starred_count = laws_collection.count_documents({"is_starred": True})
+        # Get user's starred count
+        starred_count = user_law_stars_collection.count_documents({"user_id": user_id})
         
-        # Calculate aggregate stats
+        # Calculate user's aggregate stats
         pipeline = [
+            {"$match": {"user_id": user_id}},
             {
                 "$group": {
                     "_id": None,
@@ -309,7 +414,7 @@ def get_stats():
             }
         ]
         
-        agg_result = list(laws_collection.aggregate(pipeline))
+        agg_result = list(user_law_stats_collection.aggregate(pipeline))
         
         total_attempts = 0
         average_score = 0.0
@@ -319,7 +424,7 @@ def get_stats():
             total_score = agg_result[0].get('total_score', 0.0)
             average_score = total_score / total_attempts if total_attempts > 0 else 0.0
         
-        logger.info(f"Retrieved stats: {total_laws} laws, {starred_count} starred")
+        logger.info(f"User {user_id}: Retrieved stats: {total_laws} laws, {starred_count} starred")
         
         return jsonify({
             "total_laws": total_laws,
@@ -334,11 +439,13 @@ def get_stats():
 
 
 @laws_bp.route('/<law_id>/questions', methods=['GET'])
+@login_required
 def get_law_questions(law_id):
     """
-    Get all answered questions related to a specific law article.
+    Get all answered questions for the current user related to a specific law article.
     Only returns questions that have user progress records (已作答過的題目).
     自動判斷答錯狀態：last_score < 0.7 視為答錯題
+    Requires authentication.
     
     Response:
         {
@@ -347,7 +454,10 @@ def get_law_questions(law_id):
         }
     """
     try:
-        from db.models import questions_collection, user_progress_collection
+        # Get current user
+        user_id = get_current_user()
+        if not user_id:
+            return jsonify({"error": "Not authenticated"}), 401
         
         # Validate law exists
         try:
@@ -361,11 +471,19 @@ def get_law_questions(law_id):
         # Get all questions for this law
         all_questions = list(questions_collection.find({"law_id": law_id}))
         
-        # OPTIMIZED: Only fetch progress for these specific questions
+        # OPTIMIZED: Only fetch progress for this user and these specific questions
         question_ids = [str(q['_id']) for q in all_questions]
         progress_records = list(user_progress_collection.find({
+            "user_id": user_id,
             "question_id": {"$in": question_ids}
         }))
+        
+        # Get user's starred questions
+        user_question_stars = list(user_question_stars_collection.find({
+            "user_id": user_id,
+            "question_id": {"$in": question_ids}
+        }))
+        starred_question_ids = {s['question_id'] for s in user_question_stars}
         
         # Build progress lookup map
         progress_map = {p['question_id']: p for p in progress_records}
@@ -380,9 +498,11 @@ def get_law_questions(law_id):
                 last_score = progress_map[q_id].get('last_score', 0.0)
                 q['is_marked_wrong'] = last_score < 0.7
                 q['last_score'] = last_score
+                # Add starred status
+                q['is_starred'] = q_id in starred_question_ids
                 questions.append(q)
         
-        logger.info(f"Retrieved {len(questions)} answered questions for law {law_id}")
+        logger.info(f"User {user_id}: Retrieved {len(questions)} answered questions for law {law_id}")
         
         return jsonify({
             "questions": questions,
@@ -400,9 +520,11 @@ questions_bp = _Blueprint('questions', __name__, url_prefix='/api/questions')
 
 
 @questions_bp.route('/<question_id>/star', methods=['PUT'])
+@login_required
 def toggle_question_star(question_id):
     """
-    Toggle the starred status of a question.
+    Toggle the starred status of a question for the current user.
+    Requires authentication.
     
     Response:
         {
@@ -411,9 +533,12 @@ def toggle_question_star(question_id):
         }
     """
     try:
-        from db.models import questions_collection
+        # Get current user
+        user_id = get_current_user()
+        if not user_id:
+            return jsonify({"error": "Not authenticated"}), 401
         
-        # Validate and get question
+        # Validate question exists
         try:
             question = questions_collection.find_one({"_id": ObjectId(question_id)})
         except:
@@ -422,18 +547,28 @@ def toggle_question_star(question_id):
         if not question:
             return jsonify({"error": "Question not found"}), 404
         
-        # Toggle starred status
-        current_starred = question.get('is_starred', False)
-        new_starred = not current_starred
+        # Check if user has starred this question
+        existing_star = user_question_stars_collection.find_one({
+            "user_id": user_id,
+            "question_id": question_id
+        })
         
-        # Update only this question (keep language versions independent)
-        questions_collection.update_one(
-            {"_id": ObjectId(question_id)},
-            {"$set": {"is_starred": new_starred}}
-        )
+        if existing_star:
+            # Remove star
+            user_question_stars_collection.delete_one({"_id": existing_star["_id"]})
+            new_starred = False
+            action = "已取消收藏"
+        else:
+            # Add star
+            user_question_stars_collection.insert_one({
+                "user_id": user_id,
+                "question_id": question_id,
+                "created_at": datetime.utcnow()
+            })
+            new_starred = True
+            action = "已收藏"
         
-        action = "已收藏" if new_starred else "已取消收藏"
-        logger.info(f"Question {question_id} starred status changed to {new_starred}")
+        logger.info(f"User {user_id}: Question {question_id} starred status changed to {new_starred}")
         
         return jsonify({
             "message": f"{action}題目",
@@ -446,9 +581,11 @@ def toggle_question_star(question_id):
 
 
 @questions_bp.route('/my-questions', methods=['GET'])
+@login_required
 def get_my_questions():
     """
-    Get starred or wrong answered questions with pagination.
+    Get starred or wrong answered questions for the current user with pagination.
+    Requires authentication.
     
     Query Parameters:
         tab: str (required) - "starred" or "wrong"
@@ -467,7 +604,10 @@ def get_my_questions():
         }
     """
     try:
-        from db.models import questions_collection, user_progress_collection
+        # Get current user
+        user_id = get_current_user()
+        if not user_id:
+            return jsonify({"error": "Not authenticated"}), 401
         
         # Get tab parameter
         tab = request.args.get('tab', 'starred')
@@ -494,8 +634,21 @@ def get_my_questions():
             base_filter["type"] = question_type
         
         if tab == 'starred':
-            # Get starred questions
-            query_filter = {**base_filter, "is_starred": True}
+            # Get user's starred questions
+            user_stars = list(user_question_stars_collection.find({"user_id": user_id}))
+            starred_question_ids = [ObjectId(s['question_id']) for s in user_stars]
+            
+            if not starred_question_ids:
+                # No starred questions
+                return jsonify({
+                    "questions": [],
+                    "total": 0,
+                    "page": page,
+                    "per_page": per_page,
+                    "total_pages": 0
+                }), 200
+            
+            query_filter = {**base_filter, "_id": {"$in": starred_question_ids}}
             total = questions_collection.count_documents(query_filter)
             
             # Calculate pagination
@@ -506,9 +659,9 @@ def get_my_questions():
             questions_list = list(questions_collection.find(query_filter).skip(skip).limit(per_page))
             
         else:  # tab == 'wrong'
-            # Get questions with wrong answers (last_score < 0.7)
-            # First, get all progress records with last_score < 0.7
+            # Get questions with wrong answers for this user (last_score < 0.7)
             wrong_progress = list(user_progress_collection.find({
+                "user_id": user_id,
                 "last_score": {"$lt": 0.7}
             }))
             
@@ -540,8 +693,16 @@ def get_my_questions():
                 "chapter": law.get('chapter', '') if law else ''
             }
             
-            # Get progress info (if answered)
-            progress = user_progress_collection.find_one({"question_id": q_id})
+            # Get user's progress info and starred status
+            progress = user_progress_collection.find_one({
+                "user_id": user_id,
+                "question_id": q_id
+            })
+            
+            is_starred = user_question_stars_collection.find_one({
+                "user_id": user_id,
+                "question_id": q_id
+            }) is not None
             
             question_data = {
                 "_id": q_id,
@@ -552,13 +713,13 @@ def get_my_questions():
                 "options": q.get('options', []) if q['type'] == 'MCQ' else None,
                 "law_id": q['law_id'],
                 "law_info": law_info,
-                "is_starred": q.get('is_starred', False),
+                "is_starred": is_starred,
                 "last_score": progress.get('last_score') if progress else None
             }
             
             result_questions.append(question_data)
         
-        logger.info(f"Retrieved {len(result_questions)} {tab} questions (page {page}/{total_pages})")
+        logger.info(f"User {user_id}: Retrieved {len(result_questions)} {tab} questions (page {page}/{total_pages})")
         
         return jsonify({
             "questions": result_questions,

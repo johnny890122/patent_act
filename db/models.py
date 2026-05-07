@@ -1,10 +1,19 @@
 import os
 from typing import Optional, List, Literal
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
+from datetime import datetime
 from pymongo import MongoClient
 from dotenv import load_dotenv
 
 load_dotenv()
+
+@dataclass
+class UserModel:
+    """User account for multi-user support"""
+    username: str          # Unique login identifier (e.g., "alice")
+    display_name: str      # Display name (e.g., "Alice Chen")
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    last_login: Optional[datetime] = None
 
 @dataclass
 class LawModel:
@@ -12,11 +21,8 @@ class LawModel:
     content: str
     chapter: str
     article_number_int: int = 0  # 用於排序的整數條號
-    lang: str = "zh-TW"  # NEW: Language tag (zh-TW or en)
-    is_starred: bool = False
-    total_score: float = 0.0
-    attempt_count: int = 0
-    avg_score: float = 0.0
+    lang: str = "zh-TW"  # Language tag (zh-TW or en)
+    # REMOVED: is_starred, total_score, attempt_count, avg_score (now per-user)
 
 @dataclass
 class QuestionModel:
@@ -25,20 +31,49 @@ class QuestionModel:
     content: str
     correct_answer: str
     ai_explanation: str
-    lang: str = "zh-TW"  # NEW: Language tag (zh-TW or en)
+    lang: str = "zh-TW"  # Language tag (zh-TW or en)
     options: Optional[List[str]] = None
     is_deleted: bool = False
-    is_starred: bool = False
-    base_question_id: Optional[str] = None  # NEW: Links zh-TW ↔ en translations
+    base_question_id: Optional[str] = None  # Links zh-TW ↔ en translations
+    # REMOVED: is_starred (now per-user)
     # 答錯狀態改為從 user_progress.last_score 自動判斷
 
 @dataclass
 class UserProgressModel:
+    """Per-user progress tracking for questions"""
+    user_id: str           # Links to users collection
     question_id: str
     correct_streak: int = 0
     needs_review: bool = True
     last_score: float = 0.0
     is_appealed: bool = False
+    # Composite unique index: (user_id, question_id)
+
+@dataclass
+class UserLawStarModel:
+    """Per-user law article stars"""
+    user_id: str           # Links to users collection
+    law_id: str            # Links to laws collection
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    # Composite unique index: (user_id, law_id)
+
+@dataclass
+class UserLawStatsModel:
+    """Per-user law article statistics"""
+    user_id: str           # Links to users collection
+    law_id: str            # Links to laws collection
+    total_score: float = 0.0
+    attempt_count: int = 0
+    avg_score: float = 0.0
+    # Composite unique index: (user_id, law_id)
+
+@dataclass
+class UserQuestionStarModel:
+    """Per-user question stars"""
+    user_id: str           # Links to users collection
+    question_id: str       # Links to questions collection
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    # Composite unique index: (user_id, question_id)
 
 @dataclass
 class I18nMappingModel:
@@ -62,47 +97,95 @@ class Database:
         db_name = self.client.get_database().name if self.client.get_database().name else 'patent_act'
         self.db = self.client[db_name]
         
+        # Shared collections
         self.laws_collection = self.db['laws']
         self.questions_collection = self.db['questions']
+        self.i18n_mapping_collection = self.db['i18n_mapping']
+        
+        # User-specific collections (NEW for multi-user support)
+        self.users_collection = self.db['users']
         self.user_progress_collection = self.db['user_progress']
-        self.i18n_mapping_collection = self.db['i18n_mapping']  # NEW: i18n mapping collection
+        self.user_law_stars_collection = self.db['user_law_stars']
+        self.user_law_stats_collection = self.db['user_law_stats']
+        self.user_question_stars_collection = self.db['user_question_stars']
 
     def init_db(self):
         """Ensure indexes are created for performance."""
-        # Laws indexes
-        self.laws_collection.create_index('article_number', unique=True)
+        # Laws indexes (shared content)
         self.laws_collection.create_index('article_number_int')  # For sorting
-        self.laws_collection.create_index('is_starred')  # For filtering starred laws
         self.laws_collection.create_index('chapter')  # For filtering by chapter
-        self.laws_collection.create_index([('article_number', 1), ('lang', 1)], unique=True)  # NEW: i18n lookup
-        self.laws_collection.create_index('lang')  # NEW: For language filtering
+        self.laws_collection.create_index([('article_number', 1), ('lang', 1)], unique=True)  # i18n lookup
+        self.laws_collection.create_index('lang')  # For language filtering
         
-        # Questions indexes
+        # Questions indexes (shared content)
         self.questions_collection.create_index('law_id')
         self.questions_collection.create_index([('is_deleted', 1), ('type', 1)])  # For filtered queries
-        self.questions_collection.create_index('is_starred')  # For starred questions
-        self.questions_collection.create_index([('law_id', 1), ('lang', 1)])  # NEW: i18n lookup
-        self.questions_collection.create_index([('base_question_id', 1), ('lang', 1)])  # NEW: Link translations
-        self.questions_collection.create_index('lang')  # NEW: For language filtering
+        self.questions_collection.create_index([('law_id', 1), ('lang', 1)])  # i18n lookup
+        self.questions_collection.create_index([('base_question_id', 1), ('lang', 1)])  # Link translations
+        self.questions_collection.create_index('lang')  # For language filtering
         
-        # User progress indexes
-        self.user_progress_collection.create_index('question_id', unique=True)
-        self.user_progress_collection.create_index('needs_review')  # For review mode queries
+        # Users indexes (NEW)
+        self.users_collection.create_index('username', unique=True)
         
-        # i18n mapping indexes
-        # Drop old unique index if exists, then create non-unique index
+        # User progress indexes (UPDATED for multi-user)
+        # Drop old single-user index if exists
         try:
-            self.i18n_mapping_collection.drop_index('article_number_1')
+            self.user_progress_collection.drop_index('question_id_1')
         except:
             pass  # Index doesn't exist, which is fine
-        self.i18n_mapping_collection.create_index([('article_number', 1)])  # NEW: For quick lookup (non-unique)
-        self.i18n_mapping_collection.create_index('zh_tw_law_id')  # NEW
-        self.i18n_mapping_collection.create_index('en_law_id')  # NEW
+        self.user_progress_collection.create_index([('user_id', 1), ('question_id', 1)], unique=True)
+        self.user_progress_collection.create_index([('user_id', 1), ('needs_review', 1)])  # For review mode queries
+        self.user_progress_collection.create_index('user_id')  # For user-specific queries
         
-        print("Database indexes initialized.")
+        # User law stars indexes (NEW)
+        self.user_law_stars_collection.create_index([('user_id', 1), ('law_id', 1)], unique=True)
+        self.user_law_stars_collection.create_index('user_id')  # For user-specific queries
+        
+        # User law stats indexes (NEW)
+        self.user_law_stats_collection.create_index([('user_id', 1), ('law_id', 1)], unique=True)
+        self.user_law_stats_collection.create_index('user_id')  # For user-specific queries
+        
+        # User question stars indexes (NEW)
+        self.user_question_stars_collection.create_index([('user_id', 1), ('question_id', 1)], unique=True)
+        self.user_question_stars_collection.create_index('user_id')  # For user-specific queries
+        
+        # i18n mapping indexes
+        try:
+            # Get existing indexes first
+            existing_indexes = self.i18n_mapping_collection.index_information()
+            # Drop old unique index if exists
+            if 'article_number_1' in existing_indexes:
+                self.i18n_mapping_collection.drop_index('article_number_1')
+        except Exception as e:
+            # Index doesn't exist or can't be dropped, which is fine
+            pass
+        
+        # Create indexes (use unique names to avoid conflicts)
+        try:
+            self.i18n_mapping_collection.create_index([('article_number', 1)], name='article_number_idx')
+        except:
+            pass  # Index might already exist
+        try:
+            self.i18n_mapping_collection.create_index('zh_tw_law_id', name='zh_tw_law_id_idx')
+        except:
+            pass
+        try:
+            self.i18n_mapping_collection.create_index('en_law_id', name='en_law_id_idx')
+        except:
+            pass
+        
+        print("Database indexes initialized for multi-user support.")
 
 db = Database()
+
+# Shared collections
 laws_collection = db.laws_collection
 questions_collection = db.questions_collection
+i18n_mapping_collection = db.i18n_mapping_collection
+
+# User-specific collections (NEW for multi-user support)
+users_collection = db.users_collection
 user_progress_collection = db.user_progress_collection
-i18n_mapping_collection = db.i18n_mapping_collection  # NEW: i18n mapping collection
+user_law_stars_collection = db.user_law_stars_collection
+user_law_stats_collection = db.user_law_stats_collection
+user_question_stars_collection = db.user_question_stars_collection
