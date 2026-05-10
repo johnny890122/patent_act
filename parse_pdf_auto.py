@@ -44,6 +44,10 @@ CHAPTER_MAPPING = {
     "05": {
         "name": "第五篇舉發審查",
         "docs_dir": "docs/05"
+    },
+    "06": {
+        "name": "",
+        "docs_dir": "docs/06"
     }
 }
 
