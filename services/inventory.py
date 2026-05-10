@@ -28,7 +28,8 @@ class QuestionInventory:
         question_type: Literal["MCQ", "ShortAnswer", "Mixed"],
         session_mode: Literal["new", "review", "mixed"],
         lang: str = 'zh-TW',
-        user_id: str = None
+        user_id: str = None,
+        law_type: str = None
     ) -> int:
         """
         Count available questions based on type and session mode for a specific user.
@@ -39,10 +40,15 @@ class QuestionInventory:
             session_mode: Session mode (new/review/mixed)
             lang: Language filter
             user_id: User ID for filtering progress (required for multi-user)
+            law_type: Law type filter (e.g., "patent-act") - NEW for multi-law support
             
         Returns:
             Count of available questions
         """
+        # Get law_type from session if not provided
+        if law_type is None:
+            from services.auth import get_current_law_type
+            law_type = get_current_law_type()
         # Build question type filter
         type_filter = {}
         if question_type == "MCQ":
@@ -55,12 +61,24 @@ class QuestionInventory:
         lang_filter = {}
         if lang and lang != 'both':
             lang_filter['lang'] = lang
+        
+        # Build law type filter (NEW for multi-law support)
+        # Get law IDs for this law type first
+        law_ids = [
+            str(law["_id"])
+            for law in laws_collection.find({"type": law_type}, {"_id": 1})
+        ]
+        
+        if not law_ids:
+            logger.warning(f"No laws found for type: {law_type}")
+            return 0
 
-        # Get all non-deleted question IDs
+        # Get all non-deleted question IDs for this law type
         all_questions = list(questions_collection.find({
             **type_filter,
             "is_deleted": False,
-            **lang_filter
+            **lang_filter,
+            "law_id": {"$in": law_ids}  # Filter by law type
         }, {"_id": 1}))
         
         question_ids = [str(q["_id"]) for q in all_questions]
@@ -117,7 +135,8 @@ class QuestionInventory:
         session_mode: Literal["new", "review", "mixed"],
         count: int,
         lang: str = 'zh-TW',
-        user_id: str = None
+        user_id: str = None,
+        law_type: str = None
     ) -> List[Dict]:
         """
         Fetch questions from database based on type and mode for a specific user.
@@ -128,19 +147,25 @@ class QuestionInventory:
             count: Number of questions to fetch
             lang: Language filter
             user_id: User ID for filtering progress (required for multi-user)
+            law_type: Law type filter (e.g., "patent-act") - NEW for multi-law support
             
         Returns:
             List of question documents with full details
         """
+        # Get law_type from session if not provided
+        if law_type is None:
+            from services.auth import get_current_law_type
+            law_type = get_current_law_type()
+        
         if session_mode == "mixed":
             # Split 50/50
             new_count = count // 2
             review_count = count - new_count
-            new_qs = self._fetch_by_mode(question_type, "new", new_count, lang, user_id)
-            review_qs = self._fetch_by_mode(question_type, "review", review_count, lang, user_id)
+            new_qs = self._fetch_by_mode(question_type, "new", new_count, lang, user_id, law_type)
+            review_qs = self._fetch_by_mode(question_type, "review", review_count, lang, user_id, law_type)
             return new_qs + review_qs
         else:
-            return self._fetch_by_mode(question_type, session_mode, count, lang, user_id)
+            return self._fetch_by_mode(question_type, session_mode, count, lang, user_id, law_type)
     
     def _fetch_by_mode(
         self,
@@ -148,7 +173,8 @@ class QuestionInventory:
         session_mode: Literal["new", "review"],
         count: int,
         lang: str = 'zh-TW',
-        user_id: str = None
+        user_id: str = None,
+        law_type: str = None
     ) -> List[Dict]:
         """
         Internal helper to fetch questions by specific mode for a specific user.
@@ -160,10 +186,15 @@ class QuestionInventory:
             count: Number to fetch
             lang: Language filter
             user_id: User ID for filtering progress (required for multi-user)
+            law_type: Law type filter (e.g., "patent-act") - NEW for multi-law support
             
         Returns:
             List of question documents
         """
+        # Get law_type from session if not provided
+        if law_type is None:
+            from services.auth import get_current_law_type
+            law_type = get_current_law_type()
         # Build type filter
         type_filter = {}
         if question_type == "MCQ":
@@ -175,12 +206,24 @@ class QuestionInventory:
         lang_filter = {}
         if lang and lang != 'both':
             lang_filter['lang'] = lang
+        
+        # Build law type filter (NEW for multi-law support)
+        # Get law IDs for this law type first
+        law_ids = [
+            str(law["_id"])
+            for law in laws_collection.find({"type": law_type}, {"_id": 1})
+        ]
+        
+        if not law_ids:
+            logger.warning(f"No laws found for type: {law_type}")
+            return []
 
-        # Get all non-deleted questions
+        # Get all non-deleted questions for this law type
         all_questions = list(questions_collection.find({
             **type_filter,
             "is_deleted": False,
-            **lang_filter
+            **lang_filter,
+            "law_id": {"$in": law_ids}  # Filter by law type
         }))
         
         # Batch fetch all progress records (OPTIMIZED!)
@@ -226,7 +269,8 @@ class QuestionInventory:
         question_type: Literal["MCQ", "ShortAnswer", "Mixed"],
         count: int,
         law_ids: Optional[List[str]] = None,
-        lang: str = 'zh-TW'
+        lang: str = 'zh-TW',
+        law_type: str = None
     ) -> List[Dict]:
         """
         Synchronously generate and save questions. Blocks until complete.
@@ -234,20 +278,27 @@ class QuestionInventory:
         Args:
             question_type: Type of questions to generate
             count: Number of questions to generate
-            law_ids: Optional list of law IDs to use. If None, uses all laws.
+            law_ids: Optional list of law IDs to use. If None, uses all laws of the specified type.
+            lang: Language filter
+            law_type: Law type filter (e.g., "patent-act") - NEW for multi-law support
             
         Returns:
             List of newly generated question documents
         """
-        logger.info(f"Starting sync generation of {count} {question_type} questions")
+        # Get law_type from session if not provided
+        if law_type is None:
+            from services.auth import get_current_law_type
+            law_type = get_current_law_type()
         
-        # Get law articles to generate questions for (respect language)
-        law_filter = {}
+        logger.info(f"Starting sync generation of {count} {question_type} questions for law type: {law_type}")
+        
+        # Get law articles to generate questions for (respect language and law type)
+        law_filter = {"type": law_type}  # Filter by law type
         if lang and lang != 'both':
             law_filter['lang'] = lang
 
         if not law_ids:
-            laws = list(laws_collection.find({**law_filter}, {"_id": 1, "content": 1, "article_number": 1}))
+            laws = list(laws_collection.find(law_filter, {"_id": 1, "content": 1, "article_number": 1}))
         else:
             laws = list(laws_collection.find(
                 {"_id": {"$in": [ObjectId(lid) for lid in law_ids]}, **law_filter},
@@ -315,7 +366,8 @@ class QuestionInventory:
         question_type: Literal["MCQ", "ShortAnswer", "Mixed"],
         count: int,
         law_ids: Optional[List[str]] = None,
-        lang: str = 'zh-TW'
+        lang: str = 'zh-TW',
+        law_type: str = None
     ):
         """
         Asynchronously generate questions in background thread.
@@ -324,17 +376,24 @@ class QuestionInventory:
             question_type: Type of questions to generate
             count: Number of questions to generate
             law_ids: Optional list of law IDs to use
+            lang: Language filter
+            law_type: Law type filter (e.g., "patent-act") - NEW for multi-law support
         """
+        # Get law_type from session if not provided
+        if law_type is None:
+            from services.auth import get_current_law_type
+            law_type = get_current_law_type()
+        
         def background_task():
             try:
-                self.generate_questions_sync(question_type, count, law_ids, lang)
-                logger.info(f"Background generation of {count} questions completed")
+                self.generate_questions_sync(question_type, count, law_ids, lang, law_type)
+                logger.info(f"Background generation of {count} questions for {law_type} completed")
             except Exception as e:
                 logger.error(f"Background generation failed: {e}")
         
         thread = threading.Thread(target=background_task, daemon=True)
         thread.start()
-        logger.info(f"Started background generation of {count} {question_type} questions")
+        logger.info(f"Started background generation of {count} {question_type} questions for law type: {law_type}")
     
     def get_session_questions(
         self,
@@ -343,7 +402,8 @@ class QuestionInventory:
         count: int,
         law_ids: Optional[List[str]] = None,
         lang: str = 'zh-TW',
-        user_id: str = None
+        user_id: str = None,
+        law_type: str = None
     ) -> tuple[List[Dict], bool]:
         """
         Main entry point for getting session questions for a specific user.
@@ -361,28 +421,34 @@ class QuestionInventory:
             law_ids: Optional list of law IDs to focus on
             lang: Language filter
             user_id: User ID for filtering progress (required for multi-user)
+            law_type: Law type filter (e.g., "patent-act") - NEW for multi-law support
             
         Returns:
             Tuple of (questions list, is_loading_state)
             - questions: List of question documents
             - is_loading_state: True if had to generate synchronously
         """
-        available = self.count_available_questions(question_type, session_mode, lang, user_id)
-        logger.info(f"User {user_id}: Available questions: {available}, Requested: {count}, Type: {question_type}, Mode: {session_mode}")
+        # Get law_type from session if not provided
+        if law_type is None:
+            from services.auth import get_current_law_type
+            law_type = get_current_law_type()
+        
+        available = self.count_available_questions(question_type, session_mode, lang, user_id, law_type)
+        logger.info(f"User {user_id}: Available questions: {available}, Requested: {count}, Type: {question_type}, Mode: {session_mode}, Law: {law_type}")
         
         if available >= 4 * count:
             # Plenty available, just return n questions
             logger.info("Sufficient inventory (>= 4n), fetching directly")
-            questions = self.fetch_questions(question_type, session_mode, count, lang, user_id)
+            questions = self.fetch_questions(question_type, session_mode, count, lang, user_id, law_type)
             return questions, False
             
         elif available >= count:
             # Have enough for this session, but trigger background generation
             logger.info(f"Adequate inventory ({count} <= {available} < {4*count}), fetching + async generation")
-            questions = self.fetch_questions(question_type, session_mode, count, lang, user_id)
+            questions = self.fetch_questions(question_type, session_mode, count, lang, user_id, law_type)
 
             # Trigger async generation of 40 more
-            self.generate_questions_async(question_type, 40, law_ids, lang)
+            self.generate_questions_async(question_type, 40, law_ids, lang, law_type)
             
             return questions, False
             
@@ -392,10 +458,10 @@ class QuestionInventory:
             
             # Generate exactly what we need
             needed = count - available
-            new_questions = self.generate_questions_sync(question_type, needed, law_ids, lang)
+            new_questions = self.generate_questions_sync(question_type, needed, law_ids, lang, law_type)
             
             # Fetch any existing ones if available
-            existing = self.fetch_questions(question_type, session_mode, available, lang, user_id) if available > 0 else []
+            existing = self.fetch_questions(question_type, session_mode, available, lang, user_id, law_type) if available > 0 else []
             
             all_questions = existing + new_questions
             return all_questions[:count], True  # True indicates loading state was needed

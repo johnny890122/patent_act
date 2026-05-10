@@ -6,6 +6,7 @@ from db.models import Database
 from routes.admin import admin_bp
 from routes.quiz import quiz_bp
 from routes.laws import laws_bp, questions_bp
+from routes.law_types import law_types_bp
 from routes.frontend import frontend_bp
 from routes.auth import auth_bp
 
@@ -39,6 +40,7 @@ def create_app():
     app.register_blueprint(quiz_bp)
     app.register_blueprint(laws_bp)
     app.register_blueprint(questions_bp)
+    app.register_blueprint(law_types_bp)  # NEW: Law types management API
 
     return app
 

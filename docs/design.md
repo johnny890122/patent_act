@@ -32,8 +32,8 @@ knowledge/          ← Markdown files of 專利法 articles & mock JSON data
 - `GET /auth/current`: Check current logged-in user. Returns `{ user_id, username, display_name }`.
 
 ### 2.2 Quiz Endpoints
-- `GET /api/quiz/available`: Check available question count. Parameters: type, mode. Returns `{ available: int }`. **Requires login.**
-- `POST /quiz/session`: Start a new session. Parameters: type, mode, count. Returns `session_id` + `questions[]`. **Requires login.**
+- `GET /api/quiz/available`: Check available question count. Parameters: type, mode, **law_type** (NEW). Returns `{ available: int }`. **Requires login.**
+- `POST /quiz/session`: Start a new session. Parameters: type, mode, count, **law_type** (NEW). Returns `session_id` + `questions[]`. **Requires login.**
 - `POST /quiz/session/:id/answer`: Submit answer (sync grade for MCQ, async style LLM for Short Answer). **Requires login.**
 - `POST /quiz/session/:id/answer/:aid/appeal`: Appeal score. **Requires login.**
 - `DELETE /questions/:qid`: Soft delete question. **Requires login.**
@@ -48,13 +48,20 @@ knowledge/          ← Markdown files of 專利法 articles & mock JSON data
     - `starred`: bool (filter by starred status)
     - `sort`: str (sort field)
     - `order`: str (asc/desc)
-    - `search`: str (NEW - search by article_number or content, case-insensitive)
+    - `search`: str (search by article_number or content, case-insensitive)
     - `lang`: str (language filter)
+    - `law_type`: str (NEW - filter by law type: patent-act, trademark-act, etc.)
   - Search Implementation:
     - Uses MongoDB `$regex` with case-insensitive flag
     - Searches in both `article_number` and `content` fields using `$or`
     - Can be combined with chapter filter and other filters
-    - Example: `/api/laws?search=發明&chapter=第二章&page=1`
+    - **NEW**: All queries automatically filtered by selected law_type from session
+    - Example: `/api/laws?search=發明&chapter=第二章&law_type=patent-act&page=1`
+
+### 2.4 Law Type Management Endpoints (NEW)
+- `GET /api/law-types`: Get list of available law types. Returns `[{ type, name_zh, name_en, article_count }]`. **Requires login.**
+- `POST /api/law-types/select`: Set current law type in session. Parameters: `law_type`. **Requires login.**
+- `GET /api/law-types/current`: Get current selected law type from session. **Requires login.**
 
 ## 3. Database Schema (MongoDB)
 
@@ -84,10 +91,17 @@ class LawModel:
     article_number: str
     content: str
     chapter: str
+    type: str = "patent-act"  # NEW: Law type identifier (patent-act, trademark-act, etc.)
     article_number_int: int = 0  # For sorting
     lang: str = "zh-TW"  # Language tag (zh-TW or en)
     # REMOVED: is_starred, total_score, attempt_count, avg_score (now per-user)
 ```
+
+**Supported Law Types:**
+- `"patent-act"` - 專利法 (Taiwan Patent Law)
+- `"trademark-act"` - 商標法 (Taiwan Trademark Law) [Future]
+- `"copyright-act"` - 著作權法 (Taiwan Copyright Law) [Future]
+- Additional law types can be added as needed
 
 **questions**
 ```python
@@ -157,6 +171,7 @@ class I18nMappingModel:
     zh_tw_law_id: str      # ObjectId of zh-TW law
     en_law_id: str         # ObjectId of en law
     article_number: str    # Common article number (e.g., "Article 1")
+    type: str              # NEW: Law type (patent-act, trademark-act, etc.)
 ```
 
 ### 3.2 Index Strategy (NEW)
@@ -178,6 +193,14 @@ user_law_stats.create_index([("user_id", 1), ("law_id", 1)], unique=True)
 # user_question_stars collection
 user_question_stars.create_index([("user_id", 1), ("question_id", 1)], unique=True)
 user_question_stars.create_index("user_id")
+
+# laws collection - Multi-law support (NEW)
+laws.create_index("type")  # For filtering by law type
+laws.create_index([("type", 1), ("lang", 1)])  # Combined filter
+laws.create_index([("type", 1), ("article_number_int", 1)])  # For sorted queries
+
+# i18n_mapping collection - Multi-law support (NEW)
+i18n_mapping.create_index([("type", 1), ("article_number", 1)])  # For law type specific lookups
 ```
 
 ## 4. LLM Integration (OpenRouter)
@@ -364,3 +387,300 @@ else:
 - New EN laws from `knowledge/patent_law_en.json` are inserted with `lang: en`
 - Bidirectional mapping is stored in a separate `i18n_mapping` collection for easy lookups
 - Law detail pages can show both versions side-by-side or allow language switching (UI enhancement for future)
+
+## 9. Multi-Law Support Architecture (NEW)
+
+### 9.1 Design Overview
+
+**Goal**: Support multiple law types (Patent Law, Trademark Law, Copyright Law, etc.) within the same system while maintaining data integrity and user experience.
+
+**Key Principles**:
+1. **Backward Compatibility**: Existing Patent Law data remains functional with default `type = "patent-act"`
+2. **Data Isolation**: Each law type is completely independent with separate articles, questions, and statistics
+3. **Session-Based Selection**: User's current law type is stored in Flask session for seamless navigation
+4. **Minimal Code Changes**: Leverage existing architecture with targeted filter additions
+
+### 9.2 Law Type Definition
+
+**Supported Law Types**:
+```python
+LAW_TYPES = {
+    "patent-act": {
+        "name_zh": "專利法",
+        "name_en": "Patent Law",
+        "code": "patent-act"
+    },
+    "trademark-act": {
+        "name_zh": "商標法",
+        "name_en": "Trademark Law",
+        "code": "trademark-act"
+    },
+    "copyright-act": {
+        "name_zh": "著作權法",
+        "name_en": "Copyright Law",
+        "code": "copyright-act"
+    }
+}
+```
+
+**Default Law Type**: `"patent-act"` (for backward compatibility)
+
+### 9.3 Data Migration Strategy
+
+**Phase 1: Schema Update**
+1. Add `type` field to [`LawModel`](db/models.py:18-24) with default value `"patent-act"`
+2. Add `type` field to [`I18nMappingModel`](db/models.py:77-82)
+3. Update database indexes to include `type` field
+4. Create migration script to update existing data
+
+**Phase 2: Database Migration**
+```python
+# Migration Script: scripts/migrate_add_law_type.py
+
+def migrate_laws_add_type():
+    """Add type='patent-act' to all existing law articles"""
+    result = laws_collection.update_many(
+        {"type": {"$exists": False}},  # Only update documents without type field
+        {"$set": {"type": "patent-act"}}
+    )
+    print(f"Updated {result.modified_count} law articles")
+
+def migrate_i18n_mapping_add_type():
+    """Add type='patent-act' to all existing i18n mappings"""
+    result = i18n_mapping_collection.update_many(
+        {"type": {"$exists": False}},
+        {"$set": {"type": "patent-act"}}
+    )
+    print(f"Updated {result.modified_count} i18n mappings")
+
+def create_indexes():
+    """Create new indexes for law type filtering"""
+    laws_collection.create_index("type")
+    laws_collection.create_index([("type", 1), ("lang", 1)])
+    laws_collection.create_index([("type", 1), ("article_number_int", 1)])
+    i18n_mapping_collection.create_index([("type", 1), ("article_number", 1)])
+    print("Indexes created successfully")
+```
+
+**Migration Validation**:
+- Verify all laws have `type` field: `laws_collection.count_documents({"type": {"$exists": False}})`
+- Verify all i18n mappings have `type` field: `i18n_mapping_collection.count_documents({"type": {"$exists": False}})`
+- Test queries with type filter work correctly
+- Verify no orphaned questions (all questions have valid `law_id` with correct type)
+
+**Rollback Plan**:
+```python
+# If migration fails, remove type field
+laws_collection.update_many({}, {"$unset": {"type": ""}})
+i18n_mapping_collection.update_many({}, {"$unset": {"type": ""}})
+```
+
+### 9.4 Session Management for Law Type
+
+**Session Storage**:
+```python
+# Store in Flask session
+session['current_law_type'] = 'patent-act'  # Default value
+
+# Helper functions in services/auth.py
+def get_current_law_type() -> str:
+    """Get current law type from session, default to patent-act"""
+    return session.get('current_law_type', 'patent-act')
+
+def set_current_law_type(law_type: str):
+    """Set current law type in session"""
+    if law_type in LAW_TYPES:
+        session['current_law_type'] = law_type
+        return True
+    return False
+```
+
+**API Endpoints**:
+- `GET /api/law-types`: List all available law types with article counts
+- `POST /api/law-types/select`: Change current law type in session
+- `GET /api/law-types/current`: Get current selected law type
+
+### 9.5 Query Modification Pattern
+
+**All queries must include law type filter**. Here are the key patterns:
+
+**Laws Query** (routes/laws.py):
+```python
+# Before:
+query_filter = {}
+if chapter:
+    query_filter['chapter'] = chapter
+
+# After:
+law_type = get_current_law_type()  # Get from session
+query_filter = {'type': law_type}  # REQUIRED filter
+if chapter:
+    query_filter['chapter'] = chapter
+```
+
+**Questions Query via Laws** (services/inventory.py):
+```python
+# Before:
+laws = list(laws_collection.find({}, {"_id": 1}))
+
+# After:
+law_type = get_current_law_type()
+laws = list(laws_collection.find({"type": law_type}, {"_id": 1}))
+```
+
+**Question Generation** (services/question_gen.py):
+```python
+# When generating questions, ensure law_id belongs to current law type
+law = laws_collection.find_one({"_id": ObjectId(law_id)})
+if law and law.get('type') != get_current_law_type():
+    raise ValueError(f"Law {law_id} does not belong to current law type")
+```
+
+**Dashboard Statistics** (routes/frontend.py):
+```python
+# Filter statistics by current law type
+law_type = get_current_law_type()
+# Get laws for this type
+law_ids = [str(law['_id']) for law in laws_collection.find(
+    {"type": law_type},
+    {"_id": 1}
+)]
+# Filter user stats by these law_ids
+stats = user_law_stats_collection.find({
+    "user_id": ObjectId(user_id),
+    "law_id": {"$in": law_ids}
+})
+```
+
+### 9.6 UI/UX Changes
+
+**Law Type Selector**:
+- Add law type dropdown in navigation bar or dashboard
+- Display current law type prominently (e.g., "當前法律: 專利法")
+- Allow users to switch law types with instant filter update
+
+**Visual Indicators**:
+- Show law type badge on law article cards
+- Display law type in quiz configuration
+- Include law type in session summary
+
+**Breadcrumb Updates**:
+- Dashboard → [Law Type] → Quiz Config
+- Dashboard → [Law Type] → Law Browser → Law Detail
+
+### 9.7 Adding New Law Types
+
+**Process**:
+1. Prepare law content files (markdown or JSON) with proper structure
+2. Create initialization script (e.g., `scripts/init_trademark_law.py`)
+3. Parse and insert law articles with `type = "trademark-act"`
+4. Create i18n mappings if multi-language support needed
+5. Verify data integrity and indexes
+6. Update `LAW_TYPES` constant in code
+
+**Example Init Script**:
+```python
+# scripts/init_trademark_law.py
+from services.law_parser import LawParser
+from db.models import laws_collection
+
+def init_trademark_law():
+    parser = LawParser()
+    
+    # Parse zh-TW version
+    with open('knowledge/trademark_law_zh.md', 'r') as f:
+        laws_zh = parser.parse(f.read())
+        for law in laws_zh:
+            law['type'] = 'trademark-act'
+            law['lang'] = 'zh-TW'
+            laws_collection.insert_one(law)
+    
+    # Parse EN version
+    with open('knowledge/trademark_law_en.md', 'r') as f:
+        laws_en = parser.parse(f.read())
+        for law in laws_en:
+            law['type'] = 'trademark-act'
+            law['lang'] = 'en'
+            laws_collection.insert_one(law)
+    
+    print("Trademark Law initialized successfully")
+```
+
+### 9.8 Testing Strategy
+
+**Unit Tests**:
+- Test `get_current_law_type()` with/without session data
+- Test `set_current_law_type()` with valid/invalid types
+- Test query filters include law type
+
+**Integration Tests**:
+- Test law listing filtered by type
+- Test quiz session creation with law type filter
+- Test statistics aggregation per law type
+- Test switching between law types maintains correct data
+
+**Migration Tests**:
+- Test migration script is idempotent (can run multiple times)
+- Test all existing data gets `type = "patent-act"`
+- Test no data loss during migration
+- Test rollback procedure works correctly
+
+### 9.9 Performance Considerations
+
+**Index Strategy**:
+- `laws.type` (single field index)
+- `laws.(type, lang)` (compound index for filtered i18n queries)
+- `laws.(type, article_number_int)` (compound index for sorted queries)
+- `i18n_mapping.(type, article_number)` (compound index for lookups)
+
+**Query Optimization**:
+- Always filter by law type early in query pipeline
+- Use projection to limit returned fields
+- Batch queries where possible to reduce database round trips
+
+**Caching Opportunities**:
+- Cache law type metadata (names, counts) in memory
+- Cache current user's law type selection
+- Consider caching frequently accessed law articles
+
+### 9.10 Error Handling
+
+**Common Error Scenarios**:
+1. **Invalid law type**: Return 400 with error message "無效的法律類型"
+2. **No laws found for type**: Return empty list with message "此法律尚未初始化"
+3. **Type mismatch**: When law_id doesn't match current type, return 403 "此法條不屬於當前法律類型"
+4. **Migration failure**: Log error, rollback changes, notify admin
+
+**Graceful Degradation**:
+- If law type not in session, default to "patent-act"
+- If invalid type provided, fallback to "patent-act"
+- Log warnings for debugging but don't break user experience
+
+### 9.11 Security Considerations
+
+**Access Control**:
+- Users can only access law types they have permission for (future enhancement)
+- No direct database manipulation via API
+- Validate all law type parameters against whitelist
+
+**Data Integrity**:
+- Foreign key relationships maintained via `law_id` references
+- Prevent orphaned questions when law type is removed
+- Cascade effects documented and tested
+
+### 9.12 Documentation Updates
+
+**For Developers**:
+- Update README with multi-law support overview
+- Document query filter requirements in code comments
+- Create migration guide with step-by-step instructions
+
+**For Administrators**:
+- Document how to add new law types
+- Provide troubleshooting guide for common issues
+- Create data validation scripts
+
+**For Users**:
+- Update UI help text to explain law type selection
+- Provide FAQ about switching between law types
+- Clarify progress tracking is per law type

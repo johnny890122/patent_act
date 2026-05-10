@@ -217,12 +217,74 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// ==================== Law Type Management (NEW) ====================
+// Get available law types
+async function getLawTypes() {
+    try {
+        const response = await fetch('/api/law-types');
+        if (response.ok) {
+            return await response.json();
+        }
+        return null;
+    } catch (error) {
+        console.error('Failed to get law types:', error);
+        return null;
+    }
+}
+
+// Get current law type
+async function getCurrentLawType() {
+    try {
+        const response = await fetch('/api/law-types/current');
+        if (response.ok) {
+            return await response.json();
+        }
+        return null;
+    } catch (error) {
+        console.error('Failed to get current law type:', error);
+        return null;
+    }
+}
+
+// Set current law type
+async function setLawType(lawType) {
+    try {
+        const response = await fetch('/api/law-types/select', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ law_type: lawType })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            showToast(`已切換至：${data.name_zh}`, 'success');
+            // Reload page to reflect changes
+            setTimeout(() => window.location.reload(), 500);
+            return true;
+        } else {
+            const error = await response.json();
+            showToast(error.error || '切換法律類型失敗', 'error');
+            return false;
+        }
+    } catch (error) {
+        console.error('Failed to set law type:', error);
+        showToast('切換法律類型時發生錯誤', 'error');
+        return false;
+    }
+}
+
 // Export utilities for use in other scripts
 window.appUtils = {
     showToast,
     formatDate,
     apiCall,
-    storage
+    storage,
+    // Law type management (NEW)
+    getLawTypes,
+    getCurrentLawType,
+    setLawType
 };
 
-console.log('📚 專利法 AI 刷題助手已載入');
+console.log('📚 法律 AI 刷題助手已載入（支持多法律類型）');

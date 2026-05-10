@@ -1,319 +1,604 @@
-# Tasks Document: 專利法 AI 刷題助手
+# Tasks: 多法律支持功能實作
 
-## Phase 1: Setup & Initialization
-- [x] 1.1 Project scaffolding (Create directories: `routes/`, `services/`, `db/`).
-- [x] 1.2 Initialize Flask app setup in `app.py`.
-- [x] 1.3 Setup MongoDB connection logic in `db/models.py`.
-- [x] 1.4 Write admin script/endpoint (`routes/admin.py`) to parse `knowledge/ch1.md` and seed `laws` collection. (Using mock up for now)
+## Overview
+本任務清單實作多法律類型支持功能，使系統能夠處理專利法、商標法、著作權法等多種法律。所有現有專利法數據將遷移為 `type="patent-act"`，並確保系統邏輯正確過濾法律類型。
 
-## Phase 2: Services Implementation (LLM & Business Logic)
-- [x] 2.1 Implement `services/question_gen.py` to talk to OpenRouter and parse JSON for MCQ and Short Answer. (Enhanced with Pydantic validation)
-- [x] 2.2 Implement `services/grader.py` to evaluate short answers returning 0, 0.5, or 1. (Implemented with Pydantic validation and comprehensive tests)
-- [x] 2.3 Implement `services/inventory.py` to handle the `n`, `4n` inventory logic and async generation trigger. (Implemented with comprehensive tests)
+---
 
-## Phase 3: Core API Endpoints
-- [x] 3.1 Implement `POST /quiz/session` in `routes/quiz.py` (handles new, review, mixed modes).
-- [x] 3.2 Implement `POST /quiz/session/:id/answer` for MCQ and Short Answer submissions and score updating.
-- [x] 3.3 Implement `POST /quiz/session/:id/answer/:aid/appeal` for reversing scores logic.
-- [x] 3.4 Implement `DELETE /questions/:qid` for soft deleting questions.
-- [x] 3.5 Implement `GET` routes and `PUT /laws/:id/star` in `routes/laws.py` for laws browser.
+## Phase 1: 數據模型與遷移 (Data Model & Migration)
 
-## Phase 4: Frontend & Integration (Mobile Web)
-- [x] 4.1 Build basic HTML/CSS/JS templates for Dashboard (S-01) and Law Article Browser (S-07).
-- [x] 4.2 Build Quiz Config (S-02) UI and wire to `POST /quiz/session`.
-- [x] 4.3 Build Quiz Loop UI (S-04, S-05) handling both MCQ and Short Answer inputs.
-- [x] 4.4 Build Session Summary (S-06) and bind appeal/delete interactions.
-- [x] 4.5 Test end-to-end question generation, answering, and grading loop.
-- [x] 4.6 Build Law Article Detail (S-08) with pagination and sorting (latest first).
-- [ ] 4.6 http://127.0.0.1:5001/laws/69f4e2eb9e35bb6f6b0bad67, 法條詳情頁面開發中
+### Task 1.1: 更新數據模型定義
+**File**: [`db/models.py`](../db/models.py)
 
-## Phase 5: Design System ✅
-- [x] Import the https://www.muicss.com/ into this app
-- [x] Integrate knowledge/react-design-system-primitives.json and knowledge/react-design-system-tokens.json design system to the repo, unify the styling and layout
+- [ ] 在 `LawModel` 中添加 `type: str = "patent-act"` 欄位
+- [ ] 在 `I18nMappingModel` 中添加 `type: str` 欄位
+- [ ] 添加 `LAW_TYPES` 常量定義支持的法律類型
+- [ ] 更新 `init_db()` 方法，添加新的索引：
+  - [ ] `laws.create_index("type")`
+  - [ ] `laws.create_index([("type", 1), ("lang", 1)])`
+  - [ ] `laws.create_index([("type", 1), ("article_number_int", 1)])`
+  - [ ] `i18n_mapping.create_index([("type", 1), ("article_number", 1)])`
 
-## Phase 5: UI refinement ✅
-- [x] homepage (route: http://127.0.0.1:5001)
-    - [x] Remove '🔥 連續答對天數' and '⭐ 收藏的法條' cards
-    - [x] 加入顯示「收藏題目」功能
+**Validation**:
+- 執行 `python -c "from db.models import LawModel; import dataclasses; print(dataclasses.fields(LawModel))"` 確認新欄位存在
+- 確認 `type` 欄位有預設值 `"patent-act"`
 
-- [x] http://127.0.0.1:5001/laws
-    - [x] 請考慮在手機版面的顯示畫面，讓法條內容可以完整顯示
-    - [x] 重新設計佈局：條號和星號在上方，條文佔據完整寬度
-    - [x] 優化統計資訊間距，減少 margin
-    - [x] 法條應該要按照條目照順序顯示，目前 1 > 10 > 101，且所屬章節也不對
-- [x] http://127.0.0.1:5001/laws
+---
 
-    - [x] 添加依照章節的索引，例如 menu 或其他方式，可以快速定位
-        - [x] 添加左側章節索引側邊欄
-        - [x] 實現章節過濾功能
-        - [x] 添加側邊欄收合功能
-        - [x] 響應式設計（手機版自動調整）
+### Task 1.2: 建立數據遷移腳本
+**File**: `scripts/migrate_add_law_type.py` (新建)
 
-- [x] templates/law_detail.html
-    - [x] 移除 <div class="summary-stat">
-                    <div class="stat-value" id="question-count">0</div>
-                    <div class="stat-label">相關題目</div>
-                </div>
-    - [x] 下方題目只顯示已作答過的題目（修改 API 和前端邏輯）
-        - [x] 修改 [`routes/laws.py`](../routes/laws.py) 的 `get_law_questions` 函數，僅回傳有 user_progress 記錄的題目
-        - [x] 移除 JavaScript 中對已刪除元素的引用
-    
-    - [x] http://127.0.0.1:5001/laws/69f594e89e35bb6f6b0c6c5c
-        - [x] 相關題目的選項放成同一行（已改為垂直排列，每個選項獨立一行）
-        - [x] 加入答錯、收藏題目的選項
-            - [x] 在 [`routes/laws.py`](../routes/laws.py:318) 添加 questions_bp blueprint
-            - [x] 實作 `/api/questions/<id>/star` API 端點切換題目收藏狀態
-            - [x] 更新 [`app.py`](../app.py:6) 註冊 questions_bp
-            - [x] 在 [`templates/law_detail.html`](../templates/law_detail.html:68) 添加「已收藏」和「答錯題」篩選標籤
-            - [x] 在 [`static/css/style.css`](../static/css/style.css:1748) 添加 .btn-icon-small 按鈕樣式
-            - [x] **答錯標記改為自動判斷** (方案 B)：
-                - [x] 移除 `is_marked_wrong` 欄位（不再存儲在 questions collection）
-                - [x] 修改 [`routes/laws.py`](../routes/laws.py:263) 的 `get_law_questions` API，根據 `user_progress.last_score < 0.7` 自動判斷答錯狀態
-                - [x] 移除手動標記 API (`/api/questions/<id>/mark-wrong`)
-                - [x] 更新前端顯示：自動顯示答錯標記和分數，無需手動按鈕
-                - [x] 題目卡片顯示最後答題分數和答錯/答對狀態
+- [ ] 建立遷移腳本檔案
+- [ ] 實作 `migrate_laws_add_type()` 函數：
+  - [ ] 查找所有沒有 `type` 欄位的 law 文檔
+  - [ ] 批量更新為 `type="patent-act"`
+  - [ ] 記錄更新數量並輸出
+- [ ] 實作 `migrate_i18n_mapping_add_type()` 函數：
+  - [ ] 查找所有沒有 `type` 欄位的 i18n_mapping 文檔
+  - [ ] 批量更新為 `type="patent-act"`
+  - [ ] 記錄更新數量並輸出
+- [ ] 實作 `create_new_indexes()` 函數：
+  - [ ] 建立上述所有新索引
+  - [ ] 處理索引已存在的情況
+- [ ] 實作 `validate_migration()` 函數：
+  - [ ] 驗證所有 laws 都有 `type` 欄位
+  - [ ] 驗證所有 i18n_mappings 都有 `type` 欄位
+  - [ ] 統計各 type 的文檔數量
+- [ ] 實作 `rollback_migration()` 函數（備用）：
+  - [ ] 移除所有 `type` 欄位
+  - [ ] 清除相關索引
+- [ ] 添加主函數和 CLI 參數處理
+- [ ] 添加詳細的日誌輸出
 
-## Phase 6: Law Insertion ✅
- - [x] use the law in knowledge/patent_law.md, generate a truth_law.json, and insert to the local db and remote db
-   - [x] 創建 [`scripts/parse_patent_law.py`](../scripts/parse_patent_law.py) 解析 [`knowledge/patent_law.md`](../knowledge/patent_law.md)
-   - [x] 生成 [`knowledge/truth_law.json`](../knowledge/truth_law.json) (共 168 條法條)
-   - [x] 創建 [`scripts/init_truth_laws.py`](../scripts/init_truth_laws.py) 插入資料庫
-   - [x] 成功插入 168 條法條到本地資料庫 (mongodb://localhost:27017/patent-act)
-   - [x] 成功插入 168 條法條到遠端資料庫 (MongoDB Atlas)
-   - [v] 1 本法主管機關為經濟部。 2 專利業務，由經濟部指定專責機關辦理。
+**Validation**:
+- 在本地測試數據庫執行遷移
+- 驗證遷移是冪等的（可以多次執行）
+- 確認 rollback 功能正常運作
+- 執行後確認 `db.laws.find({"type": {"$exists": false}}).count() == 0`
 
-        在 http://127.0.0.1:5001/laws/69f594e89e35bb6f6b0c6c60  和 http://127.0.0.1:5001/laws/
+---
 
-        有些條文會有細項，我希望用分行符號顯示
+### Task 1.3: 執行數據遷移
+**執行步驟**:
 
-        在 init 時就要插入
+- [ ] 在本地環境先測試遷移：
+  ```bash
+  python scripts/migrate_add_law_type.py --dry-run
+  ```
+- [ ] 確認 dry-run 結果正確後執行實際遷移：
+  ```bash
+  python scripts/migrate_add_law_type.py --execute
+  ```
+- [ ] 驗證遷移結果：
+  ```bash
+  python scripts/migrate_add_law_type.py --validate
+  ```
+- [ ] 記錄遷移結果（更新的文檔數量）
+- [ ] 備份當前數據庫狀態（在生產環境執行前）
 
-## Phase 7: Config:
-    - [x] http://127.0.0.1:5001/quiz/config
-        - [x] 請 參考 law 的頁面，讓這裡變得更加緊湊，在手機上好閱讀
+**Production Migration**:
+- [ ] 在 staging 環境測試完整流程
+- [ ] 建立生產數據庫備份
+- [ ] 在維護時段執行生產遷移
+- [ ] 驗證生產環境遷移結果
+- [ ] 監控遷移後系統運行狀態
 
-## Phase 8: quiz
-    - [x] http://127.0.0.1:5001/quiz/session/69f59e8864ece7c6eb17c931
-        - [x] 在看答案時，刷新會回到題目（已修復：使用 localStorage 保存答案狀態）
-        - [x] 讓答案正確、您的答案、正確答案的顯示更緊湊
-            - [x] 答錯時，解析是重點（已實現：答對時緊湊顯示單行，答錯時突出顯示 AI 解析）
-        - [x] 選擇題評分錯誤：前端送完整選項，後端只儲存字母（已修復：提取選項字母進行比對）
-        - [x] 正確答案只顯示字母 "B"，應該顯示完整選項（已修復：從 options 找到完整選項文字）
-        - [x] 答錯時顯示題目和所有選項，並標注正確答案和用戶選擇（已實現：新增選項審閱顯示）
-        - [x] 在完全正確的頁面下，加入題目跟選項，但預設收合（已實現：新增可收合區塊，點擊展開/收合）
+---
 
-## Phase 9: Insufficient Questions Warning ⏳
-    - [ ] 9.1 Backend: 實作 `GET /api/quiz/available` API 端點
-        - [ ] 在 [`routes/quiz.py`](../routes/quiz.py) 添加新端點
-        - [ ] 接受 `type` 和 `mode` 參數
-        - [ ] 呼叫 [`services/inventory.py`](../services/inventory.py) 的 `count_available_questions()`
-        - [ ] 返回 JSON: `{ "available": int }`
-    
-    - [ ] 9.2 Frontend: 在配置頁面添加即時檢查
-        - [ ] 修改 [`templates/quiz_config.html`](../templates/quiz_config.html)
-        - [ ] 當用戶更改 type/mode/count 時，即時呼叫 `/api/quiz/available`
-        - [ ] 顯示可用題數提示 (例如: "可用題數: 2 題")
-        - [ ] 若 `count > available`，顯示警告標記
-    
-    - [ ] 9.3 Frontend: 實作題目不足警告彈窗
-        - [ ] 在提交前檢查 `count > available`
-        - [ ] 顯示模態對話框: "目前只有 X 題需要複習，是否要調整題數或改為混合模式？"
-        - [ ] 提供三個選項按鈕:
-            - [ ] "使用現有的 X 題" (自動調整 count)
-            - [ ] "改為混合模式" (切換 mode 為 mixed)
-            - [ ] "取消" (關閉對話框)
-    
-    - [ ] 9.4 Backend: 修改 inventory 邏輯（可選）
-        - [ ] 考慮在 [`services/inventory.py`](../services/inventory.py) 的 `get_session_questions()` 中
-        - [ ] 當 `available < count` 時返回錯誤而非自動生成
-        - [ ] 或保持現有邏輯作為後備方案
-    
-    - [ ] 9.5 Testing: 測試題目不足情境
-        - [ ] 測試只有 2 題複習題，請求 10 題的情況
-        - [ ] 驗證警告彈窗正確顯示
-        - [ ] 測試三個選項的功能
-        - [ ] 確保調整後能正常開始測驗
+## Phase 2: 核心服務層更新 (Core Services)
 
-## Phase 9: Internationalization (i18n) - Content & Questions
+### Task 2.1: 更新認證服務添加法律類型管理
+**File**: [`services/auth.py`](../services/auth.py)
 
-### 9.1 Database Schema Updates
-- [ ] TASK-9.1.1: Update `LawModel` in [`db/models.py`](../db/models.py) to add `lang: str = "zh-TW"` field [REQ-7]
-- [ ] TASK-9.1.2: Update `QuestionModel` in [`db/models.py`](../db/models.py) to add `lang` and `base_question_id` fields [REQ-7]
-- [ ] TASK-9.1.3: Create `I18nMappingModel` in [`db/models.py`](../db/models.py) for bidirectional law article linking [REQ-7]
-- [ ] TASK-9.1.4: Create MongoDB index on `(law_id, lang)` and `(base_question_id, lang)` for efficient i18n queries
+- [ ] 添加 `LAW_TYPES` 常量導入
+- [ ] 實作 `get_current_law_type() -> str` 函數：
+  - [ ] 從 Flask session 獲取 `current_law_type`
+  - [ ] 如果不存在，返回預設值 `"patent-act"`
+- [ ] 實作 `set_current_law_type(law_type: str) -> bool` 函數：
+  - [ ] 驗證 law_type 在 LAW_TYPES 中
+  - [ ] 如果有效，儲存到 session
+  - [ ] 返回操作結果
+- [ ] 實作 `get_available_law_types() -> List[Dict]` 函數：
+  - [ ] 查詢每個法律類型的法條數量
+  - [ ] 返回格式：`[{type, name_zh, name_en, count_zh_tw, count_en}]`
+- [ ] 添加單元測試
 
-### 9.2 Law Article i18n Initialization
-- [ ] TASK-9.2.1: Parse [`knowledge/patent_law_en.md`](../knowledge/patent_law_en.md) and generate [`knowledge/truth_law_en.json`](../knowledge/truth_law_en.json) using [`scripts/parse_patent_law_en.py`](../scripts/parse_patent_law_en.py) [REQ-7]
-- [ ] TASK-9.2.2: Modify [`scripts/init_truth_laws.py`](../scripts/init_truth_laws.py) to add `lang` field to zh-TW laws during insertion (backfill existing data) [REQ-7]
-- [ ] TASK-9.2.3: Create new script [`scripts/init_truth_laws_en.py`](../scripts/init_truth_laws_en.py) to insert English laws with `lang: en` [REQ-7]
-- [ ] TASK-9.2.4: Create [`scripts/create_i18n_mapping.py`](../scripts/create_i18n_mapping.py) to populate `i18n_mapping` collection for zh-TW ↔ en law pairs [REQ-7]
-- [ ] TASK-9.2.5: Execute backfill + insertion scripts for both local and remote databases [REQ-7]
+**Validation**:
+- 測試 session 中有/無 law_type 的情況
+- 測試無效 law_type 的處理
+- 驗證預設值返回正確
 
-### 9.3 Translation Service & Question Generation
-- [ ] TASK-9.3.1: Create [`services/translator.py`](../services/translator.py) with methods:
-  - `translate_question_to_en(question_dict) → dict` — translates a single zh-TW question to EN
-  - `generate_bilingual_question(law_content, question_type) → tuple[dict, dict]` — generates both zh-TW and EN versions simultaneously [REQ-7.1]
-- [ ] TASK-9.3.2: Update [`services/question_gen.py`](../services/question_gen.py) to use translator for bilingual generation [REQ-7.1]
-  - Modify prompt to request both zh-TW and EN in a single LLM call
-  - Ensure semantic consistency between languages
-  - Link both versions via shared `base_question_id`
-- [ ] TASK-9.3.3: Test bilingual question generation end-to-end with sample law articles [REQ-7.1]
+---
 
-### 9.4 Data Migration: Translate Existing Questions
-- [ ] TASK-9.4.1: Create [`scripts/migrate_questions_to_en.py`](../scripts/migrate_questions_to_en.py) script to:
-  - Iterate over all zh-TW questions in `questions` collection
-  - Call `translator.translate_question_to_en()` for each
-  - Insert EN version with shared `base_question_id`
-  - Log translation results and any failures [REQ-7.1]
-- [ ] TASK-9.4.2: Test migration on local database with 10% of questions (dry-run with logging)
-- [ ] TASK-9.4.3: Execute migration on local database and verify question counts [REQ-7.1]
-- [ ] TASK-9.4.4: Execute migration on remote (production) database [REQ-7.1]
+### Task 2.2: 更新題目庫存服務
+**File**: [`services/inventory.py`](../services/inventory.py)
 
-### 9.5 Frontend: Display Bilingual Question Content
-- [ ] TASK-9.5.1: Modify [`routes/quiz.py`](../routes/quiz.py) `POST /quiz/session` to accept optional `lang` parameter (default: zh-TW)
-- [ ] TASK-9.5.2: Update [`routes/laws.py`](../routes/laws.py) `GET /laws` endpoint to support language filtering (`?lang=zh-TW` or `?lang=en`)
-- [ ] TASK-9.5.3: Modify law article detail template to display law content in the selected language
-- [ ] TASK-9.5.4: Update quiz session template to show question content in selected language
+- [ ] 在 `count_available_questions()` 方法添加 `law_type` 參數：
+  - [ ] 參數預設值為 `None`（從 session 獲取）
+  - [ ] 如果為 `None`，調用 `get_current_law_type()`
+- [ ] 更新查詢邏輯，添加法律類型過濾：
+  - [ ] 在獲取 laws 時添加 `{"type": law_type}` 過濾
+  - [ ] 確保只計算該法律類型的題目
+- [ ] 在 `get_questions_for_session()` 方法添加相同的過濾邏輯
+- [ ] 在 `trigger_generation()` 方法中傳遞 law_type 到題目生成器
+- [ ] 更新所有相關的輔助方法
 
-### 9.6 Testing & Validation
-- [ ] TASK-9.6.1: Create [`test/test_i18n_migration.py`](../test/test_i18n_migration.py) — test question translation and data migration logic
-- [ ] TASK-9.6.2: Create [`test/test_i18n_schema.py`](../test/test_i18n_schema.py) — verify database schema changes and indexes
-- [ ] TASK-9.6.3: Create [`test/test_bilingual_questions.py`](../test/test_bilingual_questions.py) — end-to-end test for generating bilingual questions
-- [ ] TASK-9.6.4: Run all tests and ensure no regression in existing functionality
+**Validation**:
+- 測試只返回指定 law_type 的題目
+- 測試不同 law_type 之間的題目完全隔離
+- 驗證題目計數正確
 
-## Phase 10: Multi-User Support (NEW)
+---
 
-### 10.1 Database Schema Updates
-- [ ] TASK-10.1.1: Create `UserModel` in [`db/models.py`](../db/models.py) with fields: `username`, `display_name`, `created_at`, `last_login` [REQ-8]
-- [ ] TASK-10.1.2: Create `UserLawStarModel` in [`db/models.py`](../db/models.py) for per-user law stars [REQ-8.2]
-- [ ] TASK-10.1.3: Create `UserLawStatsModel` in [`db/models.py`](../db/models.py) for per-user law statistics [REQ-8.2]
-- [ ] TASK-10.1.4: Create `UserQuestionStarModel` in [`db/models.py`](../db/models.py) for per-user question stars [REQ-8.2]
-- [ ] TASK-10.1.5: Update `UserProgressModel` to add `user_id` field [REQ-8.2]
-- [ ] TASK-10.1.6: Remove `is_starred`, `total_score`, `attempt_count`, `avg_score` from `LawModel` (移至 per-user collections) [REQ-8.2]
-- [ ] TASK-10.1.7: Remove `is_starred` from `QuestionModel` (移至 per-user collections) [REQ-8.2]
-- [ ] TASK-10.1.8: Update MongoDB indexes in [`db/models.py`](../db/models.py):
-  - Add `username` unique index on `users` collection
-  - Add composite index `(user_id, question_id)` on `user_progress`
-  - Add composite index `(user_id, law_id)` on `user_law_stars` and `user_law_stats`
-  - Add composite index `(user_id, question_id)` on `user_question_stars`
+### Task 2.3: 更新題目生成服務
+**File**: [`services/question_gen.py`](../services/question_gen.py)
 
-### 10.2 Authentication Service & Routes
-- [ ] TASK-10.2.1: Create [`services/auth.py`](../services/auth.py) with helper functions:
-  - `get_current_user() → Optional[str]` — Get user_id from session
-  - `get_current_user_info() → Optional[dict]` — Get full user info from session
-  - `login_required` decorator — Redirect to login if not authenticated [REQ-8.1]
-- [ ] TASK-10.2.2: Create [`routes/auth.py`](../routes/auth.py) with endpoints:
-  - `GET /auth/login` — Show login page
-  - `POST /auth/login` — Validate username and create session [REQ-8.1]
-  - `POST /auth/logout` — Clear session and redirect to login
-  - `GET /auth/current` — Return current user info (for frontend)
-- [ ] TASK-10.2.3: Register auth blueprint in [`app.py`](../app.py)
-- [ ] TASK-10.2.4: Configure `SECRET_KEY` in Flask app for session signing
+- [ ] 在生成題目前驗證 law_id 的法律類型：
+  - [ ] 查詢 law 文檔
+  - [ ] 確認其 `type` 欄位與當前 law_type 匹配
+  - [ ] 如果不匹配，拋出 `ValueError`
+- [ ] 在獲取最近題目時添加 law_type 過濾（通過 law_id 關聯）
+- [ ] 確保生成的題目只參考同一法律類型的法條
 
-### 10.3 Frontend: Login Page
-- [ ] TASK-10.3.1: Create [`templates/login.html`](../templates/login.html) with username input form [REQ-8.1]
-- [ ] TASK-10.3.2: Add login form styles to [`static/css/style.css`](../static/css/style.css)
-- [ ] TASK-10.3.3: Add client-side validation for username field
+**Validation**:
+- 測試不能為錯誤的 law_type 生成題目
+- 驗證題目去重邏輯在法律類型內正常運作
 
-### 10.4 Update Existing Routes for Multi-User
-- [ ] TASK-10.4.1: Update [`routes/quiz.py`](../routes/quiz.py) — Add `@login_required` decorator and filter by `user_id`:
-  - `GET /api/quiz/available` — Filter by current user's progress
-  - `POST /quiz/session` — Create session for current user
-  - `POST /quiz/session/:id/answer` — Update current user's progress
-  - `POST /quiz/session/:id/answer/:aid/appeal` — Appeal for current user [REQ-8.2]
-- [ ] TASK-10.4.2: Update [`routes/laws.py`](../routes/laws.py) — Add `@login_required` and user filtering:
-  - `GET /laws` — Show laws with current user's star status
-  - `PUT /laws/:id/star` — Toggle star for current user only
-  - `GET /laws/:id` — Show law detail with current user's stats
-  - `GET /api/laws/:id/questions` — Show questions with current user's progress [REQ-8.2]
-- [ ] TASK-10.4.3: Update [`routes/frontend.py`](../routes/frontend.py) — Add `@login_required` to dashboard and other pages [REQ-8.2]
+---
 
-### 10.5 Update Services for Multi-User
-- [ ] TASK-10.5.1: Update [`services/inventory.py`](../services/inventory.py):
-  - Modify `count_available_questions()` to accept and filter by `user_id`
-  - Modify `get_session_questions()` to filter by `user_id` [REQ-8.3]
-- [ ] TASK-10.5.2: Update [`services/grader.py`](../services/grader.py):
-  - Ensure grading saves to correct user's progress record
+## Phase 3: API 路由更新 (API Routes)
 
-### 10.6 Data Migration: Single-User to Multi-User
-- [ ] TASK-10.6.1: Create [`scripts/migrate_to_multiuser.py`](../scripts/migrate_to_multiuser.py) to:
-  - Create a default admin user (e.g., username: "admin", display_name: "Administrator")
-  - Migrate existing `user_progress` records to include default user's `user_id`
-  - Migrate law stars from `laws.is_starred` to `user_law_stars` collection for default user
-  - Migrate law stats from `laws` to `user_law_stats` collection for default user
-  - Migrate question stars from `questions.is_starred` to `user_question_stars` for default user [REQ-8.2]
-- [ ] TASK-10.6.2: Test migration script on local database
-- [ ] TASK-10.6.3: Create backup of production database
-- [ ] TASK-10.6.4: Execute migration on production database
+### Task 3.1: 添加法律類型管理 API
+**File**: `routes/law_types.py` (新建)
 
-### 10.7 Admin Tools: User Management
-- [ ] TASK-10.7.1: Create [`scripts/add_user.py`](../scripts/add_user.py) CLI tool to add new users:
-  - Accept `username` and `display_name` as arguments
-  - Validate username uniqueness
-  - Insert into `users` collection [REQ-8.4]
-- [ ] TASK-10.7.2: Document user management process in [`README.md`](../README.md)
+- [ ] 建立新的 Blueprint: `law_types_bp`
+- [ ] 實作 `GET /api/law-types` 端點：
+  - [ ] 調用 `get_available_law_types()`
+  - [ ] 返回所有可用的法律類型及統計
+  - [ ] 需要登入驗證 `@login_required`
+- [ ] 實作 `GET /api/law-types/current` 端點：
+  - [ ] 返回當前 session 中的 law_type
+  - [ ] 返回格式：`{type, name_zh, name_en}`
+- [ ] 實作 `POST /api/law-types/select` 端點：
+  - [ ] 接收 `law_type` 參數
+  - [ ] 調用 `set_current_law_type(law_type)`
+  - [ ] 返回操作結果和新的 law_type
+- [ ] 添加錯誤處理和輸入驗證
+- [ ] 在 [`app.py`](../app.py) 中註冊新的 Blueprint
 
-### 10.8 Frontend: Session & User Context
-- [ ] TASK-10.8.1: Update [`templates/base.html`](../templates/base.html) to:
-  - Show current user's display name in header
-  - Add logout button
-  - Check authentication status on page load
-- [ ] TASK-10.8.2: Update [`static/js/main.js`](../static/js/main.js):
-  - Add function to check current user (`GET /auth/current`)
-  - Redirect to login if not authenticated on protected pages
+**Validation**:
+- 測試獲取法律類型列表
+- 測試切換法律類型
+- 測試無效法律類型的錯誤處理
+- 驗證需要登入才能訪問
 
-### 10.9 Testing: Multi-User Functionality
-- [ ] TASK-10.9.1: Create [`test/test_auth.py`](../test/test_auth.py) — Test login, logout, session management
-- [ ] TASK-10.9.2: Create [`test/test_multiuser_isolation.py`](../test/test_multiuser_isolation.py) — Verify data isolation between users:
-  - User A's stars don't appear for User B
-  - User A's progress doesn't affect User B's progress
-  - Quiz sessions are correctly filtered by user [REQ-8.2]
-- [ ] TASK-10.9.3: Update existing tests to include authentication context
-- [ ] TASK-10.9.4: Test edge cases:
-  - Multiple users answering same question simultaneously
-  - User logout and re-login preserves data
-  - Invalid username login attempt
+---
 
-### 10.10 Documentation & Deployment
-- [ ] TASK-10.10.1: Update [`README.md`](../README.md) with multi-user setup instructions
-- [ ] TASK-10.10.2: Document how to add new users via MongoDB or script
-- [ ] TASK-10.10.3: Update environment variables documentation (add `SECRET_KEY` requirement)
-- [ ] TASK-10.10.4: Test complete user flow end-to-end:
-  - Admin adds new user
-  - New user logs in
-  - New user completes quiz session
-  - Verify data isolation
+### Task 3.2: 更新法條 API 路由
+**File**: [`routes/laws.py`](../routes/laws.py)
 
-## Phase 11: Law Search Feature ⏳
+- [ ] 在 `get_laws()` 函數開頭添加：
+  ```python
+  law_type = request.args.get('law_type') or get_current_law_type()
+  query_filter['type'] = law_type
+  ```
+- [ ] 在 `get_law_detail()` 函數中驗證法條類型：
+  - [ ] 獲取 law 文檔
+  - [ ] 檢查其 `type` 是否與當前 law_type 匹配
+  - [ ] 如果不匹配，返回 403 錯誤
+- [ ] 在 `toggle_law_star()` 函數中添加類型驗證
+- [ ] 在 `get_law_chapters()` 函數中添加 law_type 過濾
+- [ ] 在 `get_law_questions()` 函數中：
+  - [ ] 驗證 law 的類型
+  - [ ] 確保只返回該法律類型的題目
+- [ ] 更新所有相關統計查詢，添加 law_type 過濾
 
-### 11.1 Backend: Search API Implementation
-- [ ] TASK-11.1.1: Update [`routes/laws.py`](../routes/laws.py:25) `get_laws()` function to accept `search` query parameter [REQ-6.1]
-- [ ] TASK-11.1.2: Implement MongoDB text search using `$regex` with case-insensitive flag (`$options: "i"`)
-- [ ] TASK-11.1.3: Search logic should use `$or` to query both `article_number` and `content` fields
-- [ ] TASK-11.1.4: Ensure search filter can be combined with existing filters (chapter, starred, lang)
-- [ ] TASK-11.1.5: Test search with Chinese and English keywords
+**Validation**:
+- 測試法條列表只顯示指定類型
+- 測試訪問錯誤類型的法條返回 403
+- 測試統計數據按法律類型正確隔離
 
-### 11.2 Frontend: Search UI Integration
-- [ ] TASK-11.2.1: Update [`templates/laws.html`](../templates/laws.html:392) `filterLaws()` function to call backend API with search parameter
-- [ ] TASK-11.2.2: Remove placeholder toast message ("搜尋功能即將推出")
-- [ ] TASK-11.2.3: Implement real-time search with debounce (300ms) to reduce API calls
-- [ ] TASK-11.2.4: Update `fetchLaws()` to include `search` parameter in query string
-- [ ] TASK-11.2.5: Reset to page 1 when search term changes
-- [ ] TASK-11.2.6: Show "找不到法條" empty state when search returns no results
+---
 
-### 11.3 Search UX Enhancements
-- [ ] TASK-11.3.1: Ensure clear button (✕) properly resets search and fetches all laws
-- [ ] TASK-11.3.2: Display search result count in UI (e.g., "找到 5 條法條")
-- [ ] TASK-11.3.3: Maintain chapter filter when searching (search within chapter)
-- [ ] TASK-11.3.4: Clear search when switching chapters (avoid confusion)
-- [ ] TASK-11.3.5: Add loading indicator during search
-- [ ] TASK-11.3.6: Highlight search keywords in results (optional enhancement)
+### Task 3.3: 更新測驗 API 路由
+**File**: [`routes/quiz.py`](../routes/quiz.py)
 
-### 11.4 Testing: Search Functionality
-- [ ] TASK-11.4.1: Test search by article number (e.g., "第 10 條", "10")
-- [ ] TASK-11.4.2: Test search by content keywords (e.g., "發明", "專利權")
-- [ ] TASK-11.4.3: Test search with chapter filter combination
-- [ ] TASK-11.4.4: Test search with no results (empty state)
-- [ ] TASK-11.4.5: Test search debouncing (rapid typing doesn't cause excess API calls)
-- [ ] TASK-11.4.6: Test search in both zh-TW and EN languages
-- [ ] TASK-11.4.7: Verify pagination works correctly with search results
+- [ ] 在 `check_available_questions()` 端點添加：
+  - [ ] 從參數或 session 獲取 `law_type`
+  - [ ] 傳遞給 `count_available_questions()`
+- [ ] 在 `create_quiz_session()` 端點添加：
+  - [ ] 從參數或 session 獲取 `law_type`
+  - [ ] 傳遞給 `get_questions_for_session()`
+  - [ ] 在 session 記錄中儲存 `law_type`
+- [ ] 在題目生成觸發邏輯中傳遞 `law_type`
+- [ ] 確保所有題目查詢都經過 law 的類型過濾
+
+**Validation**:
+- 測試測驗只包含指定法律類型的題目
+- 測試背景生成只為當前法律類型生成題目
+- 驗證不同法律類型的進度完全獨立
+
+---
+
+### Task 3.4: 更新前端路由
+**File**: [`routes/frontend.py`](../routes/frontend.py)
+
+- [ ] 在 `dashboard()` 函數中：
+  - [ ] 獲取當前 law_type
+  - [ ] 篩選該類型的法條 IDs
+  - [ ] 統計數據只計算該法律類型
+  - [ ] 傳遞 law_type 到模板
+- [ ] 在 `laws_page()` 函數中傳遞當前 law_type
+- [ ] 在 `law_detail_page()` 函數中驗證法條類型
+
+**Validation**:
+- 測試儀表板統計按法律類型正確顯示
+- 測試切換法律類型後數據更新
+
+---
+
+## Phase 4: 前端界面更新 (Frontend UI)
+
+### Task 4.1: 添加法律類型選擇器組件
+**Files**: 
+- [`templates/base.html`](../templates/base.html)
+- [`static/js/main.js`](../static/js/main.js)
+
+- [ ] 在導航欄添加法律類型下拉選單：
+  - [ ] 顯示當前選中的法律類型
+  - [ ] 列出所有可用的法律類型
+  - [ ] 每個選項顯示中文名稱和法條數量
+- [ ] 實作 JavaScript 切換邏輯：
+  - [ ] 調用 `POST /api/law-types/select`
+  - [ ] 成功後重新加載頁面或更新數據
+  - [ ] 顯示切換成功的提示訊息
+- [ ] 添加 CSS 樣式使其美觀並響應式
+
+**Validation**:
+- 測試在各個頁面都能看到選擇器
+- 測試選擇器切換後頁面數據更新
+- 測試移動端顯示正常
+
+---
+
+### Task 4.2: 更新法條瀏覽頁面
+**File**: [`templates/laws.html`](../templates/laws.html)
+
+- [ ] 顯示當前選中的法律類型名稱
+- [ ] 添加法律類型篩選提示文字
+- [ ] 確保搜尋功能在當前法律類型內進行
+- [ ] 更新空狀態提示（如果該法律類型沒有法條）
+
+**Validation**:
+- 測試只顯示當前法律類型的法條
+- 測試搜尋在正確的範圍內
+
+---
+
+### Task 4.3: 更新儀表板頁面
+**File**: [`templates/dashboard.html`](../templates/dashboard.html)
+
+- [ ] 顯示當前學習的法律類型
+- [ ] 添加明顯的法律類型標識
+- [ ] 統計數據標註為當前法律類型的進度
+- [ ] 提示用戶可以在導航欄切換法律類型
+
+**Validation**:
+- 測試儀表板顯示正確的法律類型
+- 測試統計數據正確
+
+---
+
+### Task 4.4: 更新測驗配置頁面
+**File**: [`templates/quiz_config.html`](../templates/quiz_config.html)
+
+- [ ] 顯示將為哪個法律類型生成題目
+- [ ] 添加法律類型標籤或提示
+- [ ] 確保可用題目數量查詢包含 law_type
+
+**Validation**:
+- 測試配置頁面顯示正確的法律類型
+- 測試可用題目數量計算正確
+
+---
+
+### Task 4.5: 更新樣式設計
+**File**: [`static/css/style.css`](../static/css/style.css)
+
+- [ ] 添加法律類型選擇器的樣式
+- [ ] 為不同法律類型設計不同的主題色（可選）
+- [ ] 添加法律類型標籤 badge 樣式
+- [ ] 確保所有新組件響應式設計
+
+**Validation**:
+- 測試在不同螢幕尺寸下顯示正常
+- 測試深色/淺色模式兼容（如果有）
+
+---
+
+## Phase 5: 初始化與管理腳本 (Initialization Scripts)
+
+### Task 5.1: 更新現有初始化腳本
+**Files**: 
+- [`scripts/init_db.py`](../scripts/init_db.py)
+- [`scripts/init_remote_laws.py`](../scripts/init_remote_laws.py)
+
+- [ ] 確保插入法條時包含 `type="patent-act"`
+- [ ] 更新 i18n mapping 插入邏輯包含 `type`
+- [ ] 驗證腳本執行後數據格式正確
+
+**Validation**:
+- 在乾淨的數據庫執行初始化
+- 確認所有法條都有 type 欄位
+
+---
+
+### Task 5.2: 建立新法律類型初始化範本
+**File**: `scripts/init_new_law_type_template.py` (新建)
+
+- [ ] 建立範本腳本，包含：
+  - [ ] 法律類型參數配置
+  - [ ] 中英文法條解析與插入
+  - [ ] i18n mapping 建立
+  - [ ] 索引驗證
+  - [ ] 數據驗證
+- [ ] 添加詳細的使用說明註解
+- [ ] 建立對應的 README 文檔
+
+**Validation**:
+- 使用範本建立測試法律類型
+- 驗證所有數據結構正確
+
+---
+
+## Phase 6: 測試覆蓋 (Testing Coverage)
+
+### Task 6.1: 單元測試
+**File**: `test/test_multi_law_support.py` (新建)
+
+- [ ] 測試數據模型：
+  - [ ] LawModel 預設 type 值
+  - [ ] I18nMappingModel type 欄位
+- [ ] 測試 auth service：
+  - [ ] `get_current_law_type()` 各種情況
+  - [ ] `set_current_law_type()` 驗證邏輯
+  - [ ] `get_available_law_types()` 返回格式
+- [ ] 測試 inventory service：
+  - [ ] 法律類型過濾邏輯
+  - [ ] 題目計數按類型隔離
+- [ ] 執行測試：`pytest test/test_multi_law_support.py -v`
+
+---
+
+### Task 6.2: 整合測試
+**File**: `test/test_multi_law_integration.py` (新建)
+
+- [ ] 測試完整流程：
+  - [ ] 初始化兩種法律類型
+  - [ ] 切換法律類型
+  - [ ] 驗證法條列表過濾
+  - [ ] 驗證題目生成隔離
+  - [ ] 驗證統計數據隔離
+- [ ] 測試 API 端點：
+  - [ ] 法律類型管理 API
+  - [ ] 法條 API 過濾
+  - [ ] 測驗 API 過濾
+- [ ] 執行測試：`pytest test/test_multi_law_integration.py -v`
+
+---
+
+### Task 6.3: 遷移測試
+**File**: `test/test_migration_law_type.py` (新建)
+
+- [ ] 測試遷移腳本：
+  - [ ] 在測試數據庫執行遷移
+  - [ ] 驗證所有文檔更新
+  - [ ] 測試冪等性（多次執行）
+  - [ ] 測試 rollback 功能
+- [ ] 測試數據完整性：
+  - [ ] 驗證沒有孤兒題目
+  - [ ] 驗證 i18n mapping 完整
+- [ ] 執行測試：`pytest test/test_migration_law_type.py -v`
+
+---
+
+### Task 6.4: E2E 測試
+**File**: [`test/test_integration_e2e.py`](../test/test_integration_e2e.py) (更新)
+
+- [ ] 添加多法律支持的 E2E 測試場景：
+  - [ ] 用戶登入後選擇法律類型
+  - [ ] 瀏覽該法律類型的法條
+  - [ ] 開始該法律類型的測驗
+  - [ ] 切換到另一個法律類型
+  - [ ] 驗證數據完全隔離
+- [ ] 執行測試：`pytest test/test_integration_e2e.py -v`
+
+---
+
+## Phase 7: 文檔與部署 (Documentation & Deployment)
+
+### Task 7.1: 更新技術文檔
+**Files**:
+- [`README.md`](../README.md)
+- `docs/MULTI_LAW_GUIDE.md` (新建)
+
+- [ ] 更新 README：
+  - [ ] 添加多法律支持說明
+  - [ ] 更新功能列表
+  - [ ] 更新架構圖
+- [ ] 建立多法律支持指南：
+  - [ ] 架構說明
+  - [ ] 數據遷移步驟
+  - [ ] 如何添加新法律類型
+  - [ ] 故障排除指南
+
+---
+
+### Task 7.2: 建立遷移執行計劃
+**File**: `docs/MIGRATION_PLAN_LAW_TYPE.md` (新建)
+
+- [ ] 撰寫遷移計劃：
+  - [ ] Pre-flight 檢查清單
+  - [ ] 備份策略
+  - [ ] 執行步驟
+  - [ ] 驗證檢查點
+  - [ ] Rollback 程序
+  - [ ] 監控指標
+- [ ] 建立遷移時間表
+- [ ] 準備回報模板
+
+---
+
+### Task 7.3: 準備部署
+**Checklist**:
+
+- [ ] 在 staging 環境完整測試
+- [ ] 驗證所有測試通過
+- [ ] 準備數據庫備份腳本
+- [ ] 準備監控告警
+- [ ] 通知團隊成員遷移計劃
+- [ ] 準備緊急回滾計劃
+
+---
+
+### Task 7.4: 執行生產部署
+**Steps**:
+
+- [ ] 建立生產數據庫完整備份
+- [ ] 在維護時段執行遷移：
+  1. [ ] 停止影響數據的服務（可選）
+  2. [ ] 執行 `migrate_add_law_type.py --execute`
+  3. [ ] 驗證遷移結果
+  4. [ ] 部署新版本程式碼
+  5. [ ] 驗證系統功能正常
+  6. [ ] 監控錯誤日誌
+- [ ] 執行煙霧測試（smoke test）
+- [ ] 記錄部署結果
+
+---
+
+### Task 7.5: 監控與驗證
+**Post-deployment**:
+
+- [ ] 監控系統 24-48 小時
+- [ ] 檢查錯誤日誌無異常
+- [ ] 驗證用戶回饋
+- [ ] 性能指標對比
+- [ ] 記錄遇到的問題與解決方案
+
+---
+
+## Phase 8: 未來增強 (Future Enhancements)
+
+### Task 8.1: 權限控制（可選）
+- [ ] 設計用戶法律類型權限系統
+- [ ] 實作權限檢查中間件
+- [ ] 添加管理界面分配權限
+
+### Task 8.2: 批量操作工具
+- [ ] 建立法律類型批量管理工具
+- [ ] 實作法律類型匯出/匯入功能
+- [ ] 建立數據驗證工具
+
+### Task 8.3: 性能優化
+- [ ] 實作法律類型元數據緩存
+- [ ] 優化跨法律類型的查詢
+- [ ] 添加查詢性能監控
+
+---
+
+## 完成檢查清單 (Completion Checklist)
+
+### 代碼質量
+- [ ] 所有代碼通過 lint 檢查
+- [ ] 所有測試通過（單元、整合、E2E）
+- [ ] 代碼覆蓋率 > 80%
+- [ ] 無重大技術債務
+
+### 功能完整性
+- [ ] 所有現有功能正常運作
+- [ ] 法律類型切換功能完整
+- [ ] 數據完全隔離無洩漏
+- [ ] 用戶體驗流暢
+
+### 數據完整性
+- [ ] 所有現有數據遷移成功
+- [ ] 無數據丟失
+- [ ] 無孤兒記錄
+- [ ] i18n mapping 完整
+
+### 文檔完整性
+- [ ] 技術文檔完整
+- [ ] API 文檔更新
+- [ ] 遷移文檔完整
+- [ ] 故障排除指南完整
+
+### 部署準備
+- [ ] Staging 環境驗證通過
+- [ ] 備份策略已測試
+- [ ] Rollback 程序已驗證
+- [ ] 監控告警已設置
+
+---
+
+## 風險與緩解策略
+
+### 風險 1: 數據遷移失敗
+**緩解**:
+- 在測試環境多次演練
+- 準備詳細的 rollback 腳本
+- 遷移前完整備份
+
+### 風險 2: 性能下降
+**緩解**:
+- 建立適當的索引
+- 性能測試與基準對比
+- 監控查詢執行時間
+
+### 風險 3: 現有功能破壞
+**緩解**:
+- 完整的回歸測試
+- 漸進式部署
+- 特性開關控制
+
+### 風險 4: 用戶體驗混亂
+**緩解**:
+- 清晰的 UI 指示
+- 預設為專利法（現有用戶無感知）
+- 提供使用指南
+
+---
+
+## 預估時間
+
+- **Phase 1**: 數據模型與遷移 - 2-3 天
+- **Phase 2**: 核心服務層更新 - 2-3 天
+- **Phase 3**: API 路由更新 - 3-4 天
+- **Phase 4**: 前端界面更新 - 2-3 天
+- **Phase 5**: 初始化與管理腳本 - 1-2 天
+- **Phase 6**: 測試覆蓋 - 3-4 天
+- **Phase 7**: 文檔與部署 - 2-3 天
+- **Phase 8**: 未來增強 - 依需求
+
+**總計**: 約 15-22 個工作天
+
+---
+
+## 注意事項
+
+1. **向後兼容**: 所有變更必須確保現有專利法功能完全正常
+2. **數據安全**: 任何數據庫操作前必須備份
+3. **測試優先**: 先寫測試再實作功能
+4. **漸進部署**: 可以先部署後端，再部署前端
+5. **監控重點**: 重點監控查詢性能和錯誤率
+6. **用戶溝通**: 重大更新前通知用戶
+
+---
+
+## 參考資料
+
+- [`requirements.md`](requirements.md) - 功能需求文檔
+- [`design.md`](design.md) - 系統設計文檔
+- [`db/models.py`](../db/models.py) - 數據模型定義
+- [`services/auth.py`](../services/auth.py) - 認證服務
+- [`routes/laws.py`](../routes/laws.py) - 法條路由

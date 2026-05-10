@@ -17,7 +17,7 @@ from db.models import (
 )
 from services.inventory import QuestionInventory
 from services.grader import Grader
-from services.auth import login_required, get_current_user
+from services.auth import login_required, get_current_user, get_current_law_type
 
 logger = logging.getLogger(__name__)
 
@@ -69,12 +69,16 @@ def check_available_questions():
         lang = request.args.get('lang', 'zh-TW')
         if lang not in ['zh-TW', 'en', 'both']:
             return jsonify({"error": "Invalid 'lang'. Must be 'zh-TW', 'en', or 'both'"}), 400
+        
+        # Get law type (NEW for multi-law support)
+        law_type = request.args.get('law_type') or get_current_law_type()
 
         available = inventory_service.count_available_questions(
             question_type=question_type,
             session_mode=session_mode,
             lang=lang,
-            user_id=user_id
+            user_id=user_id,
+            law_type=law_type
         )
         
         logger.info(f"User {user_id}: Available questions check: type={question_type}, mode={session_mode}, available={available}")
@@ -133,24 +137,29 @@ def create_session():
         lang = data.get('lang', 'zh-TW')
         if lang not in ['zh-TW', 'en', 'both']:
             return jsonify({"error": "Invalid 'lang'. Must be 'zh-TW', 'en', or 'both'"}), 400
+        
+        # Get law type (NEW for multi-law support)
+        law_type = data.get('law_type') or get_current_law_type()
 
-        # Get questions using inventory service (pass user_id)
+        # Get questions using inventory service (pass user_id and law_type)
         questions, is_loading = inventory_service.get_session_questions(
             question_type=question_type,
             session_mode=session_mode,
             count=count,
             lang=lang,
-            user_id=user_id
+            user_id=user_id,
+            law_type=law_type
         )
         
         if not questions:
             return jsonify({"error": "Unable to fetch questions. Please try again later."}), 503
         
-        # Create session document (include user_id)
+        # Create session document (include user_id and law_type)
         session_doc = {
             "user_id": user_id,
             "type": question_type,
             "mode": session_mode,
+            "law_type": law_type,  # NEW: Store law type with session
             "question_ids": [q["_id"] for q in questions],
             "answers": [],  # Will be populated as user submits answers
             "created_at": datetime.utcnow(),

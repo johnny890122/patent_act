@@ -2,8 +2,8 @@
 
 from functools import wraps
 from flask import session, redirect, url_for, request
-from typing import Optional, Dict
-from db.models import users_collection
+from typing import Optional, Dict, List
+from db.models import users_collection, laws_collection, LAW_TYPES
 from datetime import datetime
 
 
@@ -92,3 +92,77 @@ def create_session(user: Dict) -> None:
 def clear_session() -> None:
     """Clear the current Flask session (logout)."""
     session.clear()
+
+
+# ============================================================================
+# Law Type Management (NEW for multi-law support)
+# ============================================================================
+
+def get_current_law_type() -> str:
+    """
+    Get current law type from session, default to patent-act.
+    
+    Returns:
+        str: Current law type (e.g., "patent-act")
+    """
+    return session.get('current_law_type', 'patent-act')
+
+
+def set_current_law_type(law_type: str) -> bool:
+    """
+    Set current law type in session.
+    
+    Args:
+        law_type: Law type to set (must be valid type in LAW_TYPES)
+        
+    Returns:
+        bool: True if successful, False if invalid law type
+    """
+    if law_type not in LAW_TYPES:
+        return False
+    
+    session['current_law_type'] = law_type
+    return True
+
+
+def get_available_law_types() -> List[Dict]:
+    """
+    Get list of available law types with article counts.
+    
+    Returns:
+        list: List of dicts with keys: type, name_zh, name_en, count_zh_tw, count_en
+        
+    Example:
+        [
+            {
+                "type": "patent-act",
+                "name_zh": "專利法",
+                "name_en": "Patent Law",
+                "count_zh_tw": 168,
+                "count_en": 168
+            }
+        ]
+    """
+    result = []
+    
+    for law_type, info in LAW_TYPES.items():
+        # Count articles for this law type
+        count_zh_tw = laws_collection.count_documents({
+            "type": law_type,
+            "lang": "zh-TW"
+        })
+        count_en = laws_collection.count_documents({
+            "type": law_type,
+            "lang": "en"
+        })
+        
+        result.append({
+            "type": law_type,
+            "name_zh": info["name_zh"],
+            "name_en": info["name_en"],
+            "count_zh_tw": count_zh_tw,
+            "count_en": count_en,
+            "total": count_zh_tw + count_en
+        })
+    
+    return result

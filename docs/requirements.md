@@ -1,8 +1,8 @@
-# Requirements: 專利法 AI 刷題助手
+# Requirements: 法律 AI 刷題助手
 
 ## Project Overview
-**專利法 AI 刷題助手** — A multi-user mobile-first web app for Taiwan Patent Law (專利法) exam preparation.
-Core loop: AI dynamically generates exam questions bound to specific law articles, grades short-answer responses, and tracks mastery per article for each user.
+**法律 AI 刷題助手** — A multi-user mobile-first web app for Taiwan legal exam preparation, supporting multiple law types.
+Core loop: AI dynamically generates exam questions bound to specific law articles, grades short-answer responses, and tracks mastery per article for each user. The system now supports multiple law types (e.g., Patent Law, Trademark Law, Copyright Law) with complete data isolation.
 
 ## User Persona
 - Multiple users preparing for the Taiwan Patent Law exam within a small team or organization
@@ -116,3 +116,66 @@ Core loop: AI dynamically generates exam questions bound to specific law article
  - Required fields: `username` (unique), `display_name`
  - Optional fields: `created_at`, `last_login`
  - Example: `db.users.insertOne({username: "alice", display_name: "Alice Chen"})`
+
+## 9. Multi-Law Support (NEW)
+
+### 9.1 Law Type System
+- **Story:** As a user, I want to study different types of laws (Patent Law, Trademark Law, etc.) within the same system.
+- **Scenario:**
+  - System supports multiple law types identified by `type` field (e.g., "patent-act", "trademark-act", "copyright-act")
+  - All law articles, questions, and user progress are tagged with their law type
+  - Users can switch between different law types seamlessly
+  - Each law type maintains independent content, questions, and statistics
+
+### 9.2 Law Type Selection
+- **Story:** As a user, I want to select which law I'm studying so I can focus on relevant content.
+- **Scenario:**
+  - User can see a list of available law types on the dashboard or navigation menu
+  - When selecting a law type, the system filters all content (laws, questions, statistics) by that type
+  - User's current law selection is saved in session for convenience
+  - Dashboard shows progress statistics specific to the selected law type
+
+### 9.3 Law Type Isolation
+- **Story:** As a user, I want my study data for different laws to be completely separated.
+- **Scenario:**
+  - Questions generated for Patent Law don't appear when studying Trademark Law
+  - User's mastery progress in Patent Law is independent from Trademark Law
+  - Statistics (total score, attempt count) are calculated separately per law type
+  - Starred articles are filtered by law type
+
+### 9.4 Default Law Type (Patent Law)
+- **Story:** As an existing user, I want the system to continue working with Patent Law by default after the migration.
+- **Scenario:**
+  - All existing law articles are migrated with `type = "patent-act"`
+  - All existing questions are linked to Patent Law articles
+  - New law types can be added without affecting existing data
+  - System defaults to Patent Law if no law type is explicitly selected
+
+### 9.5 Data Migration Requirements
+- **Story:** As a system administrator, I want to safely migrate existing data to support multiple law types.
+- **Scenario:**
+  - Migration script adds `type = "patent-act"` to all existing law articles
+  - All existing questions remain linked to their Patent Law articles via `law_id`
+  - User progress records are automatically associated with Patent Law through question relationships
+  - Migration is idempotent (can be run multiple times safely)
+  - Rollback procedure is documented in case of issues
+
+### 9.6 Adding New Law Types
+- **Story:** As an administrator, I want to add new law types to expand the system's coverage.
+- **Scenario:**
+  - Admin can run initialization scripts to add new law types (e.g., Trademark Law)
+  - Each new law type requires:
+    - Law articles with `type` field set (e.g., "trademark-act")
+    - Properly formatted law content (markdown or JSON)
+    - Language support (zh-TW and EN versions)
+  - System automatically creates necessary indexes for new law types
+  - Questions can be generated for new law types using the same AI pipeline
+
+### 9.7 Law Type Filtering in UI
+- **Story:** As a user, I want to see only content relevant to my selected law type.
+- **Scenario:**
+  - Law browser page shows only articles from the selected law type
+  - Quiz configuration automatically filters questions by law type
+  - Search functionality respects law type filter
+  - Law detail page shows related questions from the same law type only
+  - Dashboard statistics aggregate data for the selected law type

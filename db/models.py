@@ -7,6 +7,25 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Supported law types
+LAW_TYPES = {
+    "patent-act": {
+        "name_zh": "專利法",
+        "name_en": "Patent Law",
+        "code": "patent-act"
+    },
+    "trademark-act": {
+        "name_zh": "商標法",
+        "name_en": "Trademark Law",
+        "code": "trademark-act"
+    },
+    "copyright-act": {
+        "name_zh": "著作權法",
+        "name_en": "Copyright Law",
+        "code": "copyright-act"
+    }
+}
+
 @dataclass
 class UserModel:
     """User account for multi-user support"""
@@ -20,9 +39,9 @@ class LawModel:
     article_number: str
     content: str
     chapter: str
+    type: str = "patent-act"  # Law type identifier (patent-act, trademark-act, etc.)
     article_number_int: int = 0  # 用於排序的整數條號
     lang: str = "zh-TW"  # Language tag (zh-TW or en)
-    # REMOVED: is_starred, total_score, attempt_count, avg_score (now per-user)
 
 @dataclass
 class QuestionModel:
@@ -81,6 +100,7 @@ class I18nMappingModel:
     zh_tw_law_id: str      # ObjectId of zh-TW law
     en_law_id: str         # ObjectId of en law
     article_number: str    # Common article number (e.g., "Article 1")
+    type: str = "patent-act"  # Law type (patent-act, trademark-act, etc.)
 
 class Database:
     _instance = None
@@ -116,6 +136,10 @@ class Database:
         self.laws_collection.create_index('chapter')  # For filtering by chapter
         self.laws_collection.create_index([('article_number', 1), ('lang', 1)], unique=True)  # i18n lookup
         self.laws_collection.create_index('lang')  # For language filtering
+        # Multi-law support indexes (NEW)
+        self.laws_collection.create_index('type')  # For filtering by law type
+        self.laws_collection.create_index([('type', 1), ('lang', 1)])  # Combined filter
+        self.laws_collection.create_index([('type', 1), ('article_number_int', 1)])  # For sorted queries by type
         
         # Questions indexes (shared content)
         self.questions_collection.create_index('law_id')
@@ -174,7 +198,13 @@ class Database:
         except:
             pass
         
-        print("Database indexes initialized for multi-user support.")
+        # i18n mapping indexes - Multi-law support (NEW)
+        try:
+            self.i18n_mapping_collection.create_index([('type', 1), ('article_number', 1)], name='type_article_idx')
+        except:
+            pass  # Index might already exist
+        
+        print("Database indexes initialized for multi-user and multi-law support.")
 
 db = Database()
 

@@ -15,7 +15,7 @@ from db.models import (
     questions_collection,
     user_progress_collection
 )
-from services.auth import login_required, get_current_user
+from services.auth import login_required, get_current_user, get_current_law_type
 
 logger = logging.getLogger(__name__)
 
@@ -76,8 +76,11 @@ def get_laws():
         order = request.args.get('order', 'asc')
         search_term = request.args.get('search', '').strip()
         
+        # Get law type filter (NEW for multi-law support)
+        law_type = request.args.get('law_type') or get_current_law_type()
+        
         # Build filter
-        query_filter = {}
+        query_filter = {'type': law_type}  # Always filter by law type
         if chapter:
             query_filter['chapter'] = chapter
         if lang in ['zh-TW', 'en']:
