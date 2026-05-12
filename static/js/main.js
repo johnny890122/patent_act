@@ -96,6 +96,88 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// ==================== Law Type Management ====================
+// Get current law type from session
+async function getCurrentLawType() {
+    try {
+        const response = await fetch('/api/law-types/current');
+        if (response.ok) {
+            const data = await response.json();
+            return data.type;  // Return only the type string
+        }
+        return 'patent-act'; // Default fallback
+    } catch (error) {
+        console.error('Failed to get current law type:', error);
+        return 'patent-act';
+    }
+}
+
+// Set law type and reload page
+async function setLawType(lawType) {
+    try {
+        const response = await fetch('/api/law-types/select', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ law_type: lawType })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            showToast(`已切換到：${data.name_zh}`, 'success');
+            
+            // Reload page after a short delay to show toast
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+            return true;
+        } else {
+            const error = await response.json();
+            showToast(error.error || '切換法律類型失敗', 'error');
+            return false;
+        }
+    } catch (error) {
+        console.error('Failed to set law type:', error);
+        showToast('切換法律類型時發生錯誤', 'error');
+        return false;
+    }
+}
+
+// Update law type selector UI
+function updateLawTypeSelector(currentLawType) {
+    const selector = document.getElementById('law-type-select');
+    if (selector && currentLawType) {
+        selector.value = currentLawType;
+    }
+    
+    // Language toggle visibility: only show for patent-act (supports both zh-TW and EN)
+    // Hide for patent-examination (only has zh-TW content)
+    const langToggle = document.querySelector('.lang-toggle');
+    if (langToggle) {
+        // Show for patent-act, hide for patent-examination (works on all screen sizes)
+        langToggle.style.display = currentLawType === 'patent-act' ? 'flex' : 'none';
+    }
+}
+
+// Initialize law type selector on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    // Get and display current law type
+    const currentLawType = await getCurrentLawType();
+    updateLawTypeSelector(currentLawType);
+    
+    // Add change listener to law type selector
+    const lawTypeSelect = document.getElementById('law-type-select');
+    if (lawTypeSelect) {
+        lawTypeSelect.addEventListener('change', function() {
+            const newLawType = this.value;
+            if (newLawType !== currentLawType) {
+                setLawType(newLawType);
+            }
+        });
+    }
+});
+
 // ==================== Utilities ====================
 // Utility: Show toast notification
 function showToast(message, type = 'info') {
@@ -217,7 +299,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// ==================== Law Type Management (NEW) ====================
+// ==================== Additional Law Type Utilities ====================
 // Get available law types
 async function getLawTypes() {
     try {
@@ -229,49 +311,6 @@ async function getLawTypes() {
     } catch (error) {
         console.error('Failed to get law types:', error);
         return null;
-    }
-}
-
-// Get current law type
-async function getCurrentLawType() {
-    try {
-        const response = await fetch('/api/law-types/current');
-        if (response.ok) {
-            return await response.json();
-        }
-        return null;
-    } catch (error) {
-        console.error('Failed to get current law type:', error);
-        return null;
-    }
-}
-
-// Set current law type
-async function setLawType(lawType) {
-    try {
-        const response = await fetch('/api/law-types/select', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ law_type: lawType })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            showToast(`已切換至：${data.name_zh}`, 'success');
-            // Reload page to reflect changes
-            setTimeout(() => window.location.reload(), 500);
-            return true;
-        } else {
-            const error = await response.json();
-            showToast(error.error || '切換法律類型失敗', 'error');
-            return false;
-        }
-    } catch (error) {
-        console.error('Failed to set law type:', error);
-        showToast('切換法律類型時發生錯誤', 'error');
-        return false;
     }
 }
 

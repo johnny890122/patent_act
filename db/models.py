@@ -23,6 +23,11 @@ LAW_TYPES = {
         "name_zh": "著作權法",
         "name_en": "Copyright Law",
         "code": "copyright-act"
+    },
+    "patent-examination": {
+        "name_zh": "專利審查基準",
+        "name_en": "Patent Examination Guidelines",
+        "code": "patent-examination"
     }
 }
 

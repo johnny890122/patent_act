@@ -419,11 +419,23 @@ LAW_TYPES = {
         "name_zh": "著作權法",
         "name_en": "Copyright Law",
         "code": "copyright-act"
+    },
+    "patent-examination": {
+        "name_zh": "專利審查基準",
+        "name_en": "Patent Examination Guidelines",
+        "code": "patent-examination"
     }
 }
 ```
 
 **Default Law Type**: `"patent-act"` (for backward compatibility)
+
+**Patent Examination Guidelines**:
+- Type code: `"patent-examination"`
+- Uses the same `LawModel` schema as patent law
+- Stored in `knowledge/examination/` directory, organized by chapters (01-06)
+- Data format: JSON files containing arrays of guideline articles
+- Each article follows the same structure as patent law articles with appropriate `type` field
 
 ### 9.3 Data Migration Strategy
 
@@ -606,7 +618,102 @@ def init_trademark_law():
     print("Trademark Law initialized successfully")
 ```
 
-### 9.8 Testing Strategy
+### 9.8 Patent Examination Guidelines Initialization
+
+**Data Source**:
+- Location: `knowledge/examination/` directory
+- Structure: Organized by chapters in subdirectories (01/, 02/, 03/, 04/, 05/, 06/)
+- Format: JSON files (e.g., `1-01.json`, `1-02.json`, etc.)
+- Total files: 54 JSON files across 6 chapter directories
+
+**Initialization Script**: `scripts/init_examination_guidelines.py`
+
+```python
+#!/usr/bin/env python3
+"""
+Initialize Patent Examination Guidelines into database.
+Reads JSON files from knowledge/examination/ and inserts as law type 'patent-examination'.
+"""
+
+import os
+import json
+import glob
+from pymongo import MongoClient
+from db.models import LawModel, Database
+
+def init_examination_guidelines(mongo_uri=None):
+    """
+    Load examination guideline JSON files and insert into database.
+    
+    Args:
+        mongo_uri: MongoDB connection string (optional, uses env var if not provided)
+    """
+    db = Database()
+    laws_collection = db.laws_collection
+    
+    # Pattern to find all JSON files in examination subdirectories
+    pattern = 'knowledge/examination/*/*.json'
+    json_files = sorted(glob.glob(pattern))
+    
+    inserted_count = 0
+    updated_count = 0
+    
+    for json_file in json_files:
+        with open(json_file, 'r', encoding='utf-8') as f:
+            articles = json.load(f)
+        
+        for article in articles:
+            # Set type to patent-examination
+            article['type'] = 'patent-examination'
+            
+            # Ensure lang field is set
+            if 'lang' not in article:
+                article['lang'] = 'zh-TW'
+            
+            # Validate with LawModel
+            law_model = LawModel(**article)
+            
+            # Upsert using composite key (article_number, lang, type)
+            result = laws_collection.update_one(
+                {
+                    'article_number': law_model.article_number,
+                    'lang': law_model.lang,
+                    'type': law_model.type
+                },
+                {
+                    '$set': {
+                        'content': law_model.content,
+                        'chapter': law_model.chapter,
+                        'article_number_int': law_model.article_number_int,
+                    }
+                },
+                upsert=True
+            )
+            
+            if result.upserted_id:
+                inserted_count += 1
+            else:
+                updated_count += 1
+    
+    print(f"✅ Examination Guidelines initialized")
+    print(f"   Inserted: {inserted_count}")
+    print(f"   Updated: {updated_count}")
+    print(f"   Total files processed: {len(json_files)}")
+```
+
+**Usage**:
+```bash
+python scripts/init_examination_guidelines.py
+```
+
+**Data Validation**:
+- Verify all JSON files are valid and parseable
+- Check all required fields exist (article_number, content, chapter, article_number_int)
+- Ensure article_number_int is unique within each chapter for proper sorting
+- Validate type is set to "patent-examination"
+- Confirm lang field is properly set
+
+### 9.9 Testing Strategy
 
 **Unit Tests**:
 - Test `get_current_law_type()` with/without session data
@@ -667,6 +774,149 @@ def init_trademark_law():
 - Foreign key relationships maintained via `law_id` references
 - Prevent orphaned questions when law type is removed
 - Cascade effects documented and tested
+
+## 10. Mobile Header Responsive Layout Design
+
+### 10.1 Design Goal (REQ-010)
+
+The header currently renders all controls — logo, nav links, law-type-select, lang-toggle, username, and logout button — in a single flex row. On viewports 640px and narrower this row overflows or becomes too cramped to use. The fix reorganizes the header into two stacked rows exclusively for the mobile breakpoint, with no changes to the desktop layout.
+
+### 10.2 Two-Row Mobile Layout Structure
+
+```text
+┌─────────────────────────────────────────────┐
+│ Row 1: [📚 專利法刷題]          [logout btn] │
+├─────────────────────────────────────────────┤
+│ Row 2: [首頁] [法條瀏覽]   [law-type-select]│
+└─────────────────────────────────────────────┘
+```
+
+**Row 1** (`header-row-1`):
+
+- Left: `.logo` — unchanged appearance, `flex: 0 0 auto`
+- Right: logout icon button (`.btn-logout` inside `.user-menu`) — `flex: 0 0 auto`
+- Hidden in row 1: `.user-name` text span, `.lang-toggle`
+
+**Row 2** (`header-row-2`):
+
+- Left: `.nav` links (首頁, 法條瀏覽) — existing styles, `flex: 0 0 auto`
+- Right: `.law-type-selector` containing `#law-type-select` — `flex: 1`, full available width
+
+### 10.3 HTML Structure Change
+
+No new HTML elements are required. The two-row appearance is achieved purely with CSS by changing `.header-content` from a single `flex-row` to a `flex-wrap: wrap` or `flex-direction: column` container and reorganizing child element ordering and widths via media query.
+
+The `.header-content` element uses `flex-wrap: wrap` at mobile breakpoint. Children are assigned explicit `order` values and `width` properties:
+
+| Element | Desktop order | Mobile order | Mobile width |
+| --- | --- | --- | --- |
+| `.logo` | — | 1 | `auto` |
+| `.nav` | — | 3 | `auto` |
+| `.header-right` | — | 2 | `auto` |
+
+To achieve two distinct rows cleanly, `.logo` and `.header-right` share row 1 (they are the only items with `flex: 0` and together do not exceed 100% width), while `.nav` and `.law-type-selector` wrap to row 2.
+
+Concretely:
+
+- `.header-content`: add `flex-wrap: wrap` and `align-items: center`
+- `.logo`: `order: 1`
+- `.header-right`: `order: 2; margin-left: auto` — pushes logout button to far right of row 1
+- `.nav`: `order: 3; width: 100%; justify-content: flex-start` — forces a new row, left-aligned
+- Move `.law-type-selector` out of `.header-right` and into `.nav` row by giving `.header-right` `width: auto` and repositioning the selector
+
+Because the `.law-type-selector` currently lives inside `.header-right`, the cleanest CSS-only approach is:
+
+1. `.header-right` at mobile: hide `.user-name` and `.lang-toggle`; keep only logout button visible
+2. `.nav` at mobile: `width: 100%` to force it to row 2; add the law-type-select after nav links via CSS `order` on `.law-type-selector` placed as a sibling element, OR duplicate the select in the nav row (preferred: move `.law-type-selector` out of `.header-right` in HTML to sit between `.nav` and `.header-right` — assigning `order: 4` and `margin-left: auto` to float it right within row 2)
+
+**Recommended minimal HTML change**: Move `<div class="law-type-selector">` to be a direct child of `.header-content` (sibling of `.logo`, `.nav`, and `.header-right`), not nested inside `.header-right`. This gives CSS full control over its row assignment.
+
+### 10.4 CSS Rules (mobile breakpoint, `max-width: 640px`)
+
+```css
+@media (max-width: 640px) {
+  .header {
+    padding: 0.5rem;
+  }
+
+  .header-content {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Row 1 left */
+  .logo {
+    order: 1;
+    flex: 0 0 auto;
+  }
+
+  /* Row 1 right — logout only */
+  .header-right {
+    order: 2;
+    margin-left: auto;
+    flex: 0 0 auto;
+    gap: 0;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .lang-toggle {
+    display: none;
+  }
+
+  /* Row 2 left — nav links */
+  .nav {
+    order: 3;
+    flex: 1 1 auto;
+    justify-content: flex-start;
+    gap: 0.25rem;
+  }
+
+  /* Row 2 right — law type select */
+  .law-type-selector {
+    order: 4;
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+
+  .law-type-select {
+    min-width: unset;
+    width: auto;
+    font-size: 0.8rem;
+    padding: 0.375rem 0.5rem;
+  }
+
+  /* Ensure nav and law-type-selector together occupy a full row */
+  /* (logo + header-right fit row 1; nav + selector wrap to row 2) */
+  .nav,
+  .law-type-selector {
+    /* Combined, these are > 100% of row 1 space, forcing wrap */
+  }
+}
+```
+
+### 10.5 Element Visibility Matrix
+
+| Element | Desktop (>640px) | Mobile (<=640px) |
+| --- | --- | --- |
+| `.logo` | Visible, row 1 | Visible, row 1 |
+| `.nav` (links) | Visible, row 1 | Visible, row 2 |
+| `.law-type-selector` | Visible, row 1 (in header-right) | Visible, row 2 (direct child of header-content) |
+| `.lang-toggle` | Visible, row 1 | **Hidden** |
+| `.user-name` | Visible, row 1 | **Hidden** |
+| logout `.btn-logout` | Visible, row 1 | Visible, row 1 |
+
+### 10.6 Files Affected
+
+| File | Change |
+| --- | --- |
+| `templates/base.html` | Move `.law-type-selector` div to be a direct sibling of `.nav` and `.header-right` inside `.header-content` |
+| `static/css/style.css` | Replace existing `@media (max-width: 640px)` header block with new two-row rules |
+
+No JavaScript changes are needed. No backend changes are needed.
 
 ### 9.12 Documentation Updates
 

@@ -179,3 +179,70 @@ Core loop: AI dynamically generates exam questions bound to specific law article
   - Search functionality respects law type filter
   - Law detail page shows related questions from the same law type only
   - Dashboard statistics aggregate data for the selected law type
+
+### 9.8 Patent Examination Guidelines Support (NEW)
+- **Story:** As a user preparing for patent examiner certification, I want to study Patent Examination Guidelines alongside Patent Law.
+- **Scenario:**
+  - System supports Patent Examination Guidelines as a separate law type: `"patent-examination"`
+  - Examination guidelines are structured similarly to patent law articles with chapter hierarchy
+  - Users can switch between Patent Law and Examination Guidelines
+  - Each guideline article can have associated practice questions
+  - Progress tracking is independent between Patent Law and Examination Guidelines
+  - Search and filtering work across examination guidelines content
+
+### 9.9 Examination Guidelines Data Structure
+- **Story:** As an administrator, I want examination guidelines data to be properly structured for easy management.
+- **Scenario:**
+  - Examination guideline articles stored in `knowledge/examination/` directory
+  - Organized by chapters (01-06) in JSON format
+  - Each article contains:
+    - `article_number`: Section identifier (e.g., "1.1 文件")
+    - `article_number_int`: Integer for sorting (e.g., 1102)
+    - `chapter`: Full chapter hierarchy (e.g., "第一篇程序審查及專利權管理 第一章...")
+    - `content`: Full text content
+    - `lang`: Language tag (zh-TW)
+    - `type`: Set to "patent-examination"
+  - Initialization script imports all examination guideline articles into database
+  - Same database schema as patent law articles (uses `LawModel`)
+
+## 10. Mobile Header Responsive Layout (REQ-010)
+
+### REQ-010-001: Mobile Header Two-Row Layout
+
+- **Story:** As a user on a mobile device, I want the header to be organized and easy to use so I don't have to scroll horizontally or struggle with cramped controls.
+
+- **Acceptance Criteria:**
+  - On screens 640px wide or narrower, the header reorganizes into two rows
+  - Row 1 contains: logo on the left, logout icon button on the right
+  - Row 2 contains: nav links (首頁, 法條瀏覽) on the left, law-type-select dropdown on the right
+  - The header never causes horizontal overflow on any device 320px wide or wider
+  - All tap targets in the mobile header are at minimum 44x44px (WCAG 2.5.5 guideline)
+
+### REQ-010-002: Mobile Header Hidden Elements
+
+- **Story:** As a user on mobile, I want the header to surface only the most essential controls so the interface stays clean.
+
+- **Acceptance Criteria:**
+  - On screens 640px wide or narrower:
+    - The username text (`.user-name` span) is hidden
+    - The language toggle (`.lang-toggle`) is hidden
+  - The law-type-select dropdown remains visible and full-width in row 2
+  - The logout icon button remains visible in row 1
+
+### REQ-010-003: Desktop Header Unchanged
+
+- **Story:** As a user on desktop, I want the header to continue working exactly as it does today.
+
+- **Acceptance Criteria:**
+  - On screens wider than 640px, all existing header elements remain visible and laid out in a single row
+  - No visual regression on desktop layouts at 641px and wider
+  - Username text, lang-toggle, law-type-select, nav links, and logout button all appear in their current positions on desktop
+
+### REQ-010-004: Smooth Breakpoint Transition
+
+- **Story:** As a user who resizes the browser window, I want the header to switch cleanly between its mobile and desktop layouts without any flash or broken intermediate state.
+
+- **Acceptance Criteria:**
+  - The layout switches at exactly 640px using a CSS media query
+  - No layout jump or content overflow occurs at the breakpoint boundary
+  - The header height adjusts naturally to accommodate two rows on mobile

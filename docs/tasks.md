@@ -595,6 +595,122 @@
 
 ---
 
+## Phase 9: 專利審查基準支持 (Patent Examination Guidelines Support)
+
+### Task 9.1: 更新 LAW_TYPES 常量
+**File**: [`db/models.py`](../db/models.py)
+
+- [x] 在 `LAW_TYPES` 字典中添加 `"patent-examination"` 定義：
+  ```python
+  "patent-examination": {
+      "name_zh": "專利審查基準",
+      "name_en": "Patent Examination Guidelines",
+      "code": "patent-examination"
+  }
+  ```
+
+**Validation**:
+- 確認常量定義正確
+- 驗證系統能識別新的法律類型
+
+---
+
+### Task 9.2: 建立審查基準初始化腳本
+**File**: `scripts/init_examination_guidelines.py` (新建)
+
+- [ ] 建立初始化腳本檔案
+- [ ] 實作主要功能：
+  - [ ] 使用 `glob` 掃描 `knowledge/examination/*/*.json` 所有 JSON 檔案
+  - [ ] 逐一讀取並解析 JSON 內容
+  - [ ] 為每個條文設定 `type = "patent-examination"`
+  - [ ] 確保 `lang = "zh-TW"` 欄位存在
+  - [ ] 使用 `LawModel` 驗證資料結構
+  - [ ] 使用複合鍵 `(article_number, lang, type)` 進行 upsert
+  - [ ] 統計插入和更新數量
+- [ ] 添加命令列參數支持：
+  - [ ] `--local`: 插入到本地資料庫
+  - [ ] `--remote`: 插入到遠端資料庫
+  - [ ] `--both`: 同時插入到兩個資料庫
+  - [ ] `--dry-run`: 測試模式，不實際寫入
+- [ ] 添加詳細的日誌輸出
+- [ ] 添加錯誤處理（檔案不存在、JSON 格式錯誤等）
+
+**Validation**:
+- 在本地測試資料庫執行腳本
+- 驗證所有 54 個 JSON 檔案都被正確處理
+- 確認資料庫中的法條有正確的 `type` 和 `lang` 欄位
+- 執行 `db.laws.find({type: "patent-examination"}).count()` 驗證總數
+
+---
+
+### Task 9.3: 測試審查基準資料
+**File**: `test/test_examination_guidelines.py` (新建)
+
+- [ ] 建立測試檔案
+- [ ] 測試資料載入：
+  - [ ] 驗證所有審查基準條文正確插入
+  - [ ] 檢查資料結構完整性
+  - [ ] 確認 `type = "patent-examination"`
+  - [ ] 確認章節層級正確
+- [ ] 測試查詢功能：
+  - [ ] 依法律類型過濾查詢
+  - [ ] 依章節過濾查詢
+  - [ ] 搜尋功能測試
+  - [ ] 排序功能測試（使用 article_number_int）
+- [ ] 執行測試：`pytest test/test_examination_guidelines.py -v`
+
+---
+
+### Task 9.4: 驗證與現有系統整合
+**Checklist**:
+
+- [ ] 驗證審查基準條文可在法條瀏覽頁面顯示
+- [ ] 測試法律類型切換器能正確切換到審查基準
+- [ ] 確認審查基準條文可以生成題目
+- [ ] 驗證進度追蹤在審查基準下正常運作
+- [ ] 測試搜尋功能在審查基準範圍內正確運作
+- [ ] 確認統計數據按法律類型正確隔離
+
+---
+
+### Task 9.5: 更新文檔
+**Files**:
+- [`README.md`](../README.md)
+- `docs/EXAMINATION_GUIDELINES_SETUP.md` (新建)
+
+- [ ] 更新 README：
+  - [ ] 在支援的法律類型列表中添加審查基準
+  - [ ] 更新功能說明
+- [ ] 建立審查基準設定指南：
+  - [ ] 資料來源說明
+  - [ ] 初始化步驟
+  - [ ] 資料結構說明
+  - [ ] 常見問題處理
+
+---
+
+### Task 9.6: 執行生產部署（可選）
+**Steps**:
+
+- [ ] 在 staging 環境測試審查基準初始化
+- [ ] 建立生產資料庫備份
+- [ ] 執行 `init_examination_guidelines.py --remote`
+- [ ] 驗證生產環境資料正確
+- [ ] 監控系統運行狀態
+- [ ] 記錄部署結果
+
+---
+
+## 完成檢查清單更新 (Updated Completion Checklist)
+
+### 資料完整性（新增）
+- [ ] 所有 54 個審查基準 JSON 檔案成功載入
+- [ ] 審查基準條文總數正確（預期數百條）
+- [ ] 所有條文有正確的 `type = "patent-examination"`
+- [ ] 章節層級結構完整
+
+---
+
 ## 參考資料
 
 - [`requirements.md`](requirements.md) - 功能需求文檔
@@ -602,3 +718,4 @@
 - [`db/models.py`](../db/models.py) - 數據模型定義
 - [`services/auth.py`](../services/auth.py) - 認證服務
 - [`routes/laws.py`](../routes/laws.py) - 法條路由
+- `knowledge/examination/` - 審查基準資料來源目錄

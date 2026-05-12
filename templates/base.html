@@ -21,11 +21,24 @@
     <!-- Header -->
     <header class="header">
         <div class="header-content">
-            <a href="/" class="logo">📚 專利法刷題</a>
+            <a href="/" class="logo" title="專利法刷題">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+            </a>
             <nav class="nav">
                 <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">首頁</a>
                 <a href="/laws" class="nav-link {% if request.path.startswith('/laws') %}active{% endif %}">法條瀏覽</a>
             </nav>
+            <!-- Law Type Selector (direct child for mobile row-2 placement) -->
+            <div class="law-type-selector">
+                {% set current_law_type = session.get('current_law_type', 'patent-act') %}
+                <select id="law-type-select" class="law-type-select" title="選擇法律類型">
+                    <option value="patent-act" {% if current_law_type == 'patent-act' %}selected{% endif %}>專利法</option>
+                    <option value="patent-examination" {% if current_law_type == 'patent-examination' %}selected{% endif %}>審查基準</option>
+                </select>
+            </div>
             <div class="header-right">
                 <div class="lang-toggle">
                     <button id="lang-zh" class="lang-btn active" data-lang="zh-TW" title="切換到中文">中</button>

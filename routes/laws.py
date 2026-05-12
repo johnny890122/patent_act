@@ -328,9 +328,11 @@ def toggle_star(law_id):
 def get_chapters():
     """
     Get all chapters with law counts.
+    Filters by current law type automatically.
     
     Query Parameters:
         lang: str (optional) - Filter by language: "zh-TW" or "en"
+        law_type: str (optional) - Law type to filter (defaults to current session law_type)
     
     Response:
         {
@@ -340,10 +342,14 @@ def get_chapters():
                     "count": int
                 }
             ],
-            "total": int
+            "total": int,
+            "law_type": str
         }
     """
     try:
+        # Get law type filter (NEW for multi-law support)
+        law_type = request.args.get('law_type') or get_current_law_type()
+        
         # Get language filter
         req_lang = request.args.get('lang')
         lang = None
@@ -354,8 +360,8 @@ def get_chapters():
             elif nl in ['en', 'english']:
                 lang = 'en'
         
-        # Build filter
-        query_filter = {}
+        # Build filter - Always include law type
+        query_filter = {'type': law_type}
         if lang in ['zh-TW', 'en']:
             query_filter['lang'] = lang
         
@@ -381,11 +387,12 @@ def get_chapters():
         chapters = list(laws_collection.aggregate(pipeline))
         total = sum(chapter['count'] for chapter in chapters)
         
-        logger.info(f"Retrieved {len(chapters)} chapters with total {total} laws")
+        logger.info(f"Retrieved {len(chapters)} chapters (law_type={law_type}) with total {total} laws")
         
         return jsonify({
             "chapters": chapters,
-            "total": total
+            "total": total,
+            "law_type": law_type  # Include for debugging
         }), 200
         
     except Exception as e:
