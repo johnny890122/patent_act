@@ -35,8 +35,8 @@
             <div class="law-type-selector">
                 {% set current_law_type = session.get('current_law_type', 'patent-act') %}
                 <select id="law-type-select" class="law-type-select" title="選擇法律類型">
-                    <option value="patent-act" {% if current_law_type == 'patent-act' %}selected{% endif %}>專利法</option>
-                    <option value="patent-examination" {% if current_law_type == 'patent-examination' %}selected{% endif %}>審查基準</option>
+                    <!-- Options will be dynamically loaded by JavaScript -->
+                    <option value="">載入中...</option>
                 </select>
             </div>
             <div class="header-right">

@@ -14,20 +14,20 @@ LAW_TYPES = {
         "name_en": "Patent Law",
         "code": "patent-act"
     },
-    "trademark-act": {
-        "name_zh": "商標法",
-        "name_en": "Trademark Law",
-        "code": "trademark-act"
-    },
-    "copyright-act": {
-        "name_zh": "著作權法",
-        "name_en": "Copyright Law",
-        "code": "copyright-act"
-    },
     "patent-examination": {
         "name_zh": "專利審查基準",
         "name_en": "Patent Examination Guidelines",
         "code": "patent-examination"
+    },
+    "administrative-appeal": {
+        "name_zh": "訴願法",
+        "name_en": "Administrative Appeal Act",
+        "code": "administrative-appeal"
+    },
+    "administrative-litigation": {
+        "name_zh": "行政訴訟法",
+        "name_en": "Administrative Litigation Act",
+        "code": "administrative-litigation"
     }
 }
 
@@ -139,12 +139,21 @@ class Database:
         # Laws indexes (shared content)
         self.laws_collection.create_index('article_number_int')  # For sorting
         self.laws_collection.create_index('chapter')  # For filtering by chapter
-        self.laws_collection.create_index([('article_number', 1), ('lang', 1)], unique=True)  # i18n lookup
         self.laws_collection.create_index('lang')  # For language filtering
-        # Multi-law support indexes (NEW)
+        # Multi-law support indexes (UPDATED: article_number + lang + type for multiple law types)
         self.laws_collection.create_index('type')  # For filtering by law type
         self.laws_collection.create_index([('type', 1), ('lang', 1)])  # Combined filter
         self.laws_collection.create_index([('type', 1), ('article_number_int', 1)])  # For sorted queries by type
+        # Unique index: allows same article_number across different law types
+        try:
+            self.laws_collection.create_index(
+                [('article_number', 1), ('lang', 1), ('type', 1)],
+                unique=True,
+                name='article_number_lang_type_unique'
+            )
+        except Exception as e:
+            # Index might already exist, which is fine
+            pass
         
         # Questions indexes (shared content)
         self.questions_collection.create_index('law_id')

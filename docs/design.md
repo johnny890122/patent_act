@@ -40,12 +40,14 @@ knowledge/          ← Markdown files of 專利法 articles & mock JSON data
 
 ### 2.3 Laws Endpoints
 - `PUT /laws/:id/star`: Toggle star status for current user. **Requires login.**
+- `PUT /laws/:id/ignore`: Toggle ignore status for current user. **Requires login.**
 - `GET /laws`: Retrieve paginated laws with optional search. **Requires login.**
   - Query Parameters:
     - `page`: int (pagination)
     - `per_page`: int (items per page)
     - `chapter`: str (filter by chapter)
     - `starred`: bool (filter by starred status)
+    - `ignored`: bool (filter by ignored status)
     - `sort`: str (sort field)
     - `order`: str (asc/desc)
     - `search`: str (search by article_number or content, case-insensitive)
@@ -142,6 +144,16 @@ class UserLawStarModel:
     # Composite unique index: (user_id, law_id)
 ```
 
+**user_law_ignores (NEW)**
+```python
+@dataclass
+class UserLawIgnoreModel:
+    user_id: str           # Links to users collection
+    law_id: str            # Links to laws collection
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    # Composite unique index: (user_id, law_id)
+```
+
 **user_law_stats (NEW)**
 ```python
 @dataclass
@@ -186,6 +198,10 @@ user_progress.create_index([("user_id", 1), ("needs_review", 1)])
 # user_law_stars collection
 user_law_stars.create_index([("user_id", 1), ("law_id", 1)], unique=True)
 user_law_stars.create_index("user_id")
+
+# user_law_ignores collection
+user_law_ignores.create_index([("user_id", 1), ("law_id", 1)], unique=True)
+user_law_ignores.create_index("user_id")
 
 # user_law_stats collection
 user_law_stats.create_index([("user_id", 1), ("law_id", 1)], unique=True)
@@ -243,10 +259,11 @@ Session Types:
 **Important Change**: The `< n` synchronous generation scenario should be **prevented** by the pre-flight check. This ensures users don't get unexpected questions that don't match their selected mode (e.g., getting new questions when they selected "review" mode).
 
 ### 5.3 Multi-User Query Modifications (NEW)
-All inventory and session queries must be filtered by `user_id`:
-- **Available questions**: Filter by `user_progress.user_id == current_user_id`
-- **New questions**: `user_progress.find({ user_id: current_user_id, needs_review: false })`
-- **Review questions**: `user_progress.find({ user_id: current_user_id, needs_review: true })`
+All inventory and session queries must be filtered by `user_id` and respect user preferences (like ignored laws):
+- **Ignored Laws Filter**: Before fetching questions, retrieve the list of `law_id`s the user has ignored from `user_law_ignores`. Exclude these `law_id`s from any question selection.
+- **Available questions**: Filter by `user_progress.user_id == current_user_id` AND `law_id` NOT IN ignored laws.
+- **New questions**: `user_progress.find({ user_id: current_user_id, needs_review: false })` AND `law_id` NOT IN ignored laws.
+- **Review questions**: `user_progress.find({ user_id: current_user_id, needs_review: true })` AND `law_id` NOT IN ignored laws.
 
 ## 6. Authentication & Session Management (NEW)
 
@@ -328,30 +345,35 @@ starred_count = user_law_stars_collection.count_documents({ "user_id": user_id }
 **Quiz Session**:
 ```python
 user_id = get_current_user()
+# Get ignored law ids
+ignored_laws = [doc['law_id'] for doc in user_law_ignores.find({"user_id": user_id})]
 # Get review questions for this user
 review_questions = user_progress_collection.find({
     "user_id": user_id,
-    "needs_review": True
+    "needs_review": True,
+    "law_id": {"$nin": ignored_laws} # Note: may need a join or two-step query if law_id is not directly in user_progress unless it is
 })
 ```
 
-**Law Stars**:
+**Law Stars and Ignores**:
 ```python
 user_id = get_current_user()
 law_id = request.json['law_id']
 # Toggle star for current user only
-existing = user_law_stars_collection.find_one({
+existing_star = user_law_stars_collection.find_one({
     "user_id": user_id,
     "law_id": law_id
 })
-if existing:
-    user_law_stars_collection.delete_one({"_id": existing["_id"]})
+if existing_star:
+    user_law_stars_collection.delete_one({"_id": existing_star["_id"]})
 else:
     user_law_stars_collection.insert_one({
         "user_id": user_id,
         "law_id": law_id,
         "created_at": datetime.utcnow()
     })
+    
+# Ignore logic is similar using user_law_ignores_collection
 ```
 
 ## 8. Internationalization (i18n) Architecture
@@ -424,6 +446,16 @@ LAW_TYPES = {
         "name_zh": "專利審查基準",
         "name_en": "Patent Examination Guidelines",
         "code": "patent-examination"
+    },
+    "administrative-appeal": {
+        "name_zh": "訴願法",
+        "name_en": "Administrative Appeal Act",
+        "code": "administrative-appeal"
+    },
+    "administrative-litigation": {
+        "name_zh": "行政訴訟法",
+        "name_en": "Administrative Litigation Act",
+        "code": "administrative-litigation"
     }
 }
 ```
@@ -763,7 +795,243 @@ python scripts/init_examination_guidelines.py
 - If invalid type provided, fallback to "patent-act"
 - Log warnings for debugging but don't break user experience
 
-### 9.11 Security Considerations
+### 9.11 訴願法解析與初始化 (Administrative Appeal Act Parsing and Initialization)
+
+**資料來源**:
+- Location: `knowledge/administrative_appeal_zh.md`
+- Format: Markdown 格式，包含完整法規內容
+- Structure:
+  - 法規名稱和修正日期在文件開頭
+  - 章節標題格式: `   第 X 章 標題` (前綴3個空格)
+  - 節標題格式: `      第 X 節 標題` (前綴6個空格)
+  - 條文格式: `第 X 條` (條號) + 條文內容 (可能多段落，每段以數字標記如 "1   ", "2   ")
+- Total: 101 articles, 5 chapters
+
+**解析邏輯**: `scripts/parse_administrative_appeal.py`
+
+Key parsing functions:
+```python
+def parse_administrative_appeal_md(file_path: str) -> List[Dict]:
+    """
+    解析訴願法 markdown 文件，提取結構化法條資料
+    
+    Algorithm:
+    1. 讀取 markdown 文件
+    2. 逐行掃描，識別：
+       - 章標題: 前綴3個空格 + "第 X 章"
+       - 節標題: 前綴6個空格 + "第 X 節"
+       - 條號: "第 X 條"
+       - 條文內容: 移除行首數字標記，保留段落
+    3. 組合完整章節路徑 (chapter + section)
+    4. 生成 article_number_int 用於排序
+    5. 返回結構化法條列表
+    """
+    pass
+
+def extract_article_number(line: str) -> int:
+    """從條號行提取數字 (e.g., "第 1 條" -> 1)"""
+    pass
+
+def format_chapter_path(chapter: str, section: str) -> str:
+    """格式化完整章節路徑 (e.g., "第一章 總則 / 第一節 訴願事件")"""
+    pass
+```
+
+**初始化腳本**: `scripts/init_administrative_appeal.py`
+
+```python
+#!/usr/bin/env python3
+"""
+初始化訴願法到資料庫
+從 knowledge/administrative_appeal_zh.md 讀取並解析訴願法內容，
+插入到資料庫作為 type='administrative-appeal' 的法條。
+
+Usage:
+    python scripts/init_administrative_appeal.py --target local
+    python scripts/init_administrative_appeal.py --target remote --dry-run
+"""
+
+def init_administrative_appeal(target='local', dry_run=False):
+    """
+    初始化訴願法到資料庫
+    
+    Process:
+    1. 調用解析函數獲取法條資料
+    2. 為每個條文設定 type='administrative-appeal', lang='zh-TW'
+    3. 使用 LawModel 驗證資料結構
+    4. 使用複合鍵 (article_number, lang, type) 進行 upsert
+    5. 統計插入和更新數量
+    6. 驗證最終結果 (應有101條)
+    
+    Returns:
+        (inserted_count, updated_count, error_count)
+    """
+    pass
+```
+
+**驗證腳本**: `scripts/verify_administrative_appeal.py`
+
+```python
+def verify_administrative_appeal():
+    """
+    驗證訴願法資料完整性
+    
+    Checks:
+    1. Total article count = 101
+    2. Chapter count = 5
+    3. All required fields present (article_number, article_number_int, content, chapter, type, lang)
+    4. No empty content
+    5. article_number_int range: 1-101
+    6. All articles have type='administrative-appeal'
+    
+    Returns:
+        bool: True if all checks pass
+    """
+    pass
+```
+
+**Data Validation**:
+- Verify all 101 articles are parsed correctly
+- Check chapter distribution (5 chapters)
+- Ensure article_number_int is sequential (1-101)
+- Validate type is set to "administrative-appeal"
+
+### 9.12 行政訴訟法解析與初始化 (Administrative Litigation Act Parsing and Initialization)
+
+**資料來源**:
+- Location: `knowledge/administrative_litigation_zh.md`
+- Format: Markdown 格式，包含完整法規內容
+- Structure:
+  - 法規名稱和修正日期在文件開頭
+  - 編標題格式: `第 X 編 標題` (無前綴空格)
+  - 章節標題格式: `   第 X 章 標題` (前綴3個空格)
+  - 節標題格式: `      第 X 節 標題` (前綴6個空格)
+  - 條文格式: `第 X 條` 或 `第 X-Y 條` (支援附加條號如 3-1, 307-1)
+  - 條文內容: 可能多段落，每段以數字標記如 "1   ", "2   "
+- Total: ~308 articles, 9 editions (編), multiple chapters and sections
+
+**解析邏輯**: `scripts/parse_administrative_litigation.py`
+
+Key parsing functions:
+```python
+def parse_administrative_litigation_md(file_path: str) -> List[Dict]:
+    """
+    解析行政訴訟法 markdown 文件，提取結構化法條資料
+    
+    Algorithm:
+    1. 讀取 markdown 文件
+    2. 逐行掃描，識別：
+       - 編標題: "第 X 編" (無前綴空格)
+       - 章標題: 前綴3個空格 + "第 X 章"
+       - 節標題: 前綴6個空格 + "第 X 節"
+       - 條號: "第 X 條" 或 "第 X-Y 條"
+       - 條文內容: 移除行首數字標記，保留段落
+    3. 組合完整章節路徑 (edition + chapter + section)
+    4. 生成 article_number_int 用於排序 (支援附加條號)
+    5. 返回結構化法條列表
+    
+    Returns:
+        List[Dict]: 包含所有法條的列表，每個字典包含：
+            - article_number: 條號字串 (e.g., "第 1 條", "第 3-1 條")
+            - article_number_int: 條號整數 (e.g., 1, 3, 307)
+            - chapter: 完整章節路徑
+            - content: 條文內容
+    """
+    pass
+
+def extract_article_number(line: str) -> tuple:
+    """
+    從條號行提取數字
+    Examples:
+        "第 1 條" -> (1, "第 1 條")
+        "第 3-1 條" -> (3, "第 3-1 條")
+        "第 307-1 條" -> (307, "第 307-1 條")
+    """
+    pass
+
+def format_chapter_path(edition: str, chapter: str, section: str) -> str:
+    """
+    格式化完整章節路徑
+    Examples:
+        edition="第一編 總則", chapter="第一章 行政訴訟事件", section=""
+        -> "第一編 總則 / 第一章 行政訴訟事件"
+        
+        edition="第一編 總則", chapter="第二章 行政法院", section="第一節 管轄"
+        -> "第一編 總則 / 第二章 行政法院 / 第一節 管轄"
+    """
+    pass
+```
+
+**初始化腳本**: `scripts/init_administrative_litigation.py`
+
+```python
+#!/usr/bin/env python3
+"""
+初始化行政訴訟法到資料庫
+從 knowledge/administrative_litigation_zh.md 讀取並解析行政訴訟法內容，
+插入到資料庫作為 type='administrative-litigation' 的法條。
+
+Usage:
+    python scripts/init_administrative_litigation.py --target local
+    python scripts/init_administrative_litigation.py --target remote --dry-run
+    python scripts/init_administrative_litigation.py --target both --verbose
+"""
+
+def init_administrative_litigation(target='local', dry_run=False, verbose=False):
+    """
+    初始化行政訴訟法到資料庫
+    
+    Process:
+    1. 調用解析函數獲取法條資料
+    2. 為每個條文設定 type='administrative-litigation', lang='zh-TW'
+    3. 使用 LawModel 驗證資料結構
+    4. 使用複合鍵 (article_number, lang, type) 進行 upsert
+    5. 統計插入和更新數量
+    6. 驗證最終結果 (應有約308條)
+    
+    Args:
+        target: 'local' | 'remote' | 'both' - 目標資料庫
+        dry_run: bool - 測試模式，不實際寫入
+        verbose: bool - 詳細日誌輸出
+    
+    Returns:
+        (inserted_count, updated_count, error_count)
+    """
+    pass
+```
+
+**驗證腳本**: `scripts/verify_administrative_litigation.py`
+
+```python
+def verify_administrative_litigation():
+    """
+    驗證行政訴訟法資料完整性
+    
+    Checks:
+    1. Total article count ≈ 308 (允許附加條號的情況)
+    2. Edition count = 9
+    3. All required fields present (article_number, article_number_int, content, chapter, type, lang)
+    4. No empty content
+    5. article_number_int range: 1-308
+    6. All articles have type='administrative-litigation'
+    7. No duplicate articles (by article_number, lang, type)
+    
+    Returns:
+        bool: True if all checks pass
+    """
+    pass
+```
+
+**Data Validation**:
+- Verify all ~308 articles are parsed correctly (including compound article numbers)
+- Check edition distribution (9 editions)
+- Ensure article_number_int handles compound numbers correctly (e.g., "3-1" -> 3)
+- Validate type is set to "administrative-litigation"
+- Ensure proper chapter path formatting with 3-level hierarchy (edition/chapter/section)
+- Confirm lang field is "zh-TW"
+- Verify content is not empty for any article
+
+### 9.12 Security Considerations
 
 **Access Control**:
 - Users can only access law types they have permission for (future enhancement)

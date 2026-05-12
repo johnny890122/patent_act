@@ -144,6 +144,52 @@ async function setLawType(lawType) {
     }
 }
 
+// Load all available law types and populate selector
+async function loadLawTypes() {
+    try {
+        const response = await fetch('/api/law-types');
+        if (response.ok) {
+            const data = await response.json();
+            return data;
+        }
+        return null;
+    } catch (error) {
+        console.error('Failed to load law types:', error);
+        return null;
+    }
+}
+
+// Populate law type selector with options
+async function populateLawTypeSelector() {
+    const selector = document.getElementById('law-type-select');
+    if (!selector) return;
+    
+    const data = await loadLawTypes();
+    if (!data || !data.law_types) {
+        console.error('Failed to load law types');
+        return;
+    }
+    
+    // Clear existing options
+    selector.innerHTML = '';
+    
+    // Add options for each law type
+    data.law_types.forEach(lawType => {
+        const option = document.createElement('option');
+        option.value = lawType.type;
+        // Display: name (count_zh_tw 條)
+        option.textContent = `${lawType.name_zh} (${lawType.count_zh_tw})`;
+        selector.appendChild(option);
+    });
+    
+    // Set current selection
+    if (data.current) {
+        selector.value = data.current;
+    }
+    
+    return data.current;
+}
+
 // Update law type selector UI
 function updateLawTypeSelector(currentLawType) {
     const selector = document.getElementById('law-type-select');
@@ -152,19 +198,23 @@ function updateLawTypeSelector(currentLawType) {
     }
     
     // Language toggle visibility: only show for patent-act (supports both zh-TW and EN)
-    // Hide for patent-examination (only has zh-TW content)
+    // Hide for other law types (only have zh-TW content)
     const langToggle = document.querySelector('.lang-toggle');
     if (langToggle) {
-        // Show for patent-act, hide for patent-examination (works on all screen sizes)
+        // Show for patent-act, hide for others
         langToggle.style.display = currentLawType === 'patent-act' ? 'flex' : 'none';
     }
 }
 
 // Initialize law type selector on page load
 document.addEventListener('DOMContentLoaded', async function() {
-    // Get and display current law type
-    const currentLawType = await getCurrentLawType();
-    updateLawTypeSelector(currentLawType);
+    // Load and populate law types
+    const currentLawType = await populateLawTypeSelector();
+    
+    // Update UI based on current law type
+    if (currentLawType) {
+        updateLawTypeSelector(currentLawType);
+    }
     
     // Add change listener to law type selector
     const lawTypeSelect = document.getElementById('law-type-select');

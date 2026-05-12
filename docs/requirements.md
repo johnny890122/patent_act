@@ -59,6 +59,14 @@ Core loop: AI dynamically generates exam questions bound to specific law article
   - Clear button allows user to reset search and return to full list
   - Empty state is shown when no results are found with helpful message
 
+### 6.2 Law Article Ignore (NEW)
+- **Story:** As a user, I want to be able to mark a law article as "ignored" so that I don't get any questions generated from it.
+- **Scenario:**
+  - When viewing a law article, user sees an "ignore" button alongside the "star" button.
+  - If marked as ignored, the AI and system will not generate or fetch any questions for this specific law article for this user.
+  - User can toggle the ignore status at any time.
+  - Ignored articles are visibly different (e.g., greyed out or with a specific icon) in the law browser.
+
 ### 7. Multilingual Support (i18n)
 - **Story:** As a user, I want to view patent law articles and practice questions in both Traditional Chinese (zh-TW) and English, so I can prepare for the exam in both languages.
 - **Scenario:**
@@ -204,6 +212,66 @@ Core loop: AI dynamically generates exam questions bound to specific law article
     - `type`: Set to "patent-examination"
   - Initialization script imports all examination guideline articles into database
   - Same database schema as patent law articles (uses `LawModel`)
+
+### 9.10 訴願法支持 (Administrative Appeal Act Support)
+
+- **Story:** As a user preparing for administrative law exams, I want to study the Administrative Appeal Act alongside other laws.
+
+- **Scenario:**
+  - System supports Administrative Appeal Act as a separate law type: `"administrative-appeal"`
+  - Administrative Appeal Act is structured with 5 main chapters and 101 articles
+  - Users can switch between different law types including Administrative Appeal Act
+  - Each article can have associated practice questions
+  - Progress tracking is independent between all law types
+  - Search and filtering work across Administrative Appeal Act content
+
+### 9.11 訴願法資料結構 (Administrative Appeal Data Structure)
+
+- **Story:** As an administrator, I want Administrative Appeal Act data to be properly structured for easy management.
+
+- **Scenario:**
+  - Administrative Appeal articles stored as markdown file in `knowledge/administrative_appeal_zh.md`
+  - Organized with 5 chapters (總則、訴願審議委員會、訴願程序、再審程序、附則) and 101 articles
+  - Each article contains:
+    - `article_number`: Article identifier (e.g., "第 1 條", "第 2 條")
+    - `article_number_int`: Integer for sorting (e.g., 1, 2, 3, ..., 101)
+    - `chapter`: Full chapter hierarchy including sections (e.g., "第一章 總則 / 第一節 訴願事件")
+    - `content`: Full text content (may have multiple paragraphs)
+    - `lang`: Language tag (zh-TW)
+    - `type`: Set to "administrative-appeal"
+  - Parsing script extracts structured data from markdown format
+  - Initialization script imports all Administrative Appeal articles into database
+  - Same database schema as patent law articles (uses `LawModel`)
+
+### 9.12 行政訴訟法支持 (Administrative Litigation Act Support)
+
+- **Story:** As a user preparing for administrative law exams, I want to study the Administrative Litigation Act alongside other laws.
+
+- **Scenario:**
+  - System supports Administrative Litigation Act as a separate law type: `"administrative-litigation"`
+  - Administrative Litigation Act is structured with 9 editions (編) and approximately 308 articles
+  - Users can switch between different law types including Administrative Litigation Act
+  - Each article can have associated practice questions
+  - Progress tracking is independent between all law types
+  - Search and filtering work across Administrative Litigation Act content
+
+### 9.13 行政訴訟法資料結構 (Administrative Litigation Data Structure)
+
+- **Story:** As an administrator, I want Administrative Litigation Act data to be properly structured for easy management.
+
+- **Scenario:**
+  - Administrative Litigation articles stored as markdown file in `knowledge/administrative_litigation_zh.md`
+  - Organized with 9 editions (總則、第一審程序、上訴審程序、抗告程序、再審程序、重新審理、保全程序、強制執行、附則) and approximately 308 articles
+  - Each article contains:
+    - `article_number`: Article identifier (e.g., "第 1 條", "第 3-1 條", "第 307-1 條")
+    - `article_number_int`: Integer for sorting (e.g., 1, 3, 307, etc.)
+    - `chapter`: Full chapter hierarchy including editions, chapters, and sections (e.g., "第一編 總則 / 第一章 行政訴訟事件")
+    - `content`: Full text content (may have multiple paragraphs)
+    - `lang`: Language tag (zh-TW)
+    - `type`: Set to "administrative-litigation"
+  - Parsing script extracts structured data from markdown format with support for compound article numbers (e.g., "3-1", "307-1")
+  - Initialization script imports all Administrative Litigation articles into database
+  - Same database schema as other law types (uses `LawModel`)
 
 ## 10. Mobile Header Responsive Layout (REQ-010)
 

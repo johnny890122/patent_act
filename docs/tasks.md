@@ -701,6 +701,249 @@
 
 ---
 
+## Phase 10: 訴願法支持 (Administrative Appeal Act Support)
+
+### Task 10.1: 更新 LAW_TYPES 常量
+**File**: [`db/models.py`](../db/models.py)
+
+- [ ] 在 `LAW_TYPES` 字典中添加 `"administrative-appeal"` 定義：
+  ```python
+  "administrative-appeal": {
+      "name_zh": "訴願法",
+      "name_en": "Administrative Appeal Act",
+      "code": "administrative-appeal"
+  }
+  ```
+
+**Validation**:
+- 確認常量定義正確
+- 驗證系統能識別新的法律類型
+
+---
+
+### Task 10.2: 建立訴願法解析腳本
+**File**: `scripts/parse_administrative_appeal.py` (新建)
+
+- [ ] 建立解析腳本檔案
+- [ ] 實作主要解析函數 `parse_administrative_appeal_md()`:
+  - [ ] 讀取 markdown 文件 (`knowledge/administrative_appeal_zh.md`)
+  - [ ] 識別章標題（前綴3個空格 + "第 X 章"）
+  - [ ] 識別節標題（前綴6個空格 + "第 X 節"）
+  - [ ] 識別條號（"第 X 條"）
+  - [ ] 提取條文內容（處理多段落，移除數字前綴如 "1   ", "2   "）
+  - [ ] 生成 `article_number_int` 用於排序（從條號提取數字）
+  - [ ] 組合完整章節路徑（章 + 節，如 "第一章 總則 / 第一節 訴願事件"）
+- [ ] 實作輔助函數:
+  - [ ] `extract_article_number()`: 從條號提取數字
+  - [ ] `format_chapter_path()`: 格式化章節完整路徑
+- [ ] 添加錯誤處理（文件不存在、格式錯誤等）
+- [ ] 添加命令列支持 `--test` 參數用於測試
+- [ ] 添加詳細日誌輸出
+
+**Validation**:
+- 解析完成後應有 101 條法條
+- 驗證章節結構正確（5章）
+- 確認條文內容完整無遺漏
+- 抽查前10條、中10條、後10條內容正確性
+- 運行: `python scripts/parse_administrative_appeal.py --test`
+
+---
+
+### Task 10.3: 建立訴願法初始化腳本
+**File**: `scripts/init_administrative_appeal.py` (新建)
+
+- [ ] 建立初始化腳本檔案
+- [ ] 實作主要功能：
+  - [ ] 調用解析函數獲取法條資料
+  - [ ] 為每個條文設定 `type = "administrative-appeal"`
+  - [ ] 確保 `lang = "zh-TW"` 欄位存在
+  - [ ] 使用 `LawModel` 驗證資料結構
+  - [ ] 使用複合鍵 `(article_number, lang, type)` 進行 upsert
+  - [ ] 統計插入和更新數量
+  - [ ] 輸出詳細的操作結果
+- [ ] 添加命令列參數支持：
+  - [ ] `--target`: 選擇資料庫 (local/remote/both)
+  - [ ] `--dry-run`: 測試模式，不實際寫入
+  - [ ] `--verbose`: 詳細輸出模式
+- [ ] 添加詳細的日誌輸出
+- [ ] 添加錯誤處理和記錄機制
+
+**Validation**:
+- 在本地測試資料庫執行腳本
+- 驗證所有 101 條法條都被正確插入
+- 確認資料庫中的法條有正確的 `type` 和 `lang` 欄位
+- 執行 `db.laws.find({type: "administrative-appeal"}).count()` 驗證總數為 101
+- 檢查章節分布是否正確
+
+---
+
+### Task 10.4: 建立訴願法驗證腳本
+**File**: `scripts/verify_administrative_appeal.py` (新建)
+
+- [ ] 建立驗證腳本檔案
+- [ ] 實作驗證功能：
+  - [ ] 驗證條文總數 (應為 101 條)
+  - [ ] 驗證章節分布 (應有 5 章)
+  - [ ] 檢查必要欄位完整性 (article_number, article_number_int, content, chapter, type, lang)
+  - [ ] 驗證 `article_number_int` 範圍 (1-101)
+  - [ ] 檢查內容不為空
+  - [ ] 統計各章條文數量
+  - [ ] 驗證所有條文 `type = "administrative-appeal"`
+- [ ] 生成詳細的驗證報告
+- [ ] 如有問題，輸出具體錯誤資訊和問題條文列表
+- [ ] 添加命令列參數 `--target` 支持
+
+**Validation**:
+- 執行驗證腳本應通過所有檢查
+- 運行: `python scripts/verify_administrative_appeal.py`
+- 確認輸出報告清晰易讀
+
+---
+
+### Task 10.5: 測試訴願法資料整合
+**File**: `test/test_administrative_appeal.py` (新建)
+
+- [ ] 建立測試檔案
+- [ ] 測試解析功能：
+  - [ ] 測試 markdown 解析正確性
+  - [ ] 測試章節識別（3空格章、6空格節）
+  - [ ] 測試條文內容提取（移除數字標記）
+  - [ ] 測試 `article_number_int` 生成
+  - [ ] 測試章節路徑格式化
+- [ ] 測試資料載入：
+  - [ ] 驗證所有訴願法條文正確插入
+  - [ ] 檢查資料結構完整性
+  - [ ] 確認 `type = "administrative-appeal"`
+  - [ ] 確認章節層級正確
+  - [ ] 驗證條文數量 = 101
+- [ ] 測試查詢功能：
+  - [ ] 依法律類型過濾查詢
+  - [ ] 依章節過濾查詢
+  - [ ] 搜尋功能測試（搜尋"訴願"、"行政處分"等關鍵字）
+  - [ ] 排序功能測試（使用 article_number_int）
+- [ ] 執行測試：`pytest test/test_administrative_appeal.py -v`
+
+---
+
+### Task 10.6: 驗證與現有系統整合
+**Checklist**:
+
+- [ ] 驗證訴願法條文可在法條瀏覽頁面顯示
+- [ ] 測試法律類型切換器能正確切換到訴願法
+- [ ] 確認訴願法下拉選項顯示 "訴願法 (101)"
+- [ ] 確認訴願法條文可以生成題目
+- [ ] 驗證進度追蹤在訴願法下正常運作
+- [ ] 測試搜尋功能在訴願法範圍內正確運作
+- [ ] 確認統計數據按法律類型正確隔離
+- [ ] 驗證章節過濾功能正常（5個章節）
+- [ ] 測試法條詳情頁面顯示正確
+- [ ] 測試星標功能在訴願法下正常
+- [ ] 驗證訴願法與其他法律類型完全隔離
+
+---
+
+### Task 10.7: 更新文檔
+**Files**:
+- [`README.md`](../README.md)
+- [`docs/requirements.md`](requirements.md)
+- [`docs/design.md`](design.md)
+
+- [ ] 更新 README：
+  - [ ] 在支援的法律類型列表中添加訴願法
+  - [ ] 更新功能說明
+  - [ ] 添加訴願法初始化指令範例
+  - [ ] 更新系統截圖（如有）
+- [ ] 確認 requirements.md 已更新（已完成）
+- [ ] 確認 design.md 已更新（已完成）
+- [ ] 建立或更新 CHANGELOG（記錄訴願法新增）
+
+---
+
+### Task 10.8: 執行生產部署（可選）
+**Steps**:
+
+- [ ] 在 staging 環境測試訴願法初始化
+- [ ] 建立生產資料庫備份
+- [ ] 執行 `python scripts/init_administrative_appeal.py --target remote`
+- [ ] 執行驗證: `python scripts/verify_administrative_appeal.py --target remote`
+- [ ] 驗證生產環境資料正確
+- [ ] 測試生產環境法律類型切換正常
+- [ ] 監控系統運行狀態
+- [ ] 記錄部署結果和時間
+- [ ] 通知團隊成員新法律類型可用
+
+---
+
+### 完成檢查清單 (Administrative Appeal Completion Checklist)
+
+#### 資料完整性
+- [ ] 所有 101 條訴願法條文成功載入
+- [ ] 訴願法條文總數正確 (101 條)
+- [ ] 所有條文有正確的 `type = "administrative-appeal"`
+- [ ] 章節層級結構完整 (5章)
+- [ ] 所有條文內容不為空
+- [ ] article_number_int 範圍正確 (1-101)
+
+#### 功能完整性
+- [ ] 法律類型選擇器包含訴願法
+- [ ] 可切換到訴願法並正確顯示101條條文
+- [ ] 搜尋功能在訴願法範圍內正常
+- [ ] 可為訴願法條文生成題目
+- [ ] 進度追蹤與訴願法正確關聯
+- [ ] 章節過濾正常顯示5個章節
+
+#### 測試覆蓋
+- [ ] 解析腳本測試通過
+- [ ] 初始化腳本測試通過
+- [ ] 驗證腳本測試通過
+- [ ] 單元測試通過
+- [ ] 系統整合測試通過
+
+#### 文檔完整性
+- [ ] requirements.md 已更新
+- [ ] design.md 已更新
+- [ ] README.md 已更新
+- [ ] 實施計劃文檔存在
+
+---
+
+### 預估工時
+
+- **Task 10.1**: LAW_TYPES 更新 - 0.5 小時
+- **Task 10.2**: 解析腳本開發 - 4-6 小時
+- **Task 10.3**: 初始化腳本開發 - 2-3 小時
+- **Task 10.4**: 驗證腳本開發 - 1-2 小時
+- **Task 10.5**: 測試開發 - 2-3 小時
+- **Task 10.6**: 系統整合驗證 - 2-3 小時
+- **Task 10.7**: 文檔更新 - 1-2 小時
+- **Task 10.8**: 生產部署 - 1-2 小時
+
+**總計**: 約 14-22 小時（2-3 個工作日）
+
+---
+
+### 風險與緩解
+
+#### 風險 1: Markdown 格式解析錯誤
+**緩解策略**:
+- 先手動檢查文件格式一致性
+- 編寫健壯的解析邏輯處理邊界情況
+- 人工抽查解析結果
+
+#### 風險 2: 條文內容提取不完整
+**緩解策略**:
+- 比對原始文件與解析結果
+- 使用驗證腳本自動檢查
+- 確保多段落條文正確處理
+
+#### 風險 3: 系統整合問題
+**緩解策略**:
+- 遵循現有多法律支持架構
+- 完整的整合測試
+- 漸進式部署和驗證
+
+---
+
 ## 完成檢查清單更新 (Updated Completion Checklist)
 
 ### 資料完整性（新增）
@@ -708,6 +951,285 @@
 - [ ] 審查基準條文總數正確（預期數百條）
 - [ ] 所有條文有正確的 `type = "patent-examination"`
 - [ ] 章節層級結構完整
+
+---
+
+## Phase 11: 行政訴訟法支持 (Administrative Litigation Act Support)
+
+**目標**: 新增行政訴訟法作為系統支持的法律類型，完成資料解析、導入和驗證。
+
+**依據**: 遵循 [`docs/NEW_LAW_TYPE_SOP.md`](NEW_LAW_TYPE_SOP.md) 標準作業流程
+
+---
+
+### Task 11.1: 更新 LAW_TYPES 常量
+**File**: `db/models.py`
+
+- [ ] 在 `LAW_TYPES` 字典中添加 `"administrative-litigation"` 定義：
+  ```python
+  "administrative-litigation": {
+      "name_zh": "行政訴訟法",
+      "name_en": "Administrative Litigation Act",
+      "code": "administrative-litigation"
+  }
+  ```
+- [ ] 執行驗證確認 LAW_TYPES 更新成功：
+  ```bash
+  python -c "from db.models import LAW_TYPES; print('administrative-litigation' in LAW_TYPES)"
+  # 應輸出: True
+  ```
+
+**驗收標準**:
+- LAW_TYPES 包含新的行政訴訟法定義
+- API `/api/law-types` 能正確回傳新法律類型
+
+---
+
+### Task 11.2: 建立行政訴訟法解析腳本
+**File**: `scripts/parse_administrative_litigation.py` (新建)
+
+- [ ] 建立解析腳本檔案
+- [ ] 實作主要解析函數 `parse_administrative_litigation_md()`:
+  - [ ] 讀取 markdown 文件 (`knowledge/administrative_litigation_zh.md`)
+  - [ ] 識別編標題（"第 X 編"，無前綴空格）
+  - [ ] 識別章標題（前綴3個空格 + "第 X 章"）
+  - [ ] 識別節標題（前綴6個空格 + "第 X 節"）
+  - [ ] 提取條號（支援附加條號如 "第 3-1 條", "第 307-1 條"）
+  - [ ] 組合完整章節路徑（編/章/節）
+  - [ ] 生成 `article_number_int`（取主要數字）
+- [ ] 實作輔助函數：
+  - [ ] `extract_article_number()`: 提取條號和數字
+  - [ ] `format_chapter_path()`: 格式化三層級章節路徑
+- [ ] 添加命令列參數支持：
+  - [ ] `--test`: 測試模式，只顯示統計
+  - [ ] `--output`: 輸出 JSON 檔案路徑
+- [ ] 實作錯誤處理和日誌輸出
+
+**驗收標準**:
+- 成功解析約 308 條行政訴訟法條文
+- 章節層級結構正確（9編）
+- 正確處理附加條號（3-1, 307-1 等）
+- 抽查前10條、中10條、後10條內容正確性
+- 運行: `python scripts/parse_administrative_litigation.py --test`
+
+---
+
+### Task 11.3: 建立行政訴訟法初始化腳本
+**File**: `scripts/init_administrative_litigation.py` (新建)
+
+- [ ] 建立初始化腳本檔案
+- [ ] 實作主要初始化函數 `init_administrative_litigation()`:
+  - [ ] 調用解析函數獲取法條資料
+  - [ ] 為每個條文設定 `type = "administrative-litigation"`
+  - [ ] 確保 `lang = "zh-TW"` 欄位存在
+  - [ ] 使用 `LawModel` 驗證資料結構
+  - [ ] 使用複合鍵 `(article_number, lang, type)` 進行 upsert
+  - [ ] 統計插入和更新數量
+- [ ] 添加命令列參數：
+  - [ ] `--target`: 選擇目標資料庫 (local/remote/both)
+  - [ ] `--dry-run`: 測試模式，不實際寫入
+  - [ ] `--verbose`: 顯示詳細日誌
+- [ ] 實作錯誤處理和回滾機制
+
+**驗收標準**:
+- Dry-run 模式正常運作
+- 成功插入約 308 條法條到 local 資料庫
+- 每條法條包含所有必要欄位
+- 確認資料庫中的法條有正確的 `type` 和 `lang` 欄位
+- 執行 `db.laws.find({type: "administrative-litigation"}).count()` 驗證總數約為 308
+- 檢查編/章/節分布是否正確
+
+**測試命令**:
+```bash
+# Dry run
+python scripts/init_administrative_litigation.py --target local --dry-run --verbose
+
+# 實際執行
+python scripts/init_administrative_litigation.py --target local --verbose
+```
+
+---
+
+### Task 11.4: 建立行政訴訟法驗證腳本
+**File**: `scripts/verify_administrative_litigation.py` (新建)
+
+- [ ] 建立驗證腳本檔案
+- [ ] 實作驗證函數 `verify_administrative_litigation()`:
+  - [ ] 檢查總條數（約 308 條）
+  - [ ] 檢查編數（9 編）
+  - [ ] 驗證必要欄位完整性（6個欄位）
+  - [ ] 檢查內容不為空
+  - [ ] 驗證 `article_number_int` 範圍
+  - [ ] 統計各編條文數量
+  - [ ] 驗證所有條文 `type = "administrative-litigation"`
+  - [ ] 檢查無重複條文
+- [ ] 生成詳細的驗證報告
+- [ ] 添加支援 `--target` 參數（local/remote）
+
+**驗收標準**:
+- 所有驗證檢查通過（7/7）
+- 執行驗證腳本應通過所有檢查
+- 運行: `python scripts/verify_administrative_litigation.py`
+- 確認輸出報告清晰易讀
+
+---
+
+### Task 11.5: 系統整合驗證
+
+**前端驗證**:
+- [ ] 啟動應用: `flask run`
+- [ ] 確認法律類型選擇器包含「行政訴訟法」
+- [ ] 切換到行政訴訟法，確認條文列表正確顯示
+- [ ] 測試搜尋功能在行政訴訟法範圍內正常
+- [ ] 測試章節過濾顯示 9 個編
+- [ ] 測試分頁功能正常
+
+**API 驗證**:
+- [ ] 測試 `GET /api/law-types` 包含行政訴訟法
+- [ ] 測試 `GET /laws?type=administrative-litigation` 回傳正確數據
+- [ ] 測試 `GET /laws/<law_id>` 回傳行政訴訟法條文詳情
+
+**資料庫驗證**:
+- [ ] 確認索引正常（三欄位複合索引）
+- [ ] 執行查詢效能測試
+- [ ] 驗證資料一致性
+
+---
+
+### Task 11.6: 文檔更新
+
+- [x] 更新 `docs/requirements.md`（Section 9.12, 9.13）
+- [x] 更新 `docs/design.md`（LAW_TYPES + Section 9.12）
+- [x] 更新 `docs/tasks.md`（此 Phase 11）
+- [ ] 更新 `README.md`（如需要）
+- [ ] 建立 `docs/ADMINISTRATIVE_LITIGATION_IMPLEMENTATION_PLAN.md`（可選）
+
+---
+
+### Task 11.7: 生產環境部署（可選）
+
+**前置作業**:
+- [ ] 完成所有本地測試
+- [ ] 建立生產資料庫備份
+- [ ] 準備回滾方案
+
+**部署步驟**:
+- [ ] 執行 `python scripts/init_administrative_litigation.py --target remote --verbose`
+- [ ] 執行驗證: `python scripts/verify_administrative_litigation.py --target remote`
+- [ ] 驗證生產環境資料正確
+- [ ] 測試生產環境法律類型切換正常
+- [ ] 監控系統運行狀態
+- [ ] 記錄部署結果和時間
+- [ ] 通知團隊成員新法律類型可用
+
+---
+
+### 完成檢查清單 (Administrative Litigation Completion Checklist)
+
+#### 資料完整性
+- [ ] 所有約 308 條行政訴訟法條文成功載入
+- [ ] 條文總數正確（約 308 條，含附加條號）
+- [ ] 所有條文有正確的 `type = "administrative-litigation"`
+- [ ] 章節層級結構完整（9編，三層級：編/章/節）
+- [ ] 所有條文內容不為空
+- [ ] article_number_int 範圍正確（1-308）
+- [ ] 附加條號處理正確（如 3-1, 307-1）
+
+#### 功能完整性
+- [ ] 法律類型選擇器包含行政訴訟法
+- [ ] 可切換到行政訴訟法並正確顯示約 308 條條文
+- [ ] 搜尋功能在行政訴訟法範圍內正常
+- [ ] 可為行政訴訟法條文生成題目
+- [ ] 進度追蹤與行政訴訟法正確關聯
+- [ ] 章節過濾正常顯示 9 個編
+
+#### 測試覆蓋
+- [ ] 解析腳本測試通過
+- [ ] 初始化腳本測試通過
+- [ ] 驗證腳本測試通過
+- [ ] 系統整合測試通過
+
+#### 文檔完整性
+- [x] requirements.md 已更新
+- [x] design.md 已更新
+- [x] tasks.md 已更新
+- [ ] 實施計劃文檔存在（可選）
+
+---
+
+### 預估工時
+
+- **Task 11.1**: LAW_TYPES 更新 - 0.5 小時
+- **Task 11.2**: 解析腳本開發 - 4-6 小時
+- **Task 11.3**: 初始化腳本開發 - 2-3 小時
+- **Task 11.4**: 驗證腳本開發 - 1-2 小時
+- **Task 11.5**: 系統整合驗證 - 2-3 小時
+- **Task 11.6**: 文檔更新 - 1-2 小時
+- **Task 11.7**: 生產部署 - 1-2 小時
+
+**總計**: 約 12-19 小時（1.5-2.5 個工作日）
+
+---
+
+### 風險與緩解
+
+#### 風險 1: 附加條號解析錯誤
+**緩解策略**:
+- 特別處理附加條號格式（3-1, 307-1）
+- 測試邊界情況
+- 人工抽查附加條號解析結果
+
+#### 風險 2: 三層級章節路徑複雜度
+**緩解策略**:
+- 清晰的編/章/節識別邏輯
+- 測試各種章節組合
+- 驗證章節路徑格式正確
+
+#### 風險 3: 大量條文（308 條）處理
+**緩解策略**:
+- 批次處理和進度顯示
+- 錯誤處理和重試機制
+- 分段驗證確保資料完整性
+
+---
+
+## Phase 12: 支援法條忽略功能 (Law Article Ignore Support)
+
+### Task 11.1: 數據模型與 API 路由設定
+**文件**: 
+- `db/models.py`
+- `routes/laws.py`
+
+- [ ] 在 `db/models.py` 增加 `UserLawIgnoreModel` 和 `user_law_ignores` 集合的 indexes (`[("user_id", 1), ("law_id", 1)]`, uniqueness=True)
+- [ ] 實作 `PUT /laws/<law_id>/ignore` API:
+  - [ ] 切換法條的 ignore 狀態（針對當前登入者）
+  - [ ] 若被設定為忽略，從 `user_law_stars_collection` 移除對應的 star (可選，確保邏輯上合情理，或者兩者可並存，此處由實作者決定)
+  - [ ] 回傳新的 ignore 狀態
+- [ ] 在 `GET /laws` API 中回傳是否已被忽略（在 response payload 中附上 `is_ignored: boolean` 類似 `is_starred`）
+
+### Task 11.2: 庫存(Inventory)與題目生成服務更新
+**文件**:
+- `services/inventory.py`
+- `routes/quiz.py`
+
+- [ ] `services/inventory.py` 中的所有可用題目計算和拉取題目的查詢，都必須排除該使用者設定為忽略的 `law_id`：
+  - [ ] `count_available_questions()`
+  - [ ] `get_questions_for_session()`
+  - [ ] *注意*: MongoDB 的 `$nin` 查詢可以處理此需求，可以先拉出所有被忽略的法律 ID 陣列後再做過濾。
+- [ ] 背景出題邏輯 (`trigger_generation`) 中也應該考量忽略清單（若 AI 隨機挑選未出過題的法條出題時，應跳過被忽略的法條）。
+
+### Task 11.3: 前端 UI 實作
+**文件**:
+- `static/css/style.css`
+- `templates/laws.html`
+- `templates/law_detail.html`
+- `static/js/main.js` 或頁面內的 `<script>`
+
+- [ ] 在 `laws.html` 的法條列表與單一法條卡片上，在「星星 (Star)」按鈕旁加入一鍵「忽略 (Ignore/Eye-slash/Minus)」按鈕
+- [ ] 在 `law_detail.html` 中實作一樣的「忽略」按鈕
+- [ ] CSS: 為設定為「已忽略」的法條與按鈕設計樣式 (例如：灰色化、加上刪除線，或是不同顏色的 icon)
+- [ ] JS: 綁定 `/laws/<law_id>/ignore` 的 AJAX 呼叫並即時更新 UI 狀態
+- [ ] 測試使用者流程：忽略一個法條後，去開 quiz session，該法條的題目是否不會再出現。
 
 ---
 
