@@ -12,11 +12,14 @@ Usage:
 
 import sys
 import os
+from pymongo import MongoClient
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from db.models import Database
+# MongoDB URIs
+LOCAL_MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/patent_act')
+REMOTE_MONGO_URI = os.environ.get('REMOTE_MONGO_URI', '')
 
 
 def verify_administrative_litigation(target='local'):
@@ -34,19 +37,22 @@ def verify_administrative_litigation(target='local'):
     print("=" * 60)
     
     # 連接資料庫
-    if target == 'local':
-        db = Database()
-        collections = [('本地', db.laws_collection)]
-    elif target == 'remote':
-        db = Database()
-        db.connect_remote()
-        collections = [('遠端', db.laws_collection)]
-    elif target == 'both':
-        db_local = Database()
-        db_remote = Database()
-        db_remote.connect_remote()
-        collections = [('本地', db_local.laws_collection), ('遠端', db_remote.laws_collection)]
-    else:
+    collections = []
+    
+    if target == 'local' or target == 'both':
+        client_local = MongoClient(LOCAL_MONGO_URI)
+        db_local = client_local.get_database()
+        collections.append(('本地', db_local['laws']))
+    
+    if target == 'remote' or target == 'both':
+        if not REMOTE_MONGO_URI:
+            print(f"❌ 遠端資料庫 URI 未設定（REMOTE_MONGO_URI）")
+            return False
+        client_remote = MongoClient(REMOTE_MONGO_URI)
+        db_remote = client_remote.get_database()
+        collections.append(('遠端', db_remote['laws']))
+    
+    if not collections:
         print(f"❌ 無效的 target 參數: {target}")
         return False
     

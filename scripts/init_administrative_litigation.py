@@ -15,12 +15,17 @@ Usage:
 import sys
 import os
 from dataclasses import asdict
+from pymongo import MongoClient
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from db.models import Database, LawModel
+from db.models import LawModel
 from scripts.parse_administrative_litigation import parse_administrative_litigation_md
+
+# MongoDB URIs
+LOCAL_MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/patent_act')
+REMOTE_MONGO_URI = os.environ.get('REMOTE_MONGO_URI', '')
 
 
 def init_administrative_litigation(target='local', dry_run=False, verbose=False):
@@ -64,19 +69,25 @@ def init_administrative_litigation(target='local', dry_run=False, verbose=False)
     # 連接資料庫
     print(f"🔌 連接資料庫: {target}")
     
-    if target == 'local':
-        db = Database()
-        laws_collections = [db.laws_collection]
-    elif target == 'remote':
-        db = Database()
-        db.connect_remote()
-        laws_collections = [db.laws_collection]
-    elif target == 'both':
-        db_local = Database()
-        db_remote = Database()
-        db_remote.connect_remote()
-        laws_collections = [db_local.laws_collection, db_remote.laws_collection]
-    else:
+    laws_collections = []
+    db_names = []
+    
+    if target == 'local' or target == 'both':
+        client_local = MongoClient(LOCAL_MONGO_URI)
+        db_local = client_local.get_database()
+        laws_collections.append(db_local['laws'])
+        db_names.append('本地')
+    
+    if target == 'remote' or target == 'both':
+        if not REMOTE_MONGO_URI:
+            print(f"❌ 遠端資料庫 URI 未設定（REMOTE_MONGO_URI）")
+            return (0, 0, 1)
+        client_remote = MongoClient(REMOTE_MONGO_URI)
+        db_remote = client_remote.get_database()
+        laws_collections.append(db_remote['laws'])
+        db_names.append('遠端')
+    
+    if not laws_collections:
         print(f"❌ 無效的 target 參數: {target}")
         return (0, 0, 1)
     
@@ -84,9 +95,8 @@ def init_administrative_litigation(target='local', dry_run=False, verbose=False)
     total_updated = 0
     total_errors = 0
     
-    for db_idx, laws_collection in enumerate(laws_collections, 1):
+    for db_idx, (db_name, laws_collection) in enumerate(zip(db_names, laws_collections), 1):
         if len(laws_collections) > 1:
-            db_name = "本地" if db_idx == 1 else "遠端"
             print(f"\n📊 處理 {db_name} 資料庫...")
         
         inserted = 0
