@@ -4,6 +4,7 @@ Implements the n, 4n inventory logic with sync/async generation.
 """
 import logging
 import threading
+import random
 from typing import List, Dict, Literal, Optional
 from bson import ObjectId
 from db.models import questions_collection, user_progress_collection, laws_collection
@@ -255,8 +256,11 @@ class QuestionInventory:
                 if progress and progress.get("needs_review", False):
                     filtered_questions.append(q)
         
-        # Return up to count questions
-        result = filtered_questions[:count]
+        # Randomize question selection to ensure variety
+        if len(filtered_questions) > count:
+            result = random.sample(filtered_questions, count)
+        else:
+            result = filtered_questions
         
         # Convert ObjectId to string for JSON serialization
         for q in result:
