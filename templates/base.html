@@ -30,6 +30,7 @@
             <nav class="nav">
                 <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">首頁</a>
                 <a href="/laws" class="nav-link {% if request.path.startswith('/laws') %}active{% endif %}">法條瀏覽</a>
+                <a href="/question-bank" class="nav-link {% if request.path == '/question-bank' %}active{% endif %}">題庫</a>
             </nav>
             <!-- Law Type Selector (direct child for mobile row-2 placement) -->
             <div class="law-type-selector">

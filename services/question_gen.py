@@ -40,12 +40,14 @@ class QuestionGenerator:
             logger.warning("OPENROUTER_API_KEY is not set. Question generation will fail.")
 
     def generate_questions(
-        self, 
-        law_content: str, 
+        self,
+        law_content: str,
         law_article_number: str,
         question_type: Literal["MCQ", "ShortAnswer"],
         recent_questions: List[Dict] = None,
-        count: int = 1
+        count: int = 1,
+        law_type: str = "patent-act",
+        law_name: str = None
     ) -> List[Dict]:
         """
         Generate questions for a specific law article using OpenRouter.
@@ -56,6 +58,8 @@ class QuestionGenerator:
             question_type: Type of questions to generate ("MCQ" or "ShortAnswer")
             recent_questions: List of recent questions to avoid duplicates
             count: Number of questions to generate
+            law_type: Law type identifier (e.g., "patent-act", "administrative-appeal")
+            law_name: Law name in Chinese (e.g., "專利法", "訴願法"). If None, inferred from law_type
             
         Returns:
             List of validated question dicts
@@ -66,6 +70,11 @@ class QuestionGenerator:
         if not recent_questions:
             recent_questions = []
 
+        # Infer law name from law_type if not provided
+        if law_name is None:
+            from db.models import LAW_TYPES
+            law_name = LAW_TYPES.get(law_type, {}).get('name_zh', '專利法')
+
         # Format recent questions to avoid duplicates
         recent_qs_text = ""
         if recent_questions:
@@ -74,12 +83,15 @@ class QuestionGenerator:
                 recent_qs_text += f"- {q.get('content', '')}\n"
 
         user_prompt = f"""
-你是台灣專利法的專家。請根據以下法條生成 {count} 道 {question_type} 題目：
-法條 {law_article_number}：{law_content}
+你是台灣{law_name}的專家。請根據以下法條生成 {count} 道 {question_type} 題目：
+{law_name} {law_article_number}：{law_content}
 
 {recent_qs_text}
 
-重要：所有題目、選項、答案和解釋都必須使用繁體中文。
+重要：
+1. 所有題目、選項、答案和解釋都必須使用繁體中文
+2. 題目中提到法條時，必須使用「{law_name}」，不要使用其他法律名稱
+3. 題目應該聚焦在這條法條的內容和應用
 """
         
         system_prompt = """你是法律考試題目生成專家。

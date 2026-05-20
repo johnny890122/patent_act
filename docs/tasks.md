@@ -1233,6 +1233,47 @@ python scripts/init_administrative_litigation.py --target local --verbose
 
 ---
 
+## Phase N: 全部題庫頁面 (Question Bank Browser)
+
+### Task N.1: 後端 API — 取得全部題目
+**File**: [`routes/laws.py`](../routes/laws.py)
+
+- [ ] 在 `questions_bp` 新增 `GET /api/questions/all` endpoint
+- [ ] 接收 query params: `page`, `per_page`, `type`, `lang`, `law_type`
+- [ ] 查詢流程：
+  1. 取得 session 的 `law_type`（可被 query param 覆蓋）
+  2. 根據 `law_type` 找到對應的所有 `law_id`（`laws_collection.find({"type": law_type, "lang": lang})`）
+  3. 以 `law_id` list 為 filter 查詢 `questions_collection`（`{"law_id": {"$in": [...]}, "is_deleted": False, "lang": lang}`）
+  4. 加上 `type` filter（如有）
+  5. 分頁：`skip` + `limit`
+  6. 為每題附加 `law_info`（article_number、chapter）、`is_starred`、`last_score`（來自 `user_progress`，無則 `null`）
+- [ ] 回傳 `{ questions, total, page, per_page, total_pages }`
+
+### Task N.2: 前端路由
+**File**: [`routes/frontend.py`](../routes/frontend.py)
+
+- [ ] 新增 `GET /question-bank` 路由，render `question_bank.html`
+
+### Task N.3: 建立 `question_bank.html` 模板
+**File**: `templates/question_bank.html`
+
+- [ ] 繼承 `base.html`
+- [ ] 複製 `my_questions.html` 的結構與樣式（card、tab-nav CSS、question-card CSS、pagination）
+- [ ] 移除 starred/wrong tabs；改為顯示單一「全部題庫」標題
+- [ ] 保留題型篩選按鈕（全部 / 選擇題 / 問答題）
+- [ ] JS `loadQuestions()` 呼叫 `/api/questions/all` 而非 `/api/questions/my-questions`
+- [ ] 顯示 `last_score` 或「未作答」badge（未作答用灰色 badge）
+- [ ] 保留 star toggle（呼叫現有 `/api/quiz/questions/:id/star`）
+- [ ] 保留 law-link 點擊跳轉
+
+### Task N.4: 導航連結
+**File**: [`templates/base.html`](../templates/base.html)
+
+- [ ] 在 `<nav class="nav">` 中的「法條瀏覽」連結後面加入「題庫」連結（`href="/question-bank"`）
+- [ ] 加上 active 狀態：`{% if request.path == '/question-bank' %}active{% endif %}`
+
+---
+
 ## 參考資料
 
 - [`requirements.md`](requirements.md) - 功能需求文檔

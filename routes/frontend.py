@@ -73,3 +73,14 @@ def my_questions():
     Requires authentication.
     """
     return render_template('my_questions.html')
+
+
+@frontend_bp.route('/question-bank')
+@login_required
+def question_bank():
+    """
+    Question Bank Page
+    Display all questions in the database for the current law type.
+    Requires authentication.
+    """
+    return render_template('question_bank.html')

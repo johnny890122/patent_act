@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+
+{% block title %}全部題庫 - 專利法 AI 刷題助手{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="card">
+        <h1 style="font-size: 1.5rem; margin-bottom: 0.25rem;">全部題庫</h1>
+        <p style="color: var(--text-secondary); font-size: 0.875rem; margin: 0;">瀏覽目前法律類型下的所有題目</p>
+    </div>
+
+    <!-- Filter -->
+    <div class="card">
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-sm filter-btn active" data-filter="all">全部</button>
+            <button class="btn btn-sm filter-btn" data-filter="MCQ">選擇題</button>
+            <button class="btn btn-sm filter-btn" data-filter="ShortAnswer">問答題</button>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="loading" role="status" aria-live="polite">
+        <div class="spinner"></div>
+        <span class="sr-only">載入中...</span>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="card hidden" style="text-align: center; padding: 3rem 1rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+        <h3 style="margin-bottom: 0.5rem;">載入失敗</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">無法載入題目，請檢查網路連線</p>
+        <button id="retry-btn" class="btn btn-primary">重試</button>
+    </div>
+
+    <!-- Questions List -->
+    <div id="questions-container" class="hidden" role="region" aria-live="polite"></div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="card hidden" style="text-align: center; padding: 3rem 1rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+        <h3 style="margin-bottom: 0.5rem;">目前沒有題目</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">此法律類型尚無可用題目</p>
+        <a href="/quiz/config" class="btn btn-primary">開始答題以生成題目</a>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="card hidden" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem;">
+        <button id="prev-btn" class="btn btn-sm" disabled>← 上一頁</button>
+        <span id="page-info" style="font-size: 0.875rem; color: var(--text-secondary);">第 1 頁</span>
+        <button id="next-btn" class="btn btn-sm">下一頁 →</button>
+    </div>
+</div>
+
+<style>
+.filter-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    background: var(--surface);
+    color: var(--text-secondary);
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-btn:hover {
+    background: var(--surface-hover);
+}
+
+.filter-btn.active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+.question-card {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s;
+}
+
+.question-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 0.75rem;
+}
+
+.question-meta {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.question-content {
+    color: var(--text-primary);
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+    font-size: 0.9375rem;
+}
+
+.question-options {
+    margin: 0.5rem 0;
+    padding-left: 1rem;
+}
+
+.question-option {
+    padding: 0.25rem 0;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.correct-answer {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.question-answer-section {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.875rem;
+}
+
+.score-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-weight: 600;
+}
+
+.score-good {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.score-bad {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.score-unanswered {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.star-btn {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.25rem;
+}
+
+.question-clickable {
+    cursor: pointer;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const QUESTION_TYPES = { ALL: 'all', MCQ: 'MCQ', SHORT_ANSWER: 'ShortAnswer' };
+const PASS_THRESHOLD = 0.7;
+const PER_PAGE = 5;
+
+let currentPage = 1;
+let totalPages = 1;
+let totalCount = 0;
+let currentFilter = QUESTION_TYPES.ALL;
+let currentRequest = null;
+
+const loadingEl = document.getElementById('loading');
+const errorStateEl = document.getElementById('error-state');
+const questionsContainer = document.getElementById('questions-container');
+const emptyStateEl = document.getElementById('empty-state');
+const paginationEl = document.getElementById('pagination');
+const prevBtn = document.getElementById('prev-btn');
+const nextBtn = document.getElementById('next-btn');
+const pageInfo = document.getElementById('page-info');
+const retryBtn = document.getElementById('retry-btn');
+const filterBtns = document.querySelectorAll('.filter-btn');
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function getCorrectOptionLetter(correctAnswer) {
+    if (!correctAnswer) return null;
+    const match = correctAnswer.match(/^([A-Z])\./);
+    return match ? match[1] : null;
+}
+
+async function loadQuestions(page = 1) {
+    try {
+        if (currentRequest) currentRequest.abort();
+        currentRequest = new AbortController();
+        currentPage = page;
+        showLoading();
+
+        const currentLang = localStorage.getItem('appLang') || 'zh-TW';
+        const params = new URLSearchParams({
+            page: page.toString(),
+            per_page: PER_PAGE.toString(),
+            lang: currentLang
+        });
+        if (currentFilter !== QUESTION_TYPES.ALL) {
+            params.append('type', currentFilter);
+        }
+
+        const response = await fetch(
+            `/api/questions/all?${params.toString()}`,
+            { signal: currentRequest.signal }
+        );
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        const questions = data.questions || [];
+        totalCount = data.total || 0;
+        totalPages = data.total_pages || 1;
+
+        if (totalCount === 0) { showEmptyState(); return; }
+
+        renderQuestions(questions);
+        updatePagination();
+        showQuestions();
+    } catch (error) {
+        if (error.name === 'AbortError') return;
+        console.error('Error loading questions:', error);
+        showError();
+    } finally {
+        currentRequest = null;
+    }
+}
+
+function renderQuestions(questions) {
+    const fragment = document.createDocumentFragment();
+    questions.forEach(q => fragment.appendChild(createQuestionCard(q)));
+    questionsContainer.innerHTML = '';
+    questionsContainer.appendChild(fragment);
+}
+
+function createQuestionCard(q) {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+
+    const typeIcon = q.type === QUESTION_TYPES.MCQ ? '📝' : '✍️';
+    const typeName = q.type === QUESTION_TYPES.MCQ ? '選擇題' : '問答題';
+
+    let scoreBadgeHtml = '';
+    if (q.last_score !== null && q.last_score !== undefined) {
+        const scorePercent = Math.round(q.last_score * 100);
+        const scoreClass = q.last_score >= PASS_THRESHOLD ? 'score-good' : 'score-bad';
+        scoreBadgeHtml = `<span>·</span><span class="score-badge ${scoreClass}">得分: ${scorePercent}%</span>`;
+    } else {
+        scoreBadgeHtml = `<span>·</span><span class="score-badge score-unanswered">未作答</span>`;
+    }
+
+    let optionsHtml = '';
+    if (q.type === QUESTION_TYPES.MCQ && q.options && q.options.length > 0) {
+        const correctLetter = getCorrectOptionLetter(q.correct_answer);
+        optionsHtml = '<div class="question-options">';
+        q.options.forEach(option => {
+            const optionLetter = option.trim().charAt(0);
+            const isCorrect = correctLetter && optionLetter === correctLetter;
+            optionsHtml += `<div class="${isCorrect ? 'question-option correct-answer' : 'question-option'}">${escapeHtml(option)}</div>`;
+        });
+        optionsHtml += '</div>';
+    }
+
+    let answerHtml = '';
+    if (q.correct_answer || q.ai_explanation) {
+        answerHtml = '<div class="question-answer-section">';
+        if (q.type === QUESTION_TYPES.SHORT_ANSWER && q.correct_answer) {
+            answerHtml += `<div><strong>✓ 正確答案：</strong>${escapeHtml(q.correct_answer)}</div>`;
+        }
+        if (q.ai_explanation) {
+            answerHtml += `<div style="margin-top: 0.25rem;"><strong>說明：</strong>${escapeHtml(q.ai_explanation)}</div>`;
+        }
+        answerHtml += '</div>';
+    }
+
+    const starIcon = q.is_starred ? '⭐' : '☆';
+    const starLabel = q.is_starred ? '取消收藏' : '收藏題目';
+
+    card.innerHTML = `
+        <div class="question-header">
+            <div class="question-meta">
+                <span>${typeIcon} ${typeName}</span>
+                <span>·</span>
+                <span class="question-clickable law-link" data-law-id="${escapeHtml(q.law_id)}" style="color: var(--primary);">${escapeHtml(q.law_info.article_number)}</span>
+                ${scoreBadgeHtml}
+            </div>
+            <button class="star-btn"
+                    data-question-id="${escapeHtml(q._id)}"
+                    data-is-starred="${q.is_starred}"
+                    aria-label="${starLabel}">
+                ${starIcon}
+            </button>
+        </div>
+        <div class="question-content">${escapeHtml(q.content)}</div>
+        ${optionsHtml}
+        ${answerHtml}
+    `;
+    return card;
+}
+
+async function toggleStar(questionId, btn) {
+    try {
+        const response = await fetch(`/api/quiz/questions/${questionId}/star`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) throw new Error('Failed to toggle star');
+        const data = await response.json();
+        btn.textContent = data.is_starred ? '⭐' : '☆';
+        btn.setAttribute('data-is-starred', data.is_starred);
+        btn.setAttribute('aria-label', data.is_starred ? '取消收藏' : '收藏題目');
+        window.appUtils.showToast(data.message, 'success');
+    } catch (error) {
+        console.error('Error toggling star:', error);
+        window.appUtils.showToast('操作失敗，請稍後再試', 'error');
+    }
+}
+
+function updatePagination() {
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === totalPages;
+    pageInfo.textContent = `第 ${currentPage} / ${totalPages} 頁 (共 ${totalCount} 題)`;
+}
+
+function showLoading() {
+    loadingEl.classList.remove('hidden');
+    questionsContainer.classList.add('hidden');
+    emptyStateEl.classList.add('hidden');
+    errorStateEl.classList.add('hidden');
+    paginationEl.classList.add('hidden');
+}
+
+function showQuestions() {
+    loadingEl.classList.add('hidden');
+    questionsContainer.classList.remove('hidden');
+    emptyStateEl.classList.add('hidden');
+    errorStateEl.classList.add('hidden');
+    paginationEl.classList.remove('hidden');
+}
+
+function showEmptyState() {
+    loadingEl.classList.add('hidden');
+    questionsContainer.classList.add('hidden');
+    emptyStateEl.classList.remove('hidden');
+    errorStateEl.classList.add('hidden');
+    paginationEl.classList.add('hidden');
+}
+
+function showError() {
+    loadingEl.classList.add('hidden');
+    questionsContainer.classList.add('hidden');
+    emptyStateEl.classList.add('hidden');
+    errorStateEl.classList.remove('hidden');
+    paginationEl.classList.add('hidden');
+}
+
+questionsContainer.addEventListener('click', (e) => {
+    if (e.target.classList.contains('star-btn') || e.target.closest('.star-btn')) {
+        const btn = e.target.classList.contains('star-btn') ? e.target : e.target.closest('.star-btn');
+        toggleStar(btn.getAttribute('data-question-id'), btn);
+        return;
+    }
+    if (e.target.classList.contains('law-link')) {
+        window.location.href = `/laws/${e.target.getAttribute('data-law-id')}`;
+    }
+});
+
+filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const newFilter = btn.getAttribute('data-filter');
+        if (newFilter === currentFilter) return;
+        currentFilter = newFilter;
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadQuestions(1);
+    });
+});
+
+prevBtn.addEventListener('click', () => {
+    if (currentPage > 1) { loadQuestions(currentPage - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+});
+nextBtn.addEventListener('click', () => {
+    if (currentPage < totalPages) { loadQuestions(currentPage + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+});
+retryBtn.addEventListener('click', () => loadQuestions(currentPage));
+
+document.addEventListener('DOMContentLoaded', () => loadQuestions(1));
+</script>
+{% endblock %}

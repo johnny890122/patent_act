@@ -774,3 +774,114 @@ def get_my_questions():
     except Exception as e:
         logger.error(f"Error getting my questions: {e}")
         return jsonify({"error": "Internal server error"}), 500
+
+
+@questions_bp.route('/all', methods=['GET'])
+@login_required
+def get_all_questions():
+    """
+    Get all non-deleted questions for the current law type with pagination.
+    Requires authentication.
+
+    Query Parameters:
+        page: int (optional, default: 1)
+        per_page: int (optional, default: 5, max: 50)
+        type: str (optional) - "MCQ" or "ShortAnswer"
+        lang: str (optional, default: "zh-TW")
+        law_type: str (optional) - overrides session law type
+    """
+    try:
+        user_id_str = get_current_user()
+        if not user_id_str:
+            return jsonify({"error": "Not authenticated"}), 401
+        user_id = ObjectId(user_id_str)
+
+        page = max(1, int(request.args.get('page', 1)))
+        per_page = min(50, max(1, int(request.args.get('per_page', 5))))
+
+        question_type = request.args.get('type')
+        if question_type and question_type not in ['MCQ', 'ShortAnswer', 'all']:
+            return jsonify({"error": "Invalid type"}), 400
+
+        lang = request.args.get('lang', 'zh-TW')
+        if lang not in ['zh-TW', 'en']:
+            lang = 'zh-TW'
+
+        law_type = request.args.get('law_type') or get_current_law_type()
+
+        # Collect law_ids for the current law type and language
+        law_docs = list(laws_collection.find(
+            {"type": law_type, "lang": lang},
+            {"_id": 1}
+        ))
+        law_ids = [str(doc['_id']) for doc in law_docs]
+
+        if not law_ids:
+            return jsonify({
+                "questions": [],
+                "total": 0,
+                "page": page,
+                "per_page": per_page,
+                "total_pages": 0
+            }), 200
+
+        query_filter = {
+            "law_id": {"$in": law_ids},
+            "is_deleted": False,
+            "lang": lang
+        }
+        if question_type and question_type != 'all':
+            query_filter["type"] = question_type
+
+        total = questions_collection.count_documents(query_filter)
+        total_pages = max(1, (total + per_page - 1) // per_page)
+        skip = (page - 1) * per_page
+        questions_list = list(questions_collection.find(query_filter).skip(skip).limit(per_page))
+
+        result_questions = []
+        for q in questions_list:
+            q_id = str(q['_id'])
+            law_id = q['law_id']
+
+            law = laws_collection.find_one({"_id": ObjectId(law_id)})
+            law_info = {
+                "article_number": law.get('article_number', 'N/A') if law else 'N/A',
+                "chapter": law.get('chapter', '') if law else ''
+            }
+
+            progress = user_progress_collection.find_one({
+                "user_id": user_id,
+                "question_id": q_id
+            })
+
+            is_starred = user_question_stars_collection.find_one({
+                "user_id": user_id,
+                "question_id": q_id
+            }) is not None
+
+            result_questions.append({
+                "_id": q_id,
+                "type": q['type'],
+                "content": q['content'],
+                "correct_answer": q.get('correct_answer', ''),
+                "ai_explanation": q.get('ai_explanation', ''),
+                "options": q.get('options', []) if q['type'] == 'MCQ' else None,
+                "law_id": law_id,
+                "law_info": law_info,
+                "is_starred": is_starred,
+                "last_score": progress.get('last_score') if progress else None
+            })
+
+        logger.info(f"User {user_id}: Retrieved {len(result_questions)} questions from bank (page {page}/{total_pages})")
+
+        return jsonify({
+            "questions": result_questions,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": total_pages
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error getting all questions: {e}")
+        return jsonify({"error": "Internal server error"}), 500

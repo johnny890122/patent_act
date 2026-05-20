@@ -60,7 +60,21 @@ knowledge/          ← Markdown files of 專利法 articles & mock JSON data
     - **NEW**: All queries automatically filtered by selected law_type from session
     - Example: `/api/laws?search=發明&chapter=第二章&law_type=patent-act&page=1`
 
-### 2.4 Law Type Management Endpoints (NEW)
+### 2.4 Question Bank Endpoints (NEW)
+- `GET /api/questions/all`: Retrieve paginated list of **all** non-deleted questions for the current law type. **Requires login.**
+  - Query Parameters:
+    - `page`: int (pagination, default: 1)
+    - `per_page`: int (items per page, default: 5, max: 50)
+    - `type`: str (filter by question type: "MCQ" or "ShortAnswer"; omit for all)
+    - `lang`: str (language filter, default: "zh-TW")
+    - `law_type`: str (override; defaults to session's current law type)
+  - Response: `{ questions: [...], total, page, per_page, total_pages }`
+  - Each question object includes: `_id, type, content, correct_answer, ai_explanation, options (MCQ only), law_id, law_info { article_number, chapter }, is_starred, last_score (null if never answered)`
+  - Questions are filtered by law type via `JOIN`-equivalent: question → law article → law_type
+
+- `GET /question-bank`: Frontend route serving `question_bank.html`. **Requires login.**
+
+### 2.5 Law Type Management Endpoints (NEW)
 - `GET /api/law-types`: Get list of available law types. Returns `[{ type, name_zh, name_en, article_count }]`. **Requires login.**
 - `POST /api/law-types/select`: Set current law type in session. Parameters: `law_type`. **Requires login.**
 - `GET /api/law-types/current`: Get current selected law type from session. **Requires login.**

@@ -273,7 +273,39 @@ Core loop: AI dynamically generates exam questions bound to specific law article
   - Initialization script imports all Administrative Litigation articles into database
   - Same database schema as other law types (uses `LawModel`)
 
-## 10. Mobile Header Responsive Layout (REQ-010)
+## 10. Question Bank Browser (REQ-010)
+
+### REQ-010-001: View All Questions in Question Bank
+- **Story:** As a user, I want to browse the entire question bank so I can study all available questions, not just the ones I've already answered.
+- **Scenario:**
+  - User navigates to the "題庫" page via the navigation bar
+  - System displays all non-deleted questions for the currently selected law type
+  - Questions show the associated law article number, question type (MCQ/問答), and user's starred status
+  - If the user has previously answered the question, their last score is shown; otherwise "未作答" is shown
+  - Questions are filterable by type (全部 / 選擇題 / 問答題)
+  - Questions are paginated (5 per page)
+  - Language toggle respects the current app language setting (zh-TW or en)
+
+### REQ-010-002: Question Bank Respects Law Type Filter
+- **Story:** As a user, I want the question bank to only show questions for the law type I am currently studying.
+- **Scenario:**
+  - When the user changes the law type from the header dropdown, the question bank updates to show only questions for that law type
+  - The question count and pagination reflect only the current law type
+
+### REQ-010-003: Star Questions from Question Bank
+- **Story:** As a user, I want to star/unstar questions directly from the question bank.
+- **Scenario:**
+  - Each question card shows a star button (⭐ if starred, ☆ if not)
+  - Clicking it toggles the star status and shows a toast confirmation
+  - The star state persists when navigating away and back
+
+### REQ-010-004: Law Article Link from Question Bank
+- **Story:** As a user, I want to navigate to the source law article from a question in the question bank.
+- **Scenario:**
+  - Each question card shows the law article number as a clickable link
+  - Clicking it navigates to the law detail page for that article
+
+## 11. Mobile Header Responsive Layout (REQ-011)
 
 ### REQ-010-001: Mobile Header Two-Row Layout
 

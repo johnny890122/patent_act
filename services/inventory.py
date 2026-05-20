@@ -343,7 +343,8 @@ class QuestionInventory:
                     law_article_number=law["article_number"],
                     question_type=actual_type,
                     recent_questions=recent,
-                    count=to_generate
+                    count=to_generate,
+                    law_type=law_type  # Pass law type to ensure correct law name in prompts
                 )
                 
                 # Save to database
