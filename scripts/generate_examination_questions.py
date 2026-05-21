@@ -223,8 +223,8 @@ def main():
     parser.add_argument(
         '--count',
         type=int,
-        default=200,
-        help='要生成的題目數量（預設: 200）'
+        default=1000,
+        help='要生成的題目數量（預設: 1000）'
     )
     
     args = parser.parse_args()
